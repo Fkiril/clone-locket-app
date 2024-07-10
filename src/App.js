@@ -1,15 +1,13 @@
 import './styles/App.css';
 import React, { useState, useEffect} from 'react';
-import { auth } from './data/firebase';
-import { HashRouter, Routes, Route, Navigate} from 'react-router-dom';
-import NotFoundView from './views/not-found-view';
-import HomeView from './views/home-view';
-import AuthenticationView from './views/authentication-view';
-import ChatView from './views/chat-view';
-import Nav from './components/nav';
+import { auth } from './hooks/firebase';
+import Authentication from './components/authentication/authentication';
+import Notification from './components/notification/notification';
+import Account from './components/account/account';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [view, setView] = useState("home");
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -19,31 +17,20 @@ function App() {
   }, []);
 
   return (
-    <HashRouter>
-      <Nav></Nav> 
-
-      <Routes>
-        <Route 
-          path="/authentication"
-          element={<AuthenticationView user={user} />}>
-        </Route>
-
-        <Route 
-          path="/"
-          element={<HomeView user_name="KiriL" />}>
-        </Route>
-
-        <Route 
-          path="/chat"
-          element={<ChatView user={user}/>}>
-        </Route>
-
-        <Route 
-          path="*" 
-          element={<NotFoundView />}>
-        </Route>
-      </Routes>
-    </HashRouter>
+    <div className='app-container'>
+      { user ? (
+        <div>
+          {view !== "account" && (
+            <button onClick={() => setView("account")}>View Account</button>
+          )}
+          
+          {view === "account" && <Account user={user} setView={setView}/>}
+        </div>
+      ) : (
+        <Authentication />
+      )}
+      <Notification />
+    </div>
   );
 }
 
