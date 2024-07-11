@@ -3,7 +3,7 @@ import { auth, fs_db } from "../../hooks/firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth"; 
 import { collection, where, query, doc, setDoc, getDocs } from "firebase/firestore";
 import { toast } from "react-toastify";
-import "../../styles/authentication.css";
+import "./authentication.css";
 
 function Authentication(props) {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,18 +13,18 @@ function Authentication(props) {
     setIsLoading(true);
     const formData = new FormData(e.target);
 
-    const { username, email, password, comfirm_passowrd } = Object.fromEntries(formData);
+    const { userName, email, password, comfirmPassword } = Object.fromEntries(formData);
 
     // VALIDATE INPUTS
-    if (!username || !email || !password || !comfirm_passowrd)
+    if (!userName || !email || !password || !comfirmPassword)
       return toast.warn("Please enter inputs!");
 
-    if (password !== comfirm_passowrd)
+    if (password !== comfirmPassword)
       return toast.warn("Passwords do not match!");
 
     // VALIDATE UNIQUE USERNAME
     const usersRef = collection(fs_db, "users");
-    const q = query(usersRef, where("username", "==", username));
+    const q = query(usersRef, where("userName", "==", userName));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
       return toast.warn("Username already exists!");
@@ -34,19 +34,16 @@ function Authentication(props) {
       const res = await createUserWithEmailAndPassword(auth, email, password);
 
       await setDoc(doc(fs_db, "users", res.user.uid), {
-        username,
+        userName,
         email,
         id: res.user.uid
-      });
-
-      await setDoc(doc(fs_db, "userchats", res.user.uid), {
-        chats: [],
       });
 
       toast.success("Account created! You can login now!");
     } catch (err) {
       console.log(err);
       toast.error(err.message);
+      setIsLoading(false);
     } finally {
       setIsLoading(false);
     }
@@ -85,10 +82,10 @@ function Authentication(props) {
       <div className="item">
         <h2>Create an Account</h2>
         <form onSubmit={createAccount}>
-          <input type="text" placeholder="Username" name="username" />
+          <input type="text" placeholder="Username" name="userName" />
           <input type="text" placeholder="Email" name="email" />
           <input type="password" placeholder="Password" name="password" />
-          <input type="password" placeholder="Confirm Password" name="comfirm_passowrd" />
+          <input type="password" placeholder="Confirm Password" name="comfirmPassword" />
           <button disabled={isLoading}>{isLoading ? "Loading" : "Sign Up"}</button>
         </form>
       </div>

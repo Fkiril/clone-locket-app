@@ -2,7 +2,7 @@ import React from "react";
 import { auth } from "../../hooks/firebase";
 import { signOut } from "firebase/auth";
 import { toast } from "react-toastify";
-import "../../styles/account.css";
+import "./account.css";
 
 function Account(props) {
     const { user, setView } = props;
@@ -14,6 +14,10 @@ function Account(props) {
             console.error(error);
         }
     };
+
+    const setting = () => {
+        
+    }
 
     return (
         <>
