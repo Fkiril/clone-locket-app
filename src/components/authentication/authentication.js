@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { auth, fs_db } from "../../hooks/firebase";
+import { auth } from "../../hooks/firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth"; 
-import { collection, where, query, doc, setDoc, getDocs } from "firebase/firestore";
 import { toast } from "react-toastify";
+import { writeDoc, exitedFieldInDoc } from "../../models/firestore-method";
 import "./authentication.css";
 
 function Authentication(props) {
@@ -23,27 +23,27 @@ function Authentication(props) {
       return toast.warn("Passwords do not match!");
 
     // VALIDATE UNIQUE USERNAME
-    const usersRef = collection(fs_db, "users");
-    const q = query(usersRef, where("userName", "==", userName));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
+    if (await exitedFieldInDoc("users", "userName", userName)){
       return toast.warn("Username already exists!");
     }
 
     try {
       const res = await createUserWithEmailAndPassword(auth, email, password);
 
-      await setDoc(doc(fs_db, "users", res.user.uid), {
+      await writeDoc("users", res.user.uid, true, {
+        id: res.user.uid,
         userName,
         email,
-        id: res.user.uid
+        avatar: "",
+        friends: [],
+        blocked: [],
+        setting: []
       });
 
       toast.success("Account created! You can login now!");
     } catch (err) {
       console.log(err);
       toast.error(err.message);
-      setIsLoading(false);
     } finally {
       setIsLoading(false);
     }

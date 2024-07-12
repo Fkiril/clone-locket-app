@@ -1,4 +1,3 @@
-import './app.css';
 import React, { useState, useEffect} from 'react';
 import { auth } from '../hooks/firebase';
 import Authentication from '../components/authentication/authentication';
@@ -9,26 +8,17 @@ import { useUserStore } from '../hooks/user-store';
 function App() {
   const [view, setView] = useState("home");
   
-  // const { currentUser, isLoading, fetchUserInfo } = useUserStore();
-  // useEffect(() => {
-  //   const unSubscribe = auth.onAuthStateChanged((user) => {
-  //     fetchUserInfo(user?.uid);
-  //   });
-  //   return () => {
-  //     unSubscribe();
-  //   }
-  // }, [fetchUserInfo]);
-
-  // if (isLoading) return <div className="loading">Loading...</div>;
-
-  const [currentUser, setUser] = useState(null);
+  const { currentUser, isLoading, fetchUserInfo } = useUserStore();
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
+    const unSubscribe = auth.onAuthStateChanged((user) => {
+      fetchUserInfo(user?.uid);
     });
-    return unsubscribe;
-  }, []);
+    return () => {
+      unSubscribe();
+    }
+  }, [fetchUserInfo]);
 
+  if (isLoading) return <div className="loading">Loading...</div>;
 
   return (
     <div className='app-container'>
