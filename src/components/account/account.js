@@ -11,9 +11,9 @@ function Account(props) {
     const { setView } = props;
     const { currentUser } = useUserStore();
     
-        const [optionAvatar, setOptionAvatar] = useState(null);
-        const [optionAvatarUrl, setOptionAvatarUrl] = useState("");
-        const [avatarUrl, setAvatarUrl] = useState(currentUser.avatar);
+    const [optionAvatar, setOptionAvatar] = useState(null);
+    const [optionAvatarUrl, setOptionAvatarUrl] = useState("");
+    const [avatarUrl, setAvatarUrl] = useState(currentUser.avatar);
     
     const logOut = async () => {
         try {
@@ -33,6 +33,10 @@ function Account(props) {
     };
     
     const submitOption = async () => {
+        if (avatarUrl !== "") {
+            await deleteFile(avatarUrl);
+        }
+
         const imgUrl = await uploadToFolder(optionAvatar, "avatars"); 
         console.log(imgUrl);
         await writeDoc("users", currentUser.id, false, {
@@ -59,6 +63,10 @@ function Account(props) {
 
         setAvatarUrl("");
     };
+
+    console.log("User's data: ", currentUser);
+    console.log("avatarUrl: ", avatarUrl);
+    console.log("optionAvatarUrl: ", optionAvatarUrl);
 
     return (
         <div className="account">
