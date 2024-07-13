@@ -10,7 +10,10 @@ import { writeDoc } from "../../models/firestore-method";
 function Account(props) {
     const { setView } = props;
     const { currentUser } = useUserStore();
-    console.log("currentUser's data: ", currentUser);
+    
+        const [optionAvatar, setOptionAvatar] = useState(null);
+        const [optionAvatarUrl, setOptionAvatarUrl] = useState("");
+        const [avatarUrl, setAvatarUrl] = useState(currentUser.avatar);
     
     const logOut = async () => {
         try {
@@ -22,32 +25,39 @@ function Account(props) {
         }
     };
 
-    const [avatar, setAvatar] = useState(null);
-    const [avatarUrl, setAvatarUrl] = useState(currentUser.avatar);
-
     const handleAvatar = (event) => {
         if (event.target.files[0]) {
-            setAvatar(event.target.files[0]);
-            setAvatarUrl(URL.createObjectURL(event.target.files[0]));
+            setOptionAvatar(event.target.files[0]);
+            setOptionAvatarUrl(URL.createObjectURL(event.target.files[0]));
           }
     };
     
-    const submitAvatar = async () => {
-        const imgUrl = await uploadToFolder(avatar, "avatars"); 
+    const submitOption = async () => {
+        const imgUrl = await uploadToFolder(optionAvatar, "avatars"); 
         console.log(imgUrl);
-        setAvatarUrl(imgUrl);
         await writeDoc("users", currentUser.id, false, {
             avatar: imgUrl
         })
+        
+        setAvatarUrl(imgUrl);
+        setOptionAvatarUrl("");
     }
-    console.log("avatarUrl", avatarUrl);
+
+    const cancelOption = () => {
+        const fileInput = document.getElementById("file");
+        fileInput.value = "";
+        
+        setOptionAvatar(null);
+        setOptionAvatarUrl("");
+    }
 
     const deleteAvatar = async () => {
         await deleteFile(avatarUrl);
-        setAvatarUrl("");
         await writeDoc("users", currentUser.id, false, {
             avatar: ""
         })
+
+        setAvatarUrl("");
     };
 
     return (
@@ -64,7 +74,7 @@ function Account(props) {
             </div>
             <div className="avatar" >
                 <div className="avatar-circle" >
-                    <img src={avatarUrl || "./default_avatar.jpg"} alt="" />
+                    <img src={(optionAvatarUrl ? optionAvatarUrl : avatarUrl ) || "./default_avatar.jpg"} alt="" />
                 </div>
                 
                 <div className="avatar-button">
@@ -77,14 +87,26 @@ function Account(props) {
                                 onChange={handleAvatar}
                             />
                     </button>
+                    { optionAvatarUrl ? (
+                        <div>
+                            <button typeof="button" onClick={() => submitOption()} >
+                                Save change
+                            </button>
+                            <button typeof="button" onClick={() => cancelOption()} >
+                                Cancel
+                            </button>
+                        </div>
+                    ) : (
+                        null
+                    )}
 
-                    <button typeof="button" onClick={() => submitAvatar()} >
-                        Save change
-                    </button>
-
-                    <button typeof="button" onClick={() => deleteAvatar()} >
-                        Delete avatar
-                    </button>
+                    { avatarUrl ? (
+                        <button typeof="button" onClick={() => deleteAvatar()} >
+                            Delete avatar
+                        </button>
+                    ) : (
+                        null
+                    )}
                 </div>
             </div>
             
