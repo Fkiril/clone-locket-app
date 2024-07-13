@@ -1,9 +1,9 @@
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { storage } from "./firebase";
+import { storage } from "../hooks/firebase";
+import { getDownloadURL, ref, uploadBytesResumable, deleteObject } from "firebase/storage";
 
-const upload = async (file) => {
+const uploadToFolder = async (file, folderName) => {
   const date = new Date();
-  const storageRef = ref(storage, `images/${date + file.name}`);
+  const storageRef = ref(storage, `${folderName}/${date + file.name}`);
 
   const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -27,4 +27,14 @@ const upload = async (file) => {
   });
 };
 
-export default upload;
+const deleteFile = (fileUrl) =>  {
+  const fileRef = ref(storage, fileUrl);
+
+  return deleteObject(fileRef).then(() => {
+    console.log("File deleted successfully");
+  }).catch((error) => {
+    console.log("Something went wrong!" + error.code);
+  });
+}
+
+export { uploadToFolder, deleteFile };
