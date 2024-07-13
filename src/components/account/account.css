@@ -1,3 +1,8 @@
+.account {
+    width: 100%;
+    height: 100%;
+}
+
 .account-header {
     display: flex;
     justify-content: space-between;
