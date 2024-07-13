@@ -1,5 +1,5 @@
 import { storage } from "../hooks/firebase";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import { getDownloadURL, ref, uploadBytesResumable, deleteObject } from "firebase/storage";
 
 const uploadToFolder = async (file, folderName) => {
   const date = new Date();
@@ -27,4 +27,14 @@ const uploadToFolder = async (file, folderName) => {
   });
 };
 
-export default uploadToFolder;
+const deleteFile = (fileUrl) =>  {
+  const fileRef = ref(storage, fileUrl);
+
+  return deleteObject(fileRef).then(() => {
+    console.log("File deleted successfully");
+  }).catch((error) => {
+    console.log("Something went wrong!" + error.code);
+  });
+}
+
+export { uploadToFolder, deleteFile };

@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useUserStore } from "../../hooks/user-store";
 import { auth } from "../../hooks/firebase";
 import { signOut } from "firebase/auth";
-import uploadToFolder from "../../models/storage-method";
+import { uploadToFolder, deleteFile } from "../../models/storage-method";
 import { writeDoc } from "../../models/firestore-method";
 
 function Account(props) {
@@ -42,6 +42,14 @@ function Account(props) {
     }
     console.log("avatarUrl", avatarUrl);
 
+    const deleteAvatar = async () => {
+        await deleteFile(avatarUrl);
+        setAvatarUrl("");
+        await writeDoc("users", currentUser.id, false, {
+            avatar: ""
+        })
+    };
+
     return (
         <div className="account">
             <div className="account-header">
@@ -60,7 +68,7 @@ function Account(props) {
                 </div>
                 
                 <div className="avatar-button">
-                    <button type="button" onClick={() => document.getElementById("file").click()}>
+                    <button typeof="button" onClick={() => document.getElementById("file").click()}>
                             Change Avatar
                             <input
                                 type="file"
@@ -70,8 +78,12 @@ function Account(props) {
                             />
                     </button>
 
-                    <button type="button" onClick={() => submitAvatar()} >
+                    <button typeof="button" onClick={() => submitAvatar()} >
                         Save change
+                    </button>
+
+                    <button typeof="button" onClick={() => deleteAvatar()} >
+                        Delete avatar
                     </button>
                 </div>
             </div>
