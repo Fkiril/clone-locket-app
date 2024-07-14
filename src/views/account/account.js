@@ -2,10 +2,10 @@ import "./account.css";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useUserStore } from "../../hooks/user-store";
-import { auth } from "../../hooks/firebase";
+import { auth } from "../../models/services/firebase";
 import { signOut } from "firebase/auth";
 import { uploadToFolder, deleteFile } from "../../models/storage-method";
-import { writeDoc } from "../../models/firestore-method";
+import { writeDoc } from "../../models/utils/firestore-method";
 
 function Account(props) {
     const { setView } = props;

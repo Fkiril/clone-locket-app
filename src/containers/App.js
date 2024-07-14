@@ -1,11 +1,11 @@
 import './App.css';
 import React, { useState, useEffect} from 'react';
-import { auth } from '../hooks/firebase';
-import Authentication from '../components/authentication/authentication';
-import Notification from '../components/notification/notification';
-import Account from '../components/account/account';
+import { auth } from '../models/services/firebase';
+import Authentication from '../views/authentication/authentication';
+import Notification from '../controllers/routing/notification';
+import Account from '../views/account/account';
 import { useUserStore } from '../hooks/user-store';
-import ChatList from '../components/chat/chat-list';
+import ChatList from '../views/chat/chat-list';
 
 function App() {
   const [view, setView] = useState("home");

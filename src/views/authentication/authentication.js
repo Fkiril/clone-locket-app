@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { auth } from "../../hooks/firebase";
+import { auth } from "../../models/services/firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth"; 
 import { toast } from "react-toastify";
-import { writeDoc, exitedFieldInDoc } from "../../models/firestore-method";
+import { writeDoc, exitedFieldInDoc } from "../../models/utils/firestore-method";
 import "./authentication.css";
 
 function Authentication(props) {

@@ -1,6 +1,6 @@
 import { doc, getDoc } from "firebase/firestore";
 import { create } from "zustand";
-import { fs_db } from "./firebase";
+import { fs_db } from "../models/services/firebase";
 
 export const useUserStore = create((set) => ({
   currentUser: null,

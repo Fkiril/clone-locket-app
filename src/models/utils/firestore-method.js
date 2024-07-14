@@ -1,11 +1,12 @@
-import { fs_db } from "../hooks/firebase";
+import { fs_db } from "../services/firebase";
 import { doc, setDoc, getDoc, collection, getDocs, where, query, updateDoc } from "firebase/firestore";
 
-const writeDoc = async (collectionName, docName, isNew, data) => {
-    if (isNew) {
-        await setDoc(doc(fs_db, collectionName, docName), data);
-    } else {
+const writeDoc = async (collectionName, docName, updateFlag, data) => {
+    
+    if (updateFlag) {
         await updateDoc(doc(fs_db, collectionName, docName), data);
+    } else {
+        await setDoc(doc(fs_db, collectionName, docName), data);
     }
 };
 

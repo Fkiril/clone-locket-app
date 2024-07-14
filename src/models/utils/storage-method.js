@@ -1,5 +1,6 @@
-import { storage } from "../hooks/firebase";
+import { storage } from "../services/firebase";
 import { getDownloadURL, ref, uploadBytesResumable, deleteObject } from "firebase/storage";
+import { toast } from "react-toastify";
 
 const uploadToFolder = async (file, folderName) => {
   const date = new Date();
@@ -33,7 +34,11 @@ const deleteFile = (fileUrl) =>  {
   return deleteObject(fileRef).then(() => {
     console.log("File deleted successfully");
   }).catch((error) => {
-    console.log("Something went wrong!" + error.code);
+    // throw new Error("DELETE_OBJECT_ERROR");
+    const newError = new Error("Something went wrong!" + error.code);
+    newError.code = "STORAGE/DELETE_OBJECT_ERROR";
+    console.log(newError.message);
+    throw newError;
   });
 }
 
