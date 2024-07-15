@@ -1,12 +1,13 @@
-import { fs_db } from "../hooks/firebase";
+import { fs_db } from "../services/firebase";
 import { doc, setDoc, getDoc, collection, getDocs, where, query, updateDoc } from "firebase/firestore";
 
-const writeDoc = async (collectionName, docName, isNew, data) => {
-    if (isNew) {
-        await setDoc(doc(fs_db, collectionName, docName), data);
+const writeDoc = async (colName, docName, updateFlag, data) => {
+    if (updateFlag) {
+        await updateDoc(doc(fs_db, colName, docName), data);
     } else {
-        await updateDoc(doc(fs_db, collectionName, docName), data);
+        await setDoc(doc(fs_db, colName, docName), data);
     }
+    console.log(`writeDoc successfully at: ${colName}/${docName} with data:`, data);
 };
 
 const exitedValueInDoc = async (collectionName, fieldName, data) => {
@@ -28,4 +29,4 @@ const exitedDoc = async (collectionName, docName) => {
     return false;
 }
 
-export { writeDoc, exitedValueInDoc as exitedFieldInDoc, exitedDoc };
+export { writeDoc, exitedValueInDoc, exitedDoc };

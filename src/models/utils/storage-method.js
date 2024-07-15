@@ -1,4 +1,4 @@
-import { storage } from "../hooks/firebase";
+import { storage } from "../services/firebase";
 import { getDownloadURL, ref, uploadBytesResumable, deleteObject } from "firebase/storage";
 
 const uploadToFolder = async (file, folderName) => {
@@ -16,7 +16,12 @@ const uploadToFolder = async (file, folderName) => {
         console.log("Upload is " + progress + "% done");
       },
       (error) => {
-        reject("Something went wrong!" + error.code);
+        reject(() => {
+          const newError = new Error("Something went wrong!" + error.code);
+          console.log(newError.message);
+          newError.code = "STORAGE/UPLOAD_BYTES_RESUMABLE_ERROR";
+          throw newError;
+        });
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
@@ -27,13 +32,17 @@ const uploadToFolder = async (file, folderName) => {
   });
 };
 
-const deleteFile = (fileUrl) =>  {
+const deleteFile = async (fileUrl) =>  {
   const fileRef = ref(storage, fileUrl);
 
   return deleteObject(fileRef).then(() => {
     console.log("File deleted successfully");
   }).catch((error) => {
-    console.log("Something went wrong!" + error.code);
+    // throw new Error("DELETE_OBJECT_ERROR");
+    const newError = new Error("Something went wrong!" + error.code);
+    newError.code = "STORAGE/DELETE_OBJECT_ERROR";
+    console.log(newError.message);
+    throw newError;
   });
 }
 
