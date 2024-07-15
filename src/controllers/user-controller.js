@@ -1,55 +1,71 @@
-import React from "react";
-import { uploadToFolder, deleteFile } from "../services/file-service";
+import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
 import { writeDoc } from "../models/utils/firestore-method";
-import { useUserStore } from "../hooks/user-store";
 import { toast } from "react-toastify";
 
-class UserController extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            user: null
-        };
+export default class UserController {
+    constructor(user) {
+        this.user = user;
     }
 
-    getCurrentUser() {
-        const { currentUser } = useUserStore();
-        this.user = currentUser;
+    async changePassword(newPassword) {
+        try {
+            await writeDoc("users", this.user.id, true, {
+                password: newPassword
+            });
+        } catch(error) {
+            toast.error("Something went wrong. Please try again!");
+        }
     };
 
-    changePassword(newPassword) {};
-
     async changeAvatar(newAvatar) {
-        if (this.user.avatar !== "") {
-            await deleteFile(this.user.avatar);
+        try {
+            if (this.user.avatar !== "") {
+                await deleteFile(this.user.avatar);
+            }
+    
+            const imgUrl = await uploadToFolder(newAvatar, "avatars");
+            await writeDoc("users", this.user.id, true, {
+                avatar: imgUrl
+            });
+            this.user.avatar = imgUrl;
+            return imgUrl;
+        } catch(error) {
+            if (error.code === "STORAGE/DELETE_OBJECT_ERROR") {
+                toast.error("Failed to delete avatar. Please try again!");
+            }
+            else if (error.code === "STORAGE/UPLOAD_BYTES_RESUMABLE_ERROR") {
+                toast.error("Failed to upload avatar. Please try again!");
+            }
+            else {
+                toast.error("Something went wrong. Please try again!");
+                console.log(error);
+            }
         }
-
-        const imgUrl = await uploadToFolder(newAvatar, "avatars");
-        await writeDoc("users", this.user.id, true, {
-            avatar: imgUrl
-        });
     };
 
     async deleteAvatar() {
         try {
-            await deleteFile(currentUser.avatar);
+            await deleteFile(this.user.avatar);
             await writeDoc("users", this.user.id, true, {
                 avatar: ""
             });
         } catch(error) {
             if (error.code === "STORAGE/DELETE_OBJECT_ERROR") {
-                toast.warn("Failed to delete avatar. Please try again!");
+                toast.error("Failed to delete avatar. Please try again!");
+            }
+            else {
+                toast.error("Something went wrong. Please try again!");
             }
         }
     }
 
-    changeUserName(newPassword) {
-
+    async changeUserName(newUserName) {
+        try {
+            await writeDoc("users", this.user.id, true, {
+                userName: newUserName
+            })
+        } catch(error) {
+            toast.error("Something went wrong. Please try again!");
+        }
     };
-
-    render() {
-        return (
-            <UserView />
-        );
-    }
 }

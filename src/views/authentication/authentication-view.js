@@ -1,8 +1,10 @@
+import "./authentication-view.css";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AuthenticationController from "../../controllers/authentication-controller";
-import "./authentication.css";
 
 export default function AuthenticationView() {
+    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
 
     const _logIn = async (e) => {
@@ -14,6 +16,8 @@ export default function AuthenticationView() {
         await AuthenticationController.logIn(email, password);
 
         setIsLoading(false);
+
+        navigate("/home");
     }
 
     const _createAccount = async (e) => {
@@ -28,7 +32,7 @@ export default function AuthenticationView() {
     }
     
     return (
-        <div className="login">
+        <div className="authentication">
             <div className="item">
                 <h2>Welcome back</h2>
                 <form onSubmit={_logIn}>

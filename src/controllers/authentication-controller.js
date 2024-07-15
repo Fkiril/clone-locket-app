@@ -1,20 +1,12 @@
-import React from "react";
 import { auth } from "../models/services/firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { writeDoc, exitedFieldInDoc } from "../models/utils/firestore-method";
+import { writeDoc, exitedValueInDoc } from "../models/utils/firestore-method";
 import { toast } from "react-toastify";
 import User from "../models/entities/user";
-import AuthenticationView from "../views/authentication/authentication";
 
-export default class AuthenticationController extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            user: null
-        };
-    };
-
-    async logIn(email, password) {
+export default class AuthenticationController {
+    
+    static async logIn(email, password) {
         try {
             await signInWithEmailAndPassword(auth, email, password);
         } catch (err) {
@@ -23,7 +15,7 @@ export default class AuthenticationController extends React.Component {
         }
     };
 
-    async logOut() {
+    static async logOut() {
         try {
             await signOut(auth);
         } catch (error) {
@@ -32,7 +24,7 @@ export default class AuthenticationController extends React.Component {
         }
     }
 
-    async createAccount(userName, email, password, comfirmPassword) {
+    static async createAccount(userName, email, password, comfirmPassword) {
         // VALIDATE INPUTS
         if (!userName || !email || !password || !comfirmPassword)
             return toast.warn("Please enter inputs!");
@@ -41,7 +33,7 @@ export default class AuthenticationController extends React.Component {
             return toast.warn("Passwords do not match!");
     
         // VALIDATE UNIQUE USERNAME
-        if (await exitedFieldInDoc("users", "userName", userName)){
+        if (await exitedValueInDoc("users", "userName", userName)){
             return toast.warn("Username already exists!");
         }
 
@@ -69,11 +61,5 @@ export default class AuthenticationController extends React.Component {
             toast.error(err.message);
             console.log(err);
           }
-    }
-
-    render() {
-        return (
-            <AuthenticationView />
-        )
     }
 }
