@@ -1,6 +1,4 @@
-import React from "react";
-
-class User {
+export default class User {
     constructor(id, userName, email, avatar, pictures, friends, blocked, setting) {
         this.id = id;
         this.userName = userName;
@@ -29,5 +27,3 @@ class User {
         };
     }
 }
-
-export default User;

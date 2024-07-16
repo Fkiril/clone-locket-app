@@ -1,12 +1,17 @@
-import React from "react";
+const ScopeEnum = {
+    PUBLIC: "public",
+    PRIVATE: "private",
+    FRIENDS: "friends"
+};
 
-class Picture {
-    constructor(id, uploadTime, url, canSee, scope) {
+export default class Picture {
+    constructor(id, uploadTime, url, canSee, scope, text) {
         this.id = id;
         this.uploadTime = uploadTime;
         this.url = url;
         this.canSee = canSee;
         this.scope = scope;
+        this.text = text;
     };
 
     toJSON() {
@@ -14,8 +19,11 @@ class Picture {
             id: this.id,
             uploadTime: this.uploadTime.toDateString(),
             url: this.url,
-            canSee: this.canSee,
-            scope: this.scope
+            canSee: this.canSee.map(value => value.toJSON()),
+            scope: this.scope,
+            text: this.text
         };
     };
 }
+
+export { ScopeEnum };

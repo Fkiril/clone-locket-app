@@ -26,14 +26,12 @@ export default function AccountView() {
     };
     const submitOption = async () => {
         const imgUrl = await userController.changeAvatar(optionAvatar);
-        
         setAvatarUrl(imgUrl);
         setOptionAvatarUrl("");
     }
     const cancelOption = () => {
         const fileInput = document.getElementById("file");
         fileInput.value = "";
-        
         setOptionAvatar(null);
         setOptionAvatarUrl("");
     }

@@ -1,11 +1,17 @@
 import "./authentication-view.css";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthenticationController from "../../controllers/authentication-controller";
+import { useUserStore } from "../../hooks/user-store";
 
 export default function AuthenticationView() {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
+    const { currentUser } = useUserStore();
+
+    useEffect(() => {
+        if (currentUser) navigate("/home");
+    }, [currentUser]);
 
     const _logIn = async (e) => {
         e.preventDefault();
