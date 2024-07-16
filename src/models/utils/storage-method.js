@@ -25,7 +25,7 @@ const uploadToFolder = async (file, folderName) => {
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          resolve(downloadURL);
+          resolve({fileUrl: downloadURL, uploadTime: new Date()});
         });
       }
     );

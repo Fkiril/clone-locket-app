@@ -23,12 +23,12 @@ export default class UserController {
                 await deleteFile(this.user.avatar);
             }
     
-            const imgUrl = await uploadToFolder(newAvatar, "avatars");
+            const { fileUrl } = await uploadToFolder(newAvatar, "avatars");
             await writeDoc("users", this.user.id, true, {
-                avatar: imgUrl
+                avatar: fileUrl
             });
-            this.user.avatar = imgUrl;
-            return imgUrl;
+            this.user.avatar = fileUrl;
+            return fileUrl;
         } catch(error) {
             if (error.code === "STORAGE/DELETE_OBJECT_ERROR") {
                 toast.error("Failed to delete avatar. Please try again!");
