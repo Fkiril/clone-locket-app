@@ -93,8 +93,8 @@ export default function AccountView() {
         <div className="account">
             <div className="account-header">
                 <h2>Account</h2>
-                <button className="back-button" >
-                    <Link to="/home" >
+                <button onClick={() => document.getElementById("home").click()} >
+                    <Link id="home" to="/home" >
                         Back to home page
                     </Link>
                 </button>

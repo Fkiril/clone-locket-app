@@ -5,13 +5,15 @@ import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
 import { toast } from "react-toastify";
 
 export default class PictureController {
-    static async uploadPicture(pic, canSee, scope, text) {
+    static async uploadPicture(picInstance, file) {
+        console.log("uploadPictureV2", picInstance, file);
         try {
-            const { fileUrl, uploadTime } = await uploadToFolder(pic, "pictures");
-            const picture = new Picture("", uploadTime, fileUrl, canSee, scope, text);
-            const docRefId = await writeCol("pictures", picture.toJSON());
+            const { fileUrl, uploadTime } = await uploadToFolder(file, "pictures");
+            picInstance.url = fileUrl;
+            picInstance.uploadTime = uploadTime;
+            const docRefId = await writeCol("pictures", picInstance.toJSON());
             
-            picture.id = docRefId;
+            picInstance.id = docRefId;
             
             await writeDoc("pictures", docRefId, true, {
                 id: docRefId
@@ -28,4 +30,7 @@ export default class PictureController {
             console.log(error);
         } 
     }
+    static async signalToFriends() {}
+
+    static async loadPictures() {}
 }
