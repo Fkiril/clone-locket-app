@@ -23,7 +23,7 @@ function App() {
 
   if (isLoading) return <div className="loading">Loading...</div>;
 
-  // console.log("User's data: ", currentUser);
+  console.log("User's data: ", currentUser);
 
   return (
     <BrowserRouter>

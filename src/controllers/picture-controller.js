@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import Picture from "../models/entities/picture";
-import { writeCol, writeDoc } from "../models/utils/firestore-method";
-import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
+import { writeCol, writeDoc, updateArrayField } from "../models/utils/firestore-method";
+import { uploadToFolder } from "../models/utils/storage-method";
 import { toast } from "react-toastify";
 
 export default class PictureController {
     static async uploadPicture(picInstance, file) {
-        console.log("uploadPictureV2", picInstance, file);
+        console.log("uploadPicture", picInstance, file);
         try {
             const { fileUrl, uploadTime } = await uploadToFolder(file, "pictures");
             picInstance.url = fileUrl;
@@ -18,6 +18,8 @@ export default class PictureController {
             await writeDoc("pictures", docRefId, true, {
                 id: docRefId
             });
+
+            await updateArrayField("users", picInstance.ownerId, "picturesCanSee", docRefId);
 
             console.log("uploadPicture successfully");
         } catch (error) {

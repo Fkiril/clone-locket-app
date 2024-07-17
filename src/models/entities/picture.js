@@ -19,7 +19,7 @@ export default class Picture {
         return {
             id: this.id,
             ownerId: this.ownerId,
-            uploadTime: this.uploadTime.toLocalString("vi-VN"),
+            uploadTime: this.uploadTime,
             url: this.url,
             text: this.text,
             scope: this.scope,

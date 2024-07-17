@@ -7,7 +7,7 @@ import Picture, { ScopeEnum } from "../../models/entities/picture";
 import { useUserStore } from "../../hooks/user-store";
 
 export default function UploadPictureView() {
-    const { currentUser } = useUserStore();
+    const { currentUser, friendsData } = useUserStore();
     const currentPicture = new Picture("", currentUser.id);
 
     const [optionFile, setoptionFile] = useState(null);
@@ -19,8 +19,6 @@ export default function UploadPictureView() {
 
     const [showScopeOption, setShowScopeOption] = useState(false);
     const [selectedFriends, setSelectedFriends] = useState([]);
-    const friends = ["123", "456", "789"];
-
 
     const handlePicture = (event) => {
         if (event.target.files[0]) {
@@ -40,7 +38,7 @@ export default function UploadPictureView() {
     const cancelOption = () => {
         const fileInput = document.getElementById("file");
         fileInput.value = "";
-        
+
         setoptionFile(null);
         setoptionFileUrl("");
     };
@@ -68,6 +66,8 @@ export default function UploadPictureView() {
             }
         });
     };
+
+    // console.log("friendsData", friendsData);
 
     return (
         <div className="upload-picture">
