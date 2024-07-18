@@ -31,8 +31,8 @@ export default function AuthenticationView() {
         setIsLoading(true);
 
         const formData = new FormData(e.target);
-        const { userName, email, password, comfirmPassword } = Object.fromEntries(formData);
-        await AuthenticationController.createAccount(userName, email, password, comfirmPassword);
+        const { userName, email, password, confirmPassword } = Object.fromEntries(formData);
+        await AuthenticationController.createAccount(userName, email, password, confirmPassword);
 
         setIsLoading(false);
     }
@@ -40,24 +40,24 @@ export default function AuthenticationView() {
     return (
         <div className="authentication">
             <div className="item">
-                <h2>Welcome back</h2>
+                <h2>Welcome to Locket</h2>
                 <form onSubmit={_logIn}>
                     <input type="text" placeholder="Email" name="email" />
                     <input type="password" placeholder="Password" name="password" />
-                    <button disabled={isLoading}>{isLoading ? "Loading" : "Sign In"}</button>
+                    <button disabled={isLoading}>{isLoading ? "Loading..." : "Sign In"}</button>
                 </form>
             </div>
 
             <div className="separator"></div>
 
             <div className="item">
-                <h2>Create an Account</h2>
+                <h2>Create your Locket Account</h2>
                 <form onSubmit={_createAccount}>
                     <input type="text" placeholder="Username" name="userName" />
                     <input type="text" placeholder="Email" name="email" />
                     <input type="password" placeholder="Password" name="password" />
-                    <input type="password" placeholder="Confirm Password" name="comfirmPassword" />
-                    <button disabled={isLoading}>{isLoading ? "Loading" : "Sign Up"}</button>
+                    <input type="password" placeholder="Confirm Password" name="confirmPassword" />
+                    <button disabled={isLoading}>{isLoading ? "Loading..." : "Sign Up"}</button>
                 </form>
             </div>
         </div>
