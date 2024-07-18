@@ -10,13 +10,16 @@ import AuthenticationController from "../../controllers/authentication-controlle
 export default function AccountView() {
     const navigate = useNavigate();
     
-    const { currentUser } = useUserStore();
+    const { currentUser, friendsData } = useUserStore();
     const userController = currentUser? new UserController(currentUser) : null;
 
     const [avatarSetting, setAvatarSetting] = useState(false);
     const [optionAvatar, setOptionAvatar] = useState(null);
     const [optionAvatarUrl, setOptionAvatarUrl] = useState("");
     const [avatarUrl, setAvatarUrl] = useState(currentUser?.avatar);
+
+    const [friendId, setFriendId] = useState("");
+    const [friendEmail, setFriendEmail] = useState("");
 
     const handleAvatar = (event) => {
         if (event.target.files[0]) {
@@ -111,17 +114,37 @@ export default function AccountView() {
                     <span>{currentUser?.userName}</span>
                     <p>{currentUser?.email}</p>
                     <div className="account-stat">
-                        <div className="stat">
+                        <div className="pictures">
                             <p>Pictures</p>
                         </div>
-                        <div className="stat">
-                            <p>Friends</p>
+                        <div className="friends">
+                            <p>Friends: </p>
+                            { friendsData.map((friend) => (
+                                <div key={friend.id} className="friend">
+                                    <img src={friend.avatar} alt=""></img>
+                                    <p>{friend.name}</p>
+                                </div>
+                            )) }
                         </div>
-                        <div className="stat">
+                        <div className="blocked">
                             <p>Blocked</p>
                         </div>
                     </div>
                 </div>
+                
+                <div className="add-friend-by-id">
+                    <input type="text" placeholder="Add friend by id" onChange={(e) => setFriendId(e.target.value)} />
+                    <button onClick={() => userController.addFriendById(friendId)}>
+                        Add
+                    </button>
+                </div>
+                <div className="add-friend-by-email">
+                    <input type="text" placeholder="Add friend by email" onChange={(e) => setFriendEmail(e.target.value)} />
+                    <button onClick={() => userController.addFriendByEmail(friendEmail)}>
+                        Add
+                    </button>
+                </div>
+
                 <div className="setting">
                     <button typeof="button" >
                         Change nickname

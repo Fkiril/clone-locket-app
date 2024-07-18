@@ -61,4 +61,14 @@ const exitedDoc = async (collectionName, docName) => {
     return false;
 }
 
-export { writeCol, writeDoc, exitedValueInDoc, exitedDoc, updateArrayField };
+const findDocIdByValue = async (collectionName, fieldName, data) => {
+    const usersRef = collection(fs_db, collectionName);
+    const q = query(usersRef, where(fieldName, "==", data));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+        return querySnapshot.docs[0].id;
+    }
+    return null;
+}
+
+export { writeCol, writeDoc, exitedValueInDoc, exitedDoc, updateArrayField, findDocIdByValue };

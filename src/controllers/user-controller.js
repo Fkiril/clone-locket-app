@@ -1,5 +1,5 @@
 import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
-import { writeDoc } from "../models/utils/firestore-method";
+import { writeDoc, updateArrayField, exitedDoc, findDocIdByValue } from "../models/utils/firestore-method";
 import { toast } from "react-toastify";
 
 export default class UserController {
@@ -68,4 +68,36 @@ export default class UserController {
             toast.error("Something went wrong. Please try again!");
         }
     };
+
+    async addFriendById(friendId) {
+        try {
+            if (await exitedDoc("users", friendId)) {
+                await updateArrayField("users", this.user.id, "friends", friendId);
+                toast.success("Friend added successfully!");
+                return true;
+            } else {
+                toast.error("Friend does not exist. Please try again!");
+                return false;
+            }
+        } catch(error) {
+            toast.error("Something went wrong. Please try again!");
+        }
+    }
+
+    async addFriendByEmail(friendEmail) {
+        try {
+            const friendId = await findDocIdByValue("users", "email", friendEmail);
+            if (friendId) {
+                await updateArrayField("users", this.user.id, "friends", friendId);
+                toast.success("Friend added successfully!");
+                return true;
+            } else {
+                toast.error("Friend does not exist. Please try again!");
+                return false;
+            }
+        } catch (error) {
+            toast.error("Something went wrong. Please try again!");
+            return false;
+        }
+    }
 }
