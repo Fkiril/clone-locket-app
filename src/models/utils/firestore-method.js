@@ -1,5 +1,5 @@
 import { fs_db } from "../services/firebase";
-import { addDoc, doc, setDoc, getDoc, collection, getDocs, where, query, updateDoc } from "firebase/firestore";
+import { arrayUnion, addDoc, doc, setDoc, getDoc, collection, getDocs, where, query, updateDoc } from "firebase/firestore";
 
 const writeCol = async (colName, data) => {
     try {
@@ -28,6 +28,20 @@ const writeDoc = async (colName, docName, updateFlag, data) => {
     }
 };
 
+const updateArrayField = async (colName, docName, fieldName, data) => {
+    try {
+        const docRef = doc(fs_db, colName, docName);
+        await updateDoc(docRef, {
+            [fieldName]: arrayUnion(data)
+        });
+        console.log(`updateArrayField successfully at "${colName}/${docName}" with data: `, data);
+    } catch (error) {
+        const newError = new Error("updateArrayField's error: " + error);
+        newError.code = "FIRESTORE/UPDATE_ARRAY_FIELD_ERROR";
+        throw newError;
+    }
+}
+
 const exitedValueInDoc = async (collectionName, fieldName, data) => {
     const usersRef = collection(fs_db, collectionName);
     const q = query(usersRef, where(fieldName, "==", data));
@@ -47,4 +61,4 @@ const exitedDoc = async (collectionName, docName) => {
     return false;
 }
 
-export { writeCol, writeDoc, exitedValueInDoc, exitedDoc };
+export { writeCol, writeDoc, exitedValueInDoc, exitedDoc, updateArrayField };
