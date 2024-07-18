@@ -34,6 +34,7 @@ const updateArrayField = async (colName, docName, fieldName, data) => {
         await updateDoc(docRef, {
             [fieldName]: arrayUnion(data)
         });
+        console.log(`updateArrayField successfully at "${colName}/${docName}" with data: `, data);
     } catch (error) {
         const newError = new Error("updateArrayField's error: " + error);
         newError.code = "FIRESTORE/UPDATE_ARRAY_FIELD_ERROR";

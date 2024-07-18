@@ -1,5 +1,3 @@
-import React, { useState } from "react";
-import Picture from "../models/entities/picture";
 import { writeCol, writeDoc, updateArrayField } from "../models/utils/firestore-method";
 import { uploadToFolder } from "../models/utils/storage-method";
 import { toast } from "react-toastify";
@@ -19,7 +17,7 @@ export default class PictureController {
                 id: docRefId
             });
 
-            await updateArrayField("users", picInstance.ownerId, "picturesCanSee", docRefId);
+            await this.signalPicture(picInstance.id, picInstance.canSee);
 
             console.log("uploadPicture successfully");
         } catch (error) {
@@ -32,7 +30,16 @@ export default class PictureController {
             console.log(error);
         } 
     }
-    static async signalToFriends() {}
+    static async signalPicture(picId, canSeeList) {
+        try {
+            canSeeList.map(async (userId) => {
+                await updateArrayField("users", userId, "picturesCanSee", picId);
+            });
+        } catch (error) {
+            toast.error("Failed to signal to friends!");
+            console.log(error);
+        }
+    }
 
     static async loadPictures() {}
 }

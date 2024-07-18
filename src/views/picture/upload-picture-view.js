@@ -29,7 +29,15 @@ export default function UploadPictureView() {
     const submitOption = async () => {
         currentPicture.text = text;
         currentPicture.scope = scope;
-        currentPicture.willSee = selectedFriends;
+
+        currentPicture.canSee = [currentUser.id];
+        if (scope === "specify") {
+            currentPicture.canSee.push(...selectedFriends);
+        }
+        else if (scope === "public") {
+            currentPicture.canSee.push(...currentUser.friends);
+        }
+
         await PictureController.uploadPicture(currentPicture, optionFile);
         
         setoptionFile(null);
@@ -97,16 +105,16 @@ export default function UploadPictureView() {
                                         <option value={ScopeEnum.PRIVATE}>Private</option>
                                         <option value={ScopeEnum.SPECIFY}>Specify</option>
                                     </select>
-                                    {scope === "Specify" && (
+                                    {scope === "specify" && (
                                         <div>
-                                            {currentUser.friends.map((friendId) => (
-                                                <label key={friendId}>
+                                            {friendsData.map((friend) => (
+                                                <label key={friend.name}>
                                                 <input
                                                     type="checkbox"
-                                                    checked={selectedFriends.includes(friendId)}
-                                                    onChange={() => handleFriendCheckboxChange(friendId)}
+                                                    checked={selectedFriends.includes(friend.id)}
+                                                    onChange={() => handleFriendCheckboxChange(friend.id)}
                                                 />
-                                                {friendId}
+                                                {friend.name}
                                                 </label>
                                             ))}
                                         </div>

@@ -3,7 +3,9 @@ import { create } from "zustand";
 import { fs_db } from "../models/services/firebase";
 
 export const useUserStore = create((set) => ({
+  // store all the current user data from firebase
   currentUser: null,
+  // store user's friend list with id and avatar's url
   friendsData: [],
   isLoading: true,
   fetchUserInfo: async (id) => {
@@ -22,6 +24,7 @@ export const useUserStore = create((set) => ({
             const fDocSnap = await getDoc(fDocRef);
             return fDocSnap.exists() ? {
               id: fDocSnap.data().id,
+              name: fDocSnap.data().userName,
               avatar: fDocSnap.data().avatar
             } : null;
           })

@@ -1,18 +1,18 @@
 const ScopeEnum = {
     PUBLIC: "public",
     PRIVATE: "private",
-    FRIENDS: "friends"
+    SPECIFY: "specify"
 };
 
 export default class Picture {
-    constructor(id, ownerId, uploadTime, url, scope, text, willSee) {
+    constructor(id, ownerId, uploadTime, url, scope, text, canSee) {
         this.id = id;
         this.ownerId = ownerId;
         this.uploadTime = uploadTime;
         this.url = url;
         this.text = text;
         this.scope = scope;
-        this.willSee = willSee;
+        this.canSee = canSee;
     };
 
     toJSON() {
@@ -23,7 +23,7 @@ export default class Picture {
             url: this.url,
             text: this.text,
             scope: this.scope,
-            willSee: this.willSee.map(value => value)
+            canSee: this.canSee.map(value => value)
         };
     };
 }
