@@ -2,9 +2,8 @@ import { storage } from "../services/firebase";
 import { getDownloadURL, ref, uploadBytesResumable, deleteObject } from "firebase/storage";
 
 const uploadToFolder = async (file, folderName) => {
-  const date = new Date();
-  const storageRef = ref(storage, `${folderName}/${date + file.name}`);
-
+  const date = (new Date()).toLocaleString("vi-VN").replace(/\//g, "-");
+  const storageRef = ref(storage, `${folderName}/${date + " | " + file.name}`);
   const uploadTask = uploadBytesResumable(storageRef, file);
 
   return new Promise((resolve, reject) => {
@@ -25,7 +24,7 @@ const uploadToFolder = async (file, folderName) => {
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          resolve({fileUrl: downloadURL, uploadTime: new Date()});
+          resolve({fileUrl: downloadURL, uploadTime: date});
         });
       }
     );

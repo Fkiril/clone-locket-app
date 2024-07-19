@@ -34,8 +34,43 @@
     @apply bg-gray-200 text-gray-800 px-4 py-2 rounded-lg;
 }
 
+<<<<<<< HEAD
 .account-body .avatar {
     @apply mb-6 text-center;
+=======
+.account-information {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding-top: 20px;
+    margin: 10px auto;
+    gap: 10px;
+
+    .account-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        gap: 20px;
+    }
+
+    .friends {
+        display: flex;
+        width: 50%;
+        height: 20%;
+        gap: 30px;
+
+        img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    }
+>>>>>>> b7e6e7a49a66aeb2fe274ad22984857cf784437d
 }
 
 .account-body .avatar img {

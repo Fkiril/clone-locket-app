@@ -1,21 +1,23 @@
-import React, { useState } from "react";
-import Picture from "../models/entities/picture";
-import { writeCol, writeDoc } from "../models/utils/firestore-method";
-import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
+import { writeCol, writeDoc, updateArrayField } from "../models/utils/firestore-method";
+import { uploadToFolder } from "../models/utils/storage-method";
 import { toast } from "react-toastify";
 
 export default class PictureController {
-    static async uploadPicture(pic, canSee, scope, text) {
+    static async uploadPicture(picInstance, file) {
+        console.log("uploadPicture", picInstance, file);
         try {
-            const { fileUrl, uploadTime } = await uploadToFolder(pic, "pictures");
-            const picture = new Picture("", uploadTime, fileUrl, canSee, scope, text);
-            const docRefId = await writeCol("pictures", picture.toJSON());
+            const { fileUrl, uploadTime } = await uploadToFolder(file, "pictures");
+            picInstance.url = fileUrl;
+            picInstance.uploadTime = uploadTime;
+            const docRefId = await writeCol("pictures", picInstance.toJSON());
             
-            picture.id = docRefId;
+            picInstance.id = docRefId;
             
             await writeDoc("pictures", docRefId, true, {
                 id: docRefId
             });
+
+            await this.signalPicture(picInstance.id, picInstance.canSee);
 
             console.log("uploadPicture successfully");
         } catch (error) {
@@ -28,4 +30,16 @@ export default class PictureController {
             console.log(error);
         } 
     }
+    static async signalPicture(picId, canSeeList) {
+        try {
+            canSeeList.map(async (userId) => {
+                await updateArrayField("users", userId, "picturesCanSee", picId);
+            });
+        } catch (error) {
+            toast.error("Failed to signal to friends!");
+            console.log(error);
+        }
+    }
+
+    static async loadPictures() {}
 }
