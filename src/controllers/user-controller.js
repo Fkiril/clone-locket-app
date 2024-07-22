@@ -1,5 +1,5 @@
 import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
-import { writeDoc, updateArrayField, exitedDoc, findDocIdByValue } from "../models/utils/firestore-method";
+import { writeDoc, updateArrayField, exitDoc, getDocIdByValue, getDocByValue } from "../models/utils/firestore-method";
 import { toast } from "react-toastify";
 
 export default class UserController {
@@ -71,8 +71,9 @@ export default class UserController {
 
     async addFriendById(friendId) {
         try {
-            if (await exitedDoc("users", friendId)) {
-                await updateArrayField("users", this.user.id, "friends", friendId);
+            if (await exitDoc("users", friendId)) {
+                await updateArrayField("users", this.user.id, "friends", true, friendId);
+
                 toast.success("Friend added successfully!");
                 return true;
             } else {
@@ -86,9 +87,10 @@ export default class UserController {
 
     async addFriendByEmail(friendEmail) {
         try {
-            const friendId = await findDocIdByValue("users", "email", friendEmail);
+            const friendId = await getDocIdByValue("users", "email", friendEmail);
             if (friendId) {
-                await updateArrayField("users", this.user.id, "friends", friendId);
+                await updateArrayField("users", this.user.id, "friends", true, friendId);
+
                 toast.success("Friend added successfully!");
                 return true;
             } else {
@@ -97,6 +99,106 @@ export default class UserController {
             }
         } catch (error) {
             toast.error("Something went wrong. Please try again!");
+            return false;
+        }
+    }
+
+    async getFriendByEmail(friendEmail) {
+        try {
+            const result = await getDocByValue("users", "email", friendEmail);
+            if (result) {
+                toast.success("Friend found successfully!");
+                return result;
+            } else {
+                toast.warning("Friend does not exist. Please try again!");
+                return null;
+            }
+        } catch (error) {
+            toast.error("Something went wrong. Please try again!");
+
+            console.log("Error getting friend:", error);
+            return null;
+        }
+    }
+
+    async sendFriendRequestById(senderId, receiverId) {
+        try {
+            if (await exitDoc("users", receiverId)) {
+                await updateArrayField("users", receiverId, "friendRequests", true, senderId);
+
+                toast.success("Friend request sent successfully!");
+                return true;
+            }
+            else {
+                toast.warning("Friend does not exist. Please try again!");
+                return false;
+            }
+        } catch (error) {
+            toast.error("Something went wrong. Please try again!");
+
+            console.error("Error sending friend request:", error);
+            return false;
+        }
+    }
+
+    async sendFriendRequestByEmail(senderId, receiverEmail) {
+        try {
+            const receiverId = await getDocIdByValue("users", "email", receiverEmail);
+            if (receiverId) {
+                await updateArrayField("users", receiverId, "friendRequests", true, senderId);
+
+                toast.success("Friend request sent successfully!");
+                return true;
+            } else {
+                toast.warning("Friend does not exist. Please try again!");
+                return false;
+            }
+        } catch (error) {
+            toast.error("Something went wrong. Please try again!");
+
+            console.error("Error sending friend request:", error);
+            return false;
+        }
+    }
+
+    async acceptFriendRequest(receiverId, senderId) {
+        try {
+            if (await exitDoc("users", senderId)) {
+                await updateArrayField("users", receiverId, "friends", true, senderId);
+                await updateArrayField("users", senderId, "friends", true, receiverId);
+                await updateArrayField("users", receiverId, "friendRequests", false, senderId);
+
+                toast.success("Friend request accepted successfully!");
+                return true;
+            }
+            else {
+                toast.warning("Friend does not exist. Please try again!");
+                return false;
+            }
+        } catch (error) {
+            toast.error("Something went wrong. Please try again!");
+
+            console.error("Error accepting friend request:", error);
+            return false;
+        }
+    }
+
+    async declineFriendRequest(receiverId, senderId) {
+        try {
+            if (await exitDoc("users", senderId)) {
+                await updateArrayField("users", receiverId, "friendRequests", false, senderId);
+
+                toast.success("Friend request declined successfully!");
+                return true;
+            }
+            else {
+                toast.warning("Friend does not exist. Please try again!");
+                return false;
+            }
+        } catch (error) {
+            toast.error("Something went wrong. Please try again!");
+
+            console.error("Error declining friend request:", error);
             return false;
         }
     }

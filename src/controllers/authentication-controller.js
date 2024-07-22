@@ -1,6 +1,6 @@
 import { auth } from "../models/services/firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { writeDoc, exitedValueInDoc } from "../models/utils/firestore-method";
+import { writeDoc, exitDocWithValue } from "../models/utils/firestore-method";
 import { toast } from "react-toastify";
 import User from "../models/entities/user";
 
@@ -33,7 +33,7 @@ export default class AuthenticationController {
             return toast.warn("Passwords do not match!");
     
         // VALIDATE UNIQUE USERNAME
-        if (await exitedValueInDoc("users", "userName", userName)){
+        if (await exitDocWithValue("users", "userName", userName)){
             return toast.warn("Username already exists!");
         }
 

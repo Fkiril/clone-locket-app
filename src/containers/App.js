@@ -1,7 +1,8 @@
 import './App.css';
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { auth } from '../models/services/firebase';
+import { auth, fs_db } from '../models/services/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 import Notification from '../controllers/notification';
 import { useUserStore } from '../hooks/user-store';
 import AuthenticationView from '../views/authentication/authentication-view';
@@ -20,6 +21,18 @@ function App() {
       unSubscribe();
     }
   }, [fetchUserInfo]);
+
+  useEffect(() => {
+    if(currentUser) {
+      const userRef = doc(fs_db, "users", currentUser.id);
+
+      const unSubscribe = onSnapshot(userRef, (doc) => {
+          fetchUserInfo(currentUser.id);
+      });
+
+      return () => unSubscribe();
+  }
+  }, [currentUser, fetchUserInfo]);
 
   if (isLoading) return <div className="loading">Loading...</div>;
 
