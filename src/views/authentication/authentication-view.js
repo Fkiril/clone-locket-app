@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthenticationController from "../../controllers/authentication-controller";
 import { useUserStore } from "../../hooks/user-store";
-
+import TextField from '@mui/material/TextField';
+import MetaData from '../Layouts/MetaData';
 export default function AuthenticationView() {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
@@ -16,7 +17,8 @@ export default function AuthenticationView() {
     const _logIn = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-
+          const [email, setEmail] = useState("");
+          const [password, setPassword] = useState("");
         const formData = new FormData(e.target);
         const { email, password } = Object.fromEntries(formData);
         await AuthenticationController.logIn(email, password);
@@ -42,24 +44,32 @@ export default function AuthenticationView() {
             <div className="item">
                 <h2>Welcome to Locket</h2>
                 <form onSubmit={_logIn}>
-                    <input type="text" placeholder="Email" name="email" />
-                    <input type="password" placeholder="Password" name="password" />
-                    <button disabled={isLoading}>{isLoading ? "Loading..." : "Sign In"}</button>
+                      <div className="flex flex-col w-full gap-4">
+
+                                    <TextField
+                                        fullWidth
+                                        id="email"
+                                        label="Email"
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        id="password"
+                                        label="Password"
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                    />
+                        
+
+                                </div>
                 </form>
             </div>
-
-            <div className="separator"></div>
-
-            <div className="item">
-                <h2>Create your Locket Account</h2>
-                <form onSubmit={_createAccount}>
-                    <input type="text" placeholder="Username" name="userName" />
-                    <input type="text" placeholder="Email" name="email" />
-                    <input type="password" placeholder="Password" name="password" />
-                    <input type="password" placeholder="Confirm Password" name="confirmPassword" />
-                    <button disabled={isLoading}>{isLoading ? "Loading..." : "Sign Up"}</button>
-                </form>
-            </div>
-        </div>
+            <Link to="/register" className="font-medium text-sm text-primary-blue">New to Locket? Create an account</Link>
+            
     );
 }
