@@ -67,9 +67,10 @@ export default function AuthenticationView() {
                         
 
                                 </div>
+                                                       <Link to="/register" className="font-medium text-sm text-primary-blue">New to Locket? Create an account</Link>
                 </form>
             </div>
-            <Link to="/register" className="font-medium text-sm text-primary-blue">New to Locket? Create an account</Link>
+ 
             
     );
 }
