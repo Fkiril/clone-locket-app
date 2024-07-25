@@ -1,0 +1,104 @@
+.avatar-setting {
+    @apply fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center;
+}
+
+.avatar-setting .body {
+    @apply bg-white p-6 rounded-lg shadow-lg;
+}
+
+.avatar-setting img {
+    @apply w-32 h-32 rounded-full mx-auto mb-4;
+}
+
+.avatar-setting .setting-button {
+    @apply flex flex-col items-center space-y-2;
+}
+
+.avatar-setting .setting-button button {
+    @apply bg-blue-500 text-white px-4 py-2 rounded-lg;
+}
+
+.account {
+    @apply p-4 max-w-2xl mx-auto bg-white rounded-lg shadow-md mt-10;
+}
+
+.account-header {
+    @apply mb-6 flex justify-between items-center;
+}
+
+.account-header h2 {
+    @apply text-2xl font-semibold;
+}
+
+.account-header .back-button {
+    @apply bg-gray-200 text-gray-800 px-4 py-2 rounded-lg;
+}
+
+.account-body .avatar {
+    @apply mb-6 text-center;
+}
+
+.account-body .avatar img {
+    @apply w-32 h-32 rounded-full cursor-pointer mx-auto;
+}
+
+.account-body .account-information {
+    @apply text-center mb-6;
+}
+
+.account-body .account-information span {
+    @apply block text-xl font-semibold;
+}
+
+.account-body .account-information p {
+    @apply text-gray-600;
+}
+
+.account-body .account-stat {
+    @apply flex justify-around mt-4;
+}
+
+.account-body .account-stat .stat {
+    @apply text-center;
+}
+
+.account-body .setting {
+    @apply text-center mb-6;
+}
+
+.account-body .setting button {
+    @apply block w-full bg-blue-500 text-white px-4 py-2 mb-2 rounded-lg;
+}
+
+.logout-button {
+    @apply w-full bg-red-500 text-white px-4 py-2 rounded-lg;
+}
+
+.searching-friend-by-email {
+    @apply fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center;
+}
+
+.changing-username {
+    @apply fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center;
+
+    input {
+        width: 200px;
+        height: 50px;
+    }
+}
+
+.changing-password {
+    @apply fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center;
+
+    display: flex;
+    .body {
+        display: flex;
+        flex-direction: column;
+        justify-items: center;
+        gap: 10px;
+
+        input {
+            padding: 10px;
+        }
+    }
+}

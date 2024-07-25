@@ -1,14 +1,18 @@
-import React, { useState, useEffect} from 'react';
-import { auth } from '../hooks/firebase';
-import Authentication from '../components/authentication/authentication';
-import Notification from '../components/notification/notification';
-import Account from '../components/account/account';
+import './App.css';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { fs_db } from '../models/services/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
+import Notification from '../controllers/notification';
 import { useUserStore } from '../hooks/user-store';
+import AuthenticationView from '../views/authentication/authentication-view';
+import AccountView from '../views/account/account-view';
+import HomeView from '../views/home/home-view';
+import UploadPictureView from '../views/picture/upload-picture-view';
 
 function App() {
-  const [view, setView] = useState("home");
   
-  const { currentUser, isLoading, fetchUserInfo } = useUserStore();
+  const { currentUser, auth, fetchUserInfo } = useUserStore();
   useEffect(() => {
     const unSubscribe = auth.onAuthStateChanged((user) => {
       fetchUserInfo(user?.uid);
@@ -18,25 +22,35 @@ function App() {
     }
   }, [fetchUserInfo]);
 
-  if (isLoading) return <div className="loading">Loading...</div>;
+  useEffect(() => {
+    if(currentUser) {
+      const userRef = doc(fs_db, "users", currentUser.id);
+
+      const unSubscribe = onSnapshot(userRef, { includeMetadataChanges: false }, (doc) => {
+          console.log("Refetch user's data!");
+          fetchUserInfo(currentUser.id);
+      });
+
+      return () => unSubscribe();
+  }
+  }, []);
+
+
+  // console.log("User's data: ", currentUser);
 
   return (
-    <div className='app-container'>
-      
-      { currentUser ? (
-        <div>
-          {view !== "account" && (
-            <button onClick={() => setView("account")}>View Account</button>
-          )}
-          
-          {view === "account" && <Account user={currentUser} setView={setView}/>}
-        </div>
-      ) : (
-        <Authentication />
-      )}
+    <BrowserRouter>
+      <Routes>
+        <Route path='/account' element={<AccountView />} />
 
+        <Route path='/' element={<AuthenticationView />} />
+
+        <Route path="/home" element={<HomeView />} />
+
+        <Route path="/upload-picture" element={<UploadPictureView />} />
+      </Routes>
       <Notification />
-    </div>
+    </BrowserRouter>
   );
 }
 
