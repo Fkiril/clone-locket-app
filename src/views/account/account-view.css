@@ -1,103 +1,104 @@
+.avatar-setting {
+    @apply fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center;
+}
+
+.avatar-setting .body {
+    @apply bg-white p-6 rounded-lg shadow-lg;
+}
+
+.avatar-setting img {
+    @apply w-32 h-32 rounded-full mx-auto mb-4;
+}
+
+.avatar-setting .setting-button {
+    @apply flex flex-col items-center space-y-2;
+}
+
+.avatar-setting .setting-button button {
+    @apply bg-blue-500 text-white px-4 py-2 rounded-lg;
+}
+
 .account {
-    width: 100%;
-    height: 100%;
+    @apply p-4 max-w-2xl mx-auto bg-white rounded-lg shadow-md mt-10;
 }
 
 .account-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    @apply mb-6 flex justify-between items-center;
 }
 
-.avatar-setting {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.85);
-    z-index: 100;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.account-header h2 {
+    @apply text-2xl font-semibold;
+}
 
+.account-header .back-button {
+    @apply bg-gray-200 text-gray-800 px-4 py-2 rounded-lg;
+}
+
+.account-body .avatar {
+    @apply mb-6 text-center;
+}
+
+.account-body .avatar img {
+    @apply w-32 h-32 rounded-full cursor-pointer mx-auto;
+}
+
+.account-body .account-information {
+    @apply text-center mb-6;
+}
+
+.account-body .account-information span {
+    @apply block text-xl font-semibold;
+}
+
+.account-body .account-information p {
+    @apply text-gray-600;
+}
+
+.account-body .account-stat {
+    @apply flex justify-around mt-4;
+}
+
+.account-body .account-stat .stat {
+    @apply text-center;
+}
+
+.account-body .setting {
+    @apply text-center mb-6;
+}
+
+.account-body .setting button {
+    @apply block w-full bg-blue-500 text-white px-4 py-2 mb-2 rounded-lg;
+}
+
+.logout-button {
+    @apply w-full bg-red-500 text-white px-4 py-2 rounded-lg;
+}
+
+.searching-friend-by-email {
+    @apply fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center;
+}
+
+.changing-username {
+    @apply fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center;
+
+    input {
+        width: 200px;
+        height: 50px;
+    }
+}
+
+.changing-password {
+    @apply fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center;
+
+    display: flex;
     .body {
-        width: 50%;
-        height: 50%;
         display: flex;
         flex-direction: column;
-        align-self: center;
-        align-items: center;
-        gap: 20px;
-    }
-
-    img {
-        width: 200px;
-        height: 200px;
-        border-radius: 50%;
-        border: 2px solid whitesmoke;
-        object-fit: cover;
-    }
-
-    .setting-button {
-        display: flex;
-        gap: 20px;
-    }
-}
-
-.avatar {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: fit-content;
-    margin: 10px auto;
-
-    img {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        border: 2px solid whitesmoke;
-        margin-bottom: 20px;
-        object-fit: cover;
-        cursor: pointer;
-    }
-
-    .avatar-button {
-        display: flex;
-        justify-content: space-between;
+        justify-items: center;
         gap: 10px;
-    }
 
-}
-
-.account-information {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 20px;
-    margin: 10px auto;
-    gap: 10px;
-}
-
-.setting {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 20px;
-    margin: 10px auto;
-    gap: 10px;
-}
-
-button {
-    width: fit-content;
-    height: 50px;
-    border: 4px solid whitesmoke;
-    border-radius: 10px;
-    background-color: transparent;
-    cursor: pointer;
-
-    a {
-        text-decoration: none;
-        color: white;
+        input {
+            padding: 10px;
+        }
     }
 }
