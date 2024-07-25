@@ -6,41 +6,27 @@ import { Link } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
 import UserController from "../../controllers/user-controller";
 import AuthenticationController from "../../controllers/authentication-controller";
+import { toast } from "react-toastify";
+import { updatePassword } from "firebase/auth";
 
 export default function AccountView() {
     const navigate = useNavigate();
     
-    const { currentUser, friendsData } = useUserStore();
+    const { auth, currentUser, friendsData } = useUserStore();
     const userController = currentUser ? new UserController(currentUser) : null;
 
-    const [avatarSetting, setAvatarSetting] = useState(false);
-    const [optionAvatar, setOptionAvatar] = useState(null);
-    const [optionAvatarUrl, setOptionAvatarUrl] = useState("");
-    const [avatarUrl, setAvatarUrl] = useState(currentUser?.avatar);
+    const [isSettingAvatar, setIsSettingAvatar] = useState(false);
+    const [selectedAvatar, setSelectedAvatar] = useState({
+        file: null,
+        url: ""
+    });
 
     const [isSearching, setIsSearching] = useState(false);
-    const [searchEmail, setSearchEmail] = useState("");
     const [searchResult, setSearchResult] = useState(null);
 
-    const handleAvatar = (event) => {
-        if (event.target.files[0]) {
-            setOptionAvatar(event.target.files[0]);
-            setOptionAvatarUrl(URL.createObjectURL(event.target.files[0]));
-        }
-    };
+    const [isChangingUserName, setIsChangingUserName] = useState(false);
 
-    const submitOption = async () => {
-        const imgUrl = await userController.changeAvatar(optionAvatar);
-        setAvatarUrl(imgUrl);
-        setOptionAvatarUrl("");
-    }
-
-    const cancelOption = () => {
-        const fileInput = document.getElementById("file");
-        fileInput.value = "";
-        setOptionAvatar(null);
-        setOptionAvatarUrl("");
-    }
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
 
     const handleLogOut = async () => {
         await AuthenticationController.logOut();
@@ -48,17 +34,52 @@ export default function AccountView() {
     }
 
     const avatarSettingPortal = () => {
+        const handleSelectAvatar = (event) => {
+            if (event.target.files[0]) {
+                const file = event.target.files[0];
+                const url = URL.createObjectURL(event.target.files[0]);
+                setSelectedAvatar({
+                    file,
+                    url
+                })
+            }
+        };
+    
+        const submitOption = async () => {
+            await userController.changeAvatar(selectedAvatar.file);
+            setSelectedAvatar({
+                file: null,
+                url: ""
+            });
+            setIsSettingAvatar(false);
+        }
+    
+        const cancelOption = () => {
+            const fileInput = document.getElementById("file");
+            fileInput.value = "";
+            setSelectedAvatar({
+                file: null,
+                url: ""
+            })
+        }
+
+        const handleDeleteAvatar = async () => {
+            await userController.deleteAvatar();
+            setIsSettingAvatar(false);
+        }
+
         const handleClickOutside = (event) => {
             const clickElement = event.target;
             if (!(clickElement.closest(".avatar-setting .body"))) {
-                setAvatarSetting(false);
+                setIsSettingAvatar(false);
+                cancelOption();
             }
         }
 
         return createPortal((
             <div className="avatar-setting fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onClick={handleClickOutside}>
                 <div className="body bg-white p-6 rounded-lg shadow-lg">
-                    <img src={optionAvatarUrl? optionAvatarUrl : avatarUrl} alt="" className="w-32 h-32 rounded-full mx-auto mb-4" />
+                    <img src={selectedAvatar.url? selectedAvatar.url : currentUser.avatar} alt="" className="w-32 h-32 rounded-full mx-auto mb-4" />
                     <div className="flex flex-col items-center space-y-2">
                         <button 
                             className="bg-blue-500 text-white px-4 py-2 rounded-lg"
@@ -69,23 +90,29 @@ export default function AccountView() {
                                 type="file"
                                 id="file"
                                 style={{ display: "none" }}
-                                onChange={handleAvatar}
+                                onChange={handleSelectAvatar}
                             />
                         </button>
-                        {optionAvatarUrl && (
+                        {selectedAvatar.url && (
                             <div className="flex space-x-2">
-                                <button className="bg-green-500 text-white px-4 py-2 rounded-lg" type="button" onClick={submitOption}>
+                                <button 
+                                    className="bg-green-500 text-white px-4 py-2 rounded-lg"
+                                    type="button"
+                                    onClick={submitOption}>
                                     Save Change
                                 </button>
-                                <button className="bg-red-500 text-white px-4 py-2 rounded-lg" type="button" onClick={cancelOption}>
+                                <button
+                                    className="bg-red-500 text-white px-4 py-2 rounded-lg"
+                                    type="button"
+                                    onClick={cancelOption}>
                                     Cancel
                                 </button>
                             </div>
                         )}
-                        {avatarUrl && !optionAvatarUrl && (
+                        {(currentUser.avatar !== "") && !selectedAvatar.url && (
                             <button className="bg-yellow-500 text-white px-4 py-2 rounded-lg"
                                     type="button" 
-                                    onClick={async () => await userController.deleteAvatar()}>
+                                    onClick={handleDeleteAvatar}>
                                 Delete Avatar
                             </button>
                         )}
@@ -95,9 +122,13 @@ export default function AccountView() {
         ), document.body);
     }
 
-    const searchFriendByEmailPortal = () => {
-        const handleSearch = async () => {
-            const result = await userController.getFriendByEmail(searchEmail);
+    const searchingFriendByEmailPortal = () => {
+        const handleSearch = async (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const friendEmail = formData.get("friend-email");
+
+            const result = await userController.getFriendByEmail(friendEmail);
             setSearchResult(result);
         }
 
@@ -108,25 +139,23 @@ export default function AccountView() {
 
         const handleClickOutside = (event) => {
             const clickElement = event.target;
-            if (!(clickElement.closest(".search-friend-by-email .body"))) {
+            if (!(clickElement.closest(".searching-friend-by-email .body"))) {
                 setIsSearching(false);
             }
         }
     
         return createPortal((
-            <div className="search-friend-by-email fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onClick={handleClickOutside}>
+            <div className="searching-friend-by-email fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onClick={handleClickOutside}>
                 <div className="body bg-white p-6 rounded-lg shadow-lg">
-                    <input 
-                        type="email" 
-                        value={searchEmail}
-                        onChange={(e) => setSearchEmail(e.target.value)}
-                        placeholder="Enter friend's email"
-                        className="w-full p-2 mb-4" />
-                    <button 
-                        className="bg-blue-500 text-white rounded p-2 hover:bg-blue-600" 
-                        onClick={handleSearch}>
-                            Search
-                    </button>
+                    <form onSubmit={handleSearch}>
+                        <input
+                            type="email"
+                            placeholder="Enter friend's email!"
+                            name="friend-email"
+                        />
+                        <button>Search</button>
+                    </form>
+
                     <button
                         className="bg-blue-500 text-white rounded p-2 hover:bg-blue-600"
                         onClick={handleSendFriendRequest}>
@@ -141,6 +170,88 @@ export default function AccountView() {
                 </div>
             </div>
         ), document.body);
+    }
+
+    const changingUserNamePortal = () => {
+        const handleChange = async (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const newUserName = formData.get("new-username");
+            userController.changeUserName(newUserName);
+            setIsChangingUserName(false);
+        }
+
+        const handleClickOutside = (event) => {
+            const clickElement = event.target;
+            if (!(clickElement.closest(".changing-username .body"))) {
+                setIsChangingUserName(false);
+            }
+        }
+
+        return createPortal((
+            <div className="changing-username" onClick={handleClickOutside}>
+                <div className="body">
+                    <form onSubmit={handleChange}>
+                        <input
+                            type="text"
+                            name="new-username"
+                            placeholder="Enter new User's name!"
+                        />
+                        <button>Change</button>
+                    </form>
+                </div>
+            </div>
+        ), document.body)
+    }
+
+    const changingPasswordPortal = () => {
+        const handleChange = async (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const newPassword = formData.get("new-password");
+            const confirmPassword = formData.get("confirm-password");
+            if (newPassword !== confirmPassword) {
+                toast.warning("Password does not match!");
+                return;
+            }
+
+            userController.changePassword(auth.currentUser, newPassword);
+            // try {
+            //     await updatePassword(auth.currentUser, newPassword);
+            //     toast.success("Changed your password!");
+            // } catch (error) {
+            //     toast.error("Something went wrong. Please try again!.");
+            //     console.log("Error changing password: ", error);
+            // }
+            setIsChangingPassword(false);
+        }
+
+        const handleClickOutside = (event) => {
+            const clickElement = event.target;
+            if (!(clickElement.closest(".changing-password .body"))) {
+                setIsChangingPassword(false);
+            }
+        }
+
+        return createPortal((
+            <div className="changing-password" onClick={handleClickOutside}>
+                <div className="body">
+                    <form onSubmit={handleChange}>
+                        <input
+                            type="password"
+                            name="new-password"
+                            placeholder="Enter new password!"
+                        />
+                        <input
+                            type="password"
+                            name="confirm-password"
+                            placeholder="Enter confirm password!"
+                        />
+                        <button>Change</button>
+                    </form>
+                </div>
+            </div>
+        ), document.body)
     }
 
     // console.log("state: " + JSON.stringify({
@@ -160,15 +271,17 @@ export default function AccountView() {
                 </button>
             </div>
             <div className="account-body">
-                {avatarSetting && avatarSettingPortal()}
-                {isSearching && searchFriendByEmailPortal()}
+                {isSettingAvatar && avatarSettingPortal()}
+                {isSearching && searchingFriendByEmailPortal()}
+                {isChangingUserName && changingUserNamePortal()}
+                {isChangingPassword && changingPasswordPortal()}
                 
                 <div className="avatar mb-6 text-center">
                     <img 
-                        src={optionAvatarUrl? optionAvatarUrl : (avatarUrl || "./default_avatar.jpg")}
+                        src={currentUser?.avatar ? currentUser.avatar : "./default_avatar.jpg"}
                         alt=""
                         className="w-32 h-32 rounded-full cursor-pointer mx-auto"
-                        onClick={() => setAvatarSetting(true)} />
+                        onClick={() => setIsSettingAvatar(true)} />
                 </div>
 
                 <div className="account-information text-center mb-6">
@@ -211,12 +324,14 @@ export default function AccountView() {
                 <div className="setting text-center mb-6">
                     <button className="block w-full bg-blue-500 text-white px-4 py-2 mb-2 rounded-lg" type="button"
                             onClick={() => setIsSearching(true)}>
-                        Find Friend
+                        Search Friend
                     </button>
-                    <button className="block w-full bg-blue-500 text-white px-4 py-2 mb-2 rounded-lg" type="button">
-                        Change Nickname
+                    <button className="block w-full bg-blue-500 text-white px-4 py-2 mb-2 rounded-lg" type="button"
+                            onClick={() => setIsChangingUserName(true)}>
+                        Change User's Name
                     </button>
-                    <button className="block w-full bg-blue-500 text-white px-4 py-2 mb-2 rounded-lg" type="button">
+                    <button className="block w-full bg-blue-500 text-white px-4 py-2 mb-2 rounded-lg" type="button"
+                            onClick={() => setIsChangingPassword(true)}>
                         Change Password
                     </button>
                 </div>

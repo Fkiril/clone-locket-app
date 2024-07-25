@@ -1,7 +1,7 @@
 import './App.css';
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { auth, fs_db } from '../models/services/firebase';
+import { fs_db } from '../models/services/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import Notification from '../controllers/notification';
 import { useUserStore } from '../hooks/user-store';
@@ -12,7 +12,7 @@ import UploadPictureView from '../views/picture/upload-picture-view';
 
 function App() {
   
-  const { currentUser ,isLoading, fetchUserInfo } = useUserStore();
+  const { currentUser, auth, fetchUserInfo } = useUserStore();
   useEffect(() => {
     const unSubscribe = auth.onAuthStateChanged((user) => {
       fetchUserInfo(user?.uid);
@@ -26,15 +26,15 @@ function App() {
     if(currentUser) {
       const userRef = doc(fs_db, "users", currentUser.id);
 
-      const unSubscribe = onSnapshot(userRef, (doc) => {
+      const unSubscribe = onSnapshot(userRef, { includeMetadataChanges: false }, (doc) => {
+          console.log("Refetch user's data!");
           fetchUserInfo(currentUser.id);
       });
 
       return () => unSubscribe();
   }
-  }, [currentUser, fetchUserInfo]);
+  }, []);
 
-  if (isLoading) return <div className="loading">Loading...</div>;
 
   // console.log("User's data: ", currentUser);
 

@@ -1,5 +1,6 @@
 import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
 import { writeDoc, updateArrayField, exitDoc, getDocIdByValue, getDocByValue } from "../models/utils/firestore-method";
+import { changePassword } from "../models/utils/authetication-method";
 import { toast } from "react-toastify";
 
 export default class UserController {
@@ -7,13 +8,15 @@ export default class UserController {
         this.user = user;
     }
 
-    async changePassword(newPassword) {
+    async changePassword(user, newPassword) {
         try {
-            await writeDoc("users", this.user.id, true, {
-                password: newPassword
-            });
+            await changePassword(user, newPassword);
+
+            toast.success("Changed your password!");
         } catch(error) {
             toast.error("Something went wrong. Please try again!");
+
+            console.log("Error changing password: ", error);
         }
     };
 
@@ -28,6 +31,8 @@ export default class UserController {
                 avatar: fileUrl
             });
             this.user.avatar = fileUrl;
+
+            toast.success("Changed your avatar!");
             return fileUrl;
         } catch(error) {
             if (error.code === "STORAGE/DELETE_OBJECT_ERROR") {
@@ -38,8 +43,8 @@ export default class UserController {
             }
             else {
                 toast.error("Something went wrong. Please try again!");
-                console.log(error);
             }
+            console.log("Error changing avatar: ", error);
         }
     };
 
@@ -49,6 +54,8 @@ export default class UserController {
             await writeDoc("users", this.user.id, true, {
                 avatar: ""
             });
+
+            toast.success("Deleted your avatar!");
         } catch(error) {
             if (error.code === "STORAGE/DELETE_OBJECT_ERROR") {
                 toast.error("Failed to delete avatar. Please try again!");
@@ -56,6 +63,7 @@ export default class UserController {
             else {
                 toast.error("Something went wrong. Please try again!");
             }
+            console.log("Error deleting avatar: ", error);
         }
     }
 
@@ -63,54 +71,23 @@ export default class UserController {
         try {
             await writeDoc("users", this.user.id, true, {
                 userName: newUserName
-            })
+            });
+
+            toast.success("Changed your user's name!")
         } catch(error) {
             toast.error("Something went wrong. Please try again!");
+
+            console.log("Error changing user's name: ", error);
         }
     };
-
-    async addFriendById(friendId) {
-        try {
-            if (await exitDoc("users", friendId)) {
-                await updateArrayField("users", this.user.id, "friends", true, friendId);
-
-                toast.success("Friend added successfully!");
-                return true;
-            } else {
-                toast.error("Friend does not exist. Please try again!");
-                return false;
-            }
-        } catch(error) {
-            toast.error("Something went wrong. Please try again!");
-        }
-    }
-
-    async addFriendByEmail(friendEmail) {
-        try {
-            const friendId = await getDocIdByValue("users", "email", friendEmail);
-            if (friendId) {
-                await updateArrayField("users", this.user.id, "friends", true, friendId);
-
-                toast.success("Friend added successfully!");
-                return true;
-            } else {
-                toast.error("Friend does not exist. Please try again!");
-                return false;
-            }
-        } catch (error) {
-            toast.error("Something went wrong. Please try again!");
-            return false;
-        }
-    }
 
     async getFriendByEmail(friendEmail) {
         try {
             const result = await getDocByValue("users", "email", friendEmail);
             if (result) {
-                toast.success("Friend found successfully!");
                 return result;
             } else {
-                toast.warning("Friend does not exist. Please try again!");
+                toast.warning("Invalid email!");
                 return null;
             }
         } catch (error) {
@@ -126,11 +103,11 @@ export default class UserController {
             if (await exitDoc("users", receiverId)) {
                 await updateArrayField("users", receiverId, "friendRequests", true, senderId);
 
-                toast.success("Friend request sent successfully!");
+                toast.success("Sended a friend request!")
                 return true;
             }
             else {
-                toast.warning("Friend does not exist. Please try again!");
+                toast.warning("Invalid ID!");
                 return false;
             }
         } catch (error) {
@@ -147,10 +124,10 @@ export default class UserController {
             if (receiverId) {
                 await updateArrayField("users", receiverId, "friendRequests", true, senderId);
 
-                toast.success("Friend request sent successfully!");
+                toast.success("Sended a friend request!")
                 return true;
             } else {
-                toast.warning("Friend does not exist. Please try again!");
+                toast.warning("Invalid email!");
                 return false;
             }
         } catch (error) {
@@ -168,11 +145,11 @@ export default class UserController {
                 await updateArrayField("users", senderId, "friends", true, receiverId);
                 await updateArrayField("users", receiverId, "friendRequests", false, senderId);
 
-                toast.success("Friend request accepted successfully!");
+                toast.success("Accepted a friend request!");
                 return true;
             }
             else {
-                toast.warning("Friend does not exist. Please try again!");
+                toast.warning("Invalid ID!");
                 return false;
             }
         } catch (error) {
@@ -188,11 +165,11 @@ export default class UserController {
             if (await exitDoc("users", senderId)) {
                 await updateArrayField("users", receiverId, "friendRequests", false, senderId);
 
-                toast.success("Friend request declined successfully!");
+                toast.success("Declined a friend request!")
                 return true;
             }
             else {
-                toast.warning("Friend does not exist. Please try again!");
+                toast.warning("Invalid ID!");
                 return false;
             }
         } catch (error) {
