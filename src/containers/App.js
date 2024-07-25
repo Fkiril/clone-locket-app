@@ -17,6 +17,7 @@ function App() {
     const unSubscribe = auth.onAuthStateChanged((user) => {
       fetchUserInfo(user?.uid);
     });
+    console.log("App.js: useEffect() for fetchUserInfo:", currentUser);
     return () => {
       unSubscribe();
     }
@@ -31,8 +32,9 @@ function App() {
           fetchUserInfo(currentUser.id);
       });
 
+      console.log("App.js: useEffect() for onSnapshot: ", currentUser);
       return () => unSubscribe();
-  }
+    }
   }, []);
 
 
