@@ -102,3 +102,18 @@
         }
     }
 }
+
+.friends-list .body {
+    max-height: 80%;
+    overflow-y: auto;
+}
+
+.friend-card {
+    display: flex;
+    align-items: center;
+}
+
+.friend-card img {
+    width: 64px;
+    height: 64px;
+}

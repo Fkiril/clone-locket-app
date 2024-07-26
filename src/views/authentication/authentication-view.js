@@ -3,17 +3,14 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthenticationController from "../../controllers/authentication-controller";
 import { useUserStore } from "../../hooks/user-store";
-// import TextField from '@mui/material/TextField';
-// import MetaData from '../Layouts/MetaData';
+
 export default function AuthenticationView() {
     const navigate = useNavigate();
-
     const { currentUser } = useUserStore();
     const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
         const checkCurrentUser = () => {
-            console.log("authentication-view.js: useEffect() for checkCurrentUser: ", currentUser);
             if (currentUser) {
                 setIsChecking(false);
                 navigate("/home");
@@ -27,9 +24,9 @@ export default function AuthenticationView() {
         };
 
         const cleanup = checkCurrentUser();
-
         return cleanup;
     }, [currentUser, navigate]);
+
     const [isLoading, setIsLoading] = useState(false);
 
     const handleLogIn = async (e) => {
@@ -54,35 +51,40 @@ export default function AuthenticationView() {
 
         setIsLoading(false);
     }
-    
+
     return (
-        <div className="authentication">
-            <div className="header">
-                <h1>Locket</h1>
+        <div className="authentication min-h-screen flex items-center justify-center bg-gray-100">
+            <div className="header-container text-center mb-8">
+                <h1 className="app-title">Locket</h1>
+                <p className="app-subtitle">Locket giúp bạn kết nối và chia sẻ với mọi người trong cuộc sống của bạn.</p>
             </div>
-            {isChecking? (
+            {isChecking ? (
                 <div className="checking">Checking...</div>
             ) : (
-                <div className="body">
-                    <div className="item">
-                        <h2>Welcome to Locket</h2>
-                        <form onSubmit={handleLogIn}>
-                            <input type="text" placeholder="Email" name="email" />
-                            <input type="password" placeholder="Password" name="password" />
-                            <button disabled={isLoading}>{isLoading ? "Loading..." : "Sign In"}</button>
+                <div className="item-container flex bg-white p-8 rounded-lg shadow-md w-full max-w-4xl gap-8">
+                    <div className="item flex-1">
+                        <h2 className="text-2xl font-bold mb-6 text-center">Welcome to Locket</h2>
+                        <form onSubmit={handleLogIn} className="flex flex-col gap-4">
+                            <input className="input" type="text" placeholder="Email" name="email" />
+                            <input className="input" type="password" placeholder="Password" name="password" />
+                            <button className="button" disabled={isLoading}>
+                                {isLoading ? "Loading..." : "Sign In"}
+                            </button>
                         </form>
                     </div>
 
                     <div className="separator"></div>
 
-                    <div className="item">
-                        <h2>Create your Locket Account</h2>
-                        <form onSubmit={handleCreateAccount}>
-                            <input type="text" placeholder="Username" name="userName" />
-                            <input type="text" placeholder="Email" name="email" />
-                            <input type="password" placeholder="Password" name="password" />
-                            <input type="password" placeholder="Confirm Password" name="confirmPassword" />
-                            <button disabled={isLoading}>{isLoading ? "Loading..." : "Sign Up"}</button>
+                    <div className="item flex-1">
+                        <h2 className="text-2xl font-bold mb-6 text-center">Create your Locket Account</h2>
+                        <form onSubmit={handleCreateAccount} className="flex flex-col gap-4">
+                            <input className="input" type="text" placeholder="Username" name="userName" />
+                            <input className="input" type="text" placeholder="Email" name="email" />
+                            <input className="input" type="password" placeholder="Password" name="password" />
+                            <input className="input" type="password" placeholder="Confirm Password" name="confirmPassword" />
+                            <button className="button" disabled={isLoading}>
+                                {isLoading ? "Loading..." : "Sign Up"}
+                            </button>
                         </form>
                     </div>
                 </div>
