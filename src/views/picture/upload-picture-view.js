@@ -1,179 +1,175 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { FaCamera } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import PictureController from "../../controllers/picture-controller";
-import Picture, { ScopeEnum } from "../../models/entities/picture";
 import { useUserStore } from "../../hooks/user-store";
+import Picture, { ScopeEnum } from "../../models/entities/picture";
 
 export default function UploadPictureView() {
-    const { currentUser, friendsData } = useUserStore();
-    const currentPicture = new Picture("", currentUser.id);
+  const { currentUser, friendsData } = useUserStore();
+  const currentPicture = new Picture("", currentUser.id);
 
-    const [optionFile, setOptionFile] = useState(null);
-    const [optionFileUrl, setOptionFileUrl] = useState("");
-    const [text, setText] = useState("");
-    const [scope, setScope] = useState(ScopeEnum.PUBLIC);
-    const [showScopeOption, setShowScopeOption] = useState(false);
-    const [selectedFriends, setSelectedFriends] = useState([]);
+  const [optionFile, setoptionFile] = useState(null);
+  const [optionFileUrl, setoptionFileUrl] = useState("");
 
-    const handlePicture = (event) => {
-        if (event.target.files[0]) {
-            setOptionFile(event.target.files[0]);
-            setOptionFileUrl(URL.createObjectURL(event.target.files[0]));
-        }
-    };
+  const [text, setText] = useState("");
+  const [scope, setScope] = useState(ScopeEnum.PUBLIC);
+  const [showScopeOption, setShowScopeOption] = useState(false);
+  const [selectedFriends, setSelectedFriends] = useState([]);
 
-    const submitOption = async () => {
-        currentPicture.text = text;
-        currentPicture.scope = scope;
+  const handlePicture = (event) => {
+    if (event.target.files[0]) {
+      setoptionFile(event.target.files[0]);
+      setoptionFileUrl(URL.createObjectURL(event.target.files[0]));
+    }
+  };
 
-        currentPicture.canSee = [currentUser.id];
-        if (scope === "specify") {
-            currentPicture.canSee.push(...selectedFriends);
-        } else if (scope === "public") {
-            currentPicture.canSee.push(...currentUser.friends);
-        }
+  const submitOption = async () => {
+    currentPicture.text = text;
+    currentPicture.scope = scope;
 
-        await PictureController.uploadPicture(currentPicture, optionFile);
+    currentPicture.canSee = [currentUser.id];
+    if (scope === ScopeEnum.SPECIFY) {
+      currentPicture.canSee.push(...selectedFriends);
+    } else if (scope === ScopeEnum.PUBLIC) {
+      currentPicture.canSee.push(...currentUser.friends);
+    }
 
-        setOptionFile(null);
-        setOptionFileUrl("");
-    };
+    await PictureController.uploadPicture(currentPicture, optionFile);
 
-    const cancelOption = () => {
-        const fileInput = document.getElementById("file");
-        fileInput.value = "";
+    setoptionFile(null);
+    setoptionFileUrl("");
+  };
 
-        setOptionFile(null);
-        setOptionFileUrl("");
-    };
+  const cancelOption = () => {
+    const fileInput = document.getElementById("file");
+    fileInput.value = "";
 
-    const handleText = (event) => {
-        setText(event.target.value);
-    };
+    setoptionFile(null);
+    setoptionFileUrl("");
+  };
 
-    const checkTextInputLength = () => {
-        const textInput = document.getElementById("text-input");
-        if (textInput.value.length >= 35) {
-            toast.warning("Text input can be up to 35 characters!");
-        }
-    };
+  const handleText = (event) => {
+    setText(event.target.value);
+  };
 
-    const handleShowScopeOption = () => {
-        setShowScopeOption(!showScopeOption);
-    };
+  const checkTextInputLength = () => {
+    const textInput = document.getElementById("text-input");
+    if (textInput.value.length >= 35) {
+      toast.warning("Text input can be up to 35 characters!");
+    }
+  };
 
-    const handleFriendCheckboxChange = (friendId) => {
-        setSelectedFriends((prevSelected) => {
-            if (prevSelected.includes(friendId)) {
-                return prevSelected.filter((id) => id !== friendId);
-            } else {
-                return [...prevSelected, friendId];
-            }
-        });
-    };
+  const handleShowScopeOption = () => {
+    setShowScopeOption(!showScopeOption);
+  };
 
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
-            <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-8">
-                <div className="mb-6">
-                    <Link to="/home" className="text-blue-500 hover:underline">
-                        &larr; Back to Home
-                    </Link>
-                </div>
+  const handleFriendCheckboxChange = (friendId) => {
+    setSelectedFriends((prevSelected) => {
+      if (prevSelected.includes(friendId)) {
+        return prevSelected.filter((id) => id !== friendId);
+      } else {
+        return [...prevSelected, friendId];
+      }
+    });
+  };
 
-                <div className="mb-6">
-                    <button
-                        type="button"
-                        onClick={() => document.getElementById("file").click()}
-                        className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        Choose Picture
-                        <input
-                            type="file"
-                            id="file"
-                            className="hidden"
-                            onChange={handlePicture}
-                        />
-                    </button>
-                </div>
-
-                {optionFileUrl && (
-                    <div>
-                        <div className="mb-4">
-                            <button
-                                type="button"
-                                onClick={handleShowScopeOption}
-                                className="bg-gray-200 py-2 px-4 rounded-md shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                            >
-                                Select Scope
-                            </button>
-                            {showScopeOption && (
-                                <div className="mt-2 p-4 bg-gray-100 rounded-md shadow-md">
-                                    <select
-                                        onChange={(event) => setScope(event.target.value)}
-                                        value={scope}
-                                        className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value={ScopeEnum.PUBLIC}>Public</option>
-                                        <option value={ScopeEnum.PRIVATE}>Private</option>
-                                        <option value={ScopeEnum.SPECIFY}>Specify</option>
-                                    </select>
-                                    {scope === ScopeEnum.SPECIFY && (
-                                        <div className="mt-2">
-                                            {friendsData.map((friend) => (
-                                                <label key={friend.id} className="block text-gray-700">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedFriends.includes(friend.id)}
-                                                        onChange={() => handleFriendCheckboxChange(friend.id)}
-                                                        className="mr-2"
-                                                    />
-                                                    {friend.name}
-                                                </label>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="mb-4">
-                            <img src={optionFileUrl} alt="Selected" className="w-full h-auto rounded-md shadow-md" />
-                        </div>
-
-                        <div className="mb-4">
-                            <input
-                                id="text-input"
-                                type="text"
-                                maxLength="35"
-                                placeholder="Enter text"
-                                value={text}
-                                onChange={handleText}
-                                onInput={checkTextInputLength}
-                                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div className="flex justify-between">
-                            <button
-                                type="button"
-                                onClick={submitOption}
-                                className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                Submit
-                            </button>
-                            <button
-                                type="button"
-                                onClick={cancelOption}
-                                className="bg-red-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
+  return (
+    <div className="flex flex-col items-center min-h-screen bg-gray-100 p-4">
+      <div className="header mb-4">
+        <button onClick={() => document.getElementById("home").click()}>
+          <Link id="home" to="/home" className="text-blue-500 underline">
+            Home
+          </Link>
+        </button>
+      </div>
+      <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+        <div className="flex flex-col items-center mb-4">
+          <FaCamera className="text-5xl text-gray-500 mb-2" />
+          <button
+            type="button"
+            onClick={() => document.getElementById("file").click()}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Choose Picture
+            <input
+              type="file"
+              id="file"
+              style={{ display: "none" }}
+              onChange={handlePicture}
+            />
+          </button>
         </div>
-    );
+        {optionFileUrl && (
+          <div className="option-picture">
+            <div className="scope-select mb-4">
+              <button
+                onClick={handleShowScopeOption}
+                className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400"
+              >
+                Select Scope
+              </button>
+              {showScopeOption && (
+                <div className="mt-2">
+                  <select
+                    onChange={(event) => setScope(event.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value={ScopeEnum.PUBLIC}>Public</option>
+                    <option value={ScopeEnum.PRIVATE}>Private</option>
+                    <option value={ScopeEnum.SPECIFY}>Specify</option>
+                  </select>
+                  {scope === ScopeEnum.SPECIFY && (
+                    <div className="mt-2">
+                      {friendsData.map((friend) => (
+                        <label key={friend.name} className="block">
+                          <input
+                            type="checkbox"
+                            checked={selectedFriends.includes(friend.id)}
+                            onChange={() => handleFriendCheckboxChange(friend.id)}
+                            className="mr-2"
+                          />
+                          {friend.name}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="picture mb-4">
+              <img src={optionFileUrl} alt="" className="w-full rounded-lg" />
+              <input
+                id="text-input"
+                type="text"
+                maxLength="35"
+                placeholder="Enter text"
+                value={text}
+                onChange={handleText}
+                onInput={checkTextInputLength}
+                className="w-full mt-2 p-2 border border-gray-300 rounded-md"
+              />
+            </div>
+            <div className="buttons flex justify-between">
+              <button
+                type="button"
+                onClick={submitOption}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              >
+                Submit
+              </button>
+              <button
+                type="button"
+                onClick={cancelOption}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
