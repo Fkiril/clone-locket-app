@@ -8,6 +8,7 @@ import UserController from "../../controllers/user-controller";
 import AuthenticationController from "../../controllers/authentication-controller";
 import { toast } from "react-toastify";
 import { updatePassword } from "firebase/auth";
+import FriendView from "./friend-view"; // Import the FriendView component
 
 export default function AccountView() {
     const navigate = useNavigate();
