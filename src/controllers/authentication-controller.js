@@ -9,8 +9,10 @@ export default class AuthenticationController {
     static async logIn(email, password) {
         try {
             await signInWithEmailAndPassword(auth, email, password);
+
+            toast.success("Login success!");
         } catch (err) {
-            toast.error(err.message);
+            toast.error("Invalid email or password!");
             console.log(err);
         }
     };
@@ -18,8 +20,10 @@ export default class AuthenticationController {
     static async logOut() {
         try {
             await signOut(auth);
+
+            toast.success("Logout success!");
         } catch (error) {
-            toast.error("Something went wrong. Please try logging out again.");
+            toast.error("Failed to log out. Please try again!");
             console.error(error);
         }
     }
@@ -48,6 +52,7 @@ export default class AuthenticationController {
                 [],
                 [],
                 [],
+                [],
                 {
                     systemTheme: "light",
                     language: "vn",
@@ -58,7 +63,7 @@ export default class AuthenticationController {
       
             toast.success("Account created! You can login now!");
           } catch (err) {
-            toast.error(err.message);
+            toast.error("Failed to create account. Please try again!");
             console.log(err);
           }
     }

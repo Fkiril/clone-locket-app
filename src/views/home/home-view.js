@@ -1,4 +1,3 @@
-import { doc } from "firebase/firestore";
 import "./home-view.css";
 import React from "react";
 import { Link } from "react-router-dom";
