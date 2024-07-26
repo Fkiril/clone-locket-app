@@ -1,7 +1,8 @@
 import './App.css';
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { auth } from '../models/services/firebase';
+import { HashRouter, Routes, Route } from 'react-router-dom';
+import { fs_db } from '../models/services/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 import Notification from '../controllers/notification';
 import { useUserStore } from '../hooks/user-store';
 import AuthenticationView from '../views/authentication/authentication-view';
@@ -10,34 +11,65 @@ import HomeView from '../views/home/home-view';
 import UploadPictureView from '../views/picture/upload-picture-view';
 
 function App() {
-  
-  const { currentUser ,isLoading, fetchUserInfo } = useUserStore();
+  const { currentUser, auth, fetchUserInfo, isLoading } = useUserStore();
+
   useEffect(() => {
     const unSubscribe = auth.onAuthStateChanged((user) => {
       fetchUserInfo(user?.uid);
     });
+    console.log("App.js: useEffect() for fetchUserInfo:", currentUser);
     return () => {
       unSubscribe();
     }
-  }, [fetchUserInfo]);
+  }, [fetchUserInfo, currentUser, auth]);
 
-  if (isLoading) return <div className="loading">Loading...</div>;
+  useEffect(() => {
+    if(currentUser) {
+      console.log("App.js: useEffect() for onSnapshot: ", currentUser);
+      const userRef = doc(fs_db, "users", currentUser.id);
 
-  // console.log("User's data: ", currentUser);
+      const unSubscribe = onSnapshot(userRef, { includeMetadataChanges: false }, () => {
+          console.log("Refetch user's data!");
+          fetchUserInfo(currentUser.id);
+      });
+
+      return () => unSubscribe();
+    }
+  }, []);
+
+  // useEffect(() => {
+  //   const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+  //     fetchUserInfo(user?.uid);
+  //   });
+
+  //   const unsubscribeSnapshot = currentUser ? onSnapshot(doc(fs_db, "users", currentUser.id), { includeMetadataChanges: false }, () => {
+  //     fetchUserInfo(currentUser.id);
+  //   }) : null;
+
+  //   return () => {
+  //     unsubscribeAuth();
+  //     unsubscribeSnapshot();
+  //   }
+  // }, [auth, currentUser, fetchUserInfo]);
+
+
+  if(isLoading) return <div>Loading...</div>;
+
+  console.log("User's data: ", currentUser);
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
-        <Route path='/account' element={<AccountView />} />
-
         <Route path='/' element={<AuthenticationView />} />
+
+        <Route path='/account' element={<AccountView />} />
 
         <Route path="/home" element={<HomeView />} />
 
         <Route path="/upload-picture" element={<UploadPictureView />} />
       </Routes>
       <Notification />
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 

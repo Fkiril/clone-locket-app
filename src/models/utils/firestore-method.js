@@ -1,5 +1,5 @@
 import { fs_db } from "../services/firebase";
-import { arrayUnion, addDoc, doc, setDoc, getDoc, collection, getDocs, where, query, updateDoc } from "firebase/firestore";
+import { arrayUnion, addDoc, doc, setDoc, getDoc, collection, getDocs, where, query, updateDoc, arrayRemove } from "firebase/firestore";
 
 const writeCol = async (colName, data) => {
     try {
@@ -28,13 +28,20 @@ const writeDoc = async (colName, docName, updateFlag, data) => {
     }
 };
 
-const updateArrayField = async (colName, docName, fieldName, data) => {
+const updateArrayField = async (colName, docName, fieldName, updateFlag, data) => {
     try {
         const docRef = doc(fs_db, colName, docName);
-        await updateDoc(docRef, {
-            [fieldName]: arrayUnion(data)
-        });
-        console.log(`updateArrayField successfully at "${colName}/${docName}" with data: `, data);
+        if (updateFlag) {
+            await updateDoc(docRef, {
+                [fieldName]: arrayUnion(data)
+            });
+        }
+        else {
+            await updateDoc(docRef, {
+                [fieldName]: arrayRemove(data)
+            });
+        }
+        console.log(`updateArrayField successfully at "${colName}/${docName}/${fieldName}" with data: `, data);
     } catch (error) {
         const newError = new Error("updateArrayField's error: " + error);
         newError.code = "FIRESTORE/UPDATE_ARRAY_FIELD_ERROR";
@@ -42,7 +49,7 @@ const updateArrayField = async (colName, docName, fieldName, data) => {
     }
 }
 
-const exitedValueInDoc = async (collectionName, fieldName, data) => {
+const exitDocWithValue = async (collectionName, fieldName, data) => {
     const usersRef = collection(fs_db, collectionName);
     const q = query(usersRef, where(fieldName, "==", data));
     const querySnapshot = await getDocs(q);
@@ -52,7 +59,7 @@ const exitedValueInDoc = async (collectionName, fieldName, data) => {
     return false;
 }
 
-const exitedDoc = async (collectionName, docName) => {
+const exitDoc = async (collectionName, docName) => {
     const docRef = doc(fs_db, collectionName, docName);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
@@ -61,4 +68,33 @@ const exitedDoc = async (collectionName, docName) => {
     return false;
 }
 
-export { writeCol, writeDoc, exitedValueInDoc, exitedDoc, updateArrayField };
+const getDocIdByValue = async (collectionName, fieldName, data) => {
+    const usersRef = collection(fs_db, collectionName);
+    const q = query(usersRef, where(fieldName, "==", data));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+        return querySnapshot.docs[0].id;
+    }
+    return null;
+}
+
+const getDocByValue = async (collectionName, fieldName, data) => {
+    const usersRef = collection(fs_db, collectionName);
+    const q = query(usersRef, where(fieldName, "==", data));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+        return querySnapshot.docs[0].data();
+    }
+    return null;
+}
+
+const getDocById = async (collectionName, docId) => {
+    const docRef = doc(fs_db, collectionName, docId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        return docSnap.data();
+    }
+    return null;
+}
+
+export { writeCol, writeDoc, exitDocWithValue, exitDoc, updateArrayField, getDocIdByValue, getDocByValue, getDocById };
