@@ -6,12 +6,12 @@ export const useUserStore = create((set) => ({
   // store all the current user data from firebase
   currentUser: null,
   // store user's friend list with id and avatar's url
-  auth: auth,
+  currentAuth: auth,
   friendsData: [],
   requestsData: [],
   isLoading: false,
   fetchUserInfo: async (id) => {
-    if (!id) return set({ currentUser: null, friendsData: [], requestsData: [], isLoading: false });
+    if (!id) return set({ currentUser: null, currentAuth: null, friendsData: [], requestsData: [], isLoading: false });
 
     try {
       const docRef = doc(fs_db, "users", id);
@@ -46,13 +46,13 @@ export const useUserStore = create((set) => ({
           })
         )
 
-        set({ currentUser: docSnap.data(), friendsData: fsData, requestsData: rsData, isLoading: false });
+        set({ currentUser: docSnap.data(), currentAuth: auth, friendsData: fsData, requestsData: rsData, isLoading: false });
       } else {
-        set({ currentUser: null, friendsData: [], requestsData: [], isLoading: false });
+        set({ currentUser: null, currentAuth: null, friendsData: [], requestsData: [], isLoading: false });
       }
     } catch (err) {
       console.log(err);
-      return set({ currentUser: null, friendsData: [], requestsData: [], isLoading: false });
+      return set({ currentUser: null, currentAuth: null, friendsData: [], requestsData: [], isLoading: false });
     }
   },
 }));

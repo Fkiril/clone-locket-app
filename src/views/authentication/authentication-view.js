@@ -55,7 +55,7 @@ export default function AuthenticationView() {
     return (
         <div className="authentication min-h-screen flex items-center justify-center bg-gray-100">
         <div className="header-container text-center mb-8">
-            <h1 className="app-title">Locket</h1>
+            <h1 className="app-title">Clone Locket</h1>
             <p className="app-subtitle">Locket giúp bạn kết nối và chia sẻ với mọi người trong cuộc sống của bạn.</p>
         </div>
         {isChecking ? (
