@@ -67,23 +67,24 @@ export default function AuthenticationView() {
                     onClick={() => setShowLogin(true)}
                     className={`px-4 py-2 mx-2 ${showLogin ? "font-bold" : ""}`}
                 >
-                    Log In
+                    Đăng Nhập
                 </button>
                 <button
                     onClick={() => setShowLogin(false)}
                     className={`px-4 py-2 mx-2 ${!showLogin ? "font-bold" : ""}`}
                 >
-                    Create Account
+                    Đăng ký
                 </button>
             </div>
 
             {showLogin ? (
                 <div className="w-80 mb-5">
+                    
                     <form onSubmit={handleLogIn} className="flex flex-col">
                         <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded"/>
                         <input type="password" placeholder="Password" name="password" required className="mb-3 p-2 border rounded"/>
                         <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                            {isLoading ? "Loading" : "Sign In"}
+                            {isLoading ? "Loading" : "Đăng nhập"}
                         </button>
                     </form>
                 </div>
@@ -95,7 +96,7 @@ export default function AuthenticationView() {
                         <input type="password" placeholder="Password" name="password" required className="mb-3 p-2 border rounded"/>
                         <input type="password" placeholder="Confirm Password" name="confirmPassword" required className="mb-3 p-2 border rounded"/>
                         <button disabled={isLoading} className="p-2 bg-green-500 text-white rounded hover:bg-green-700">
-                            {isLoading ? "Loading" : "Sign Up"}
+                            {isLoading ? "Loading" : "Đăng ký"}
                         </button>
                     </form>
                 </div>
