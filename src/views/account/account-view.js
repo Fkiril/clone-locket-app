@@ -7,12 +7,11 @@ import { useUserStore } from "../../hooks/user-store";
 import UserController from "../../controllers/user-controller";
 import AuthenticationController from "../../controllers/authentication-controller";
 import { toast } from "react-toastify";
-import { updatePassword } from "firebase/auth";
 
 export default function AccountView() {
     const navigate = useNavigate();
     
-    const { auth, currentUser, friendsData } = useUserStore();
+    const { auth, currentUser, friendsData, requestsData } = useUserStore();
     const userController = currentUser ? new UserController(currentUser) : null;
 
     const [isSettingAvatar, setIsSettingAvatar] = useState(false);
@@ -22,7 +21,10 @@ export default function AccountView() {
     });
 
     const [isSearching, setIsSearching] = useState(false);
-    const [searchResult, setSearchResult] = useState(null);
+    const [searchResult, setSearchResult] = useState({
+        user: null,
+        state: ""
+    });
 
     const [isChangingUserName, setIsChangingUserName] = useState(false);
 
@@ -122,32 +124,60 @@ export default function AccountView() {
         ), document.body);
     }
 
-    const searchingFriendByEmailPortal = () => {
+    const searchingFriendPortal = () => {
         const handleSearch = async (event) => {
             event.preventDefault();
             const formData = new FormData(event.target);
             const friendEmail = formData.get("friend-email");
 
             const result = await userController.getFriendByEmail(friendEmail);
-            setSearchResult(result);
+            if (result == null) {
+                setSearchResult({
+                    user: null,
+                    state: "invalid"
+                });
+            }
+            else {
+                if (currentUser.friends.includes(result.id)) {
+                    setSearchResult({
+                        user: result,
+                        state: "friend"
+                    });
+                }
+                else if (currentUser.friendRequests.includes(result.id) || result.friendRequests.includes(currentUser.id)) {
+                    setSearchResult({
+                        user: result,
+                        state: currentUser.friendRequests.includes(result.id) ? "received" : "sended"
+                    });
+                }
+                else {
+                    setSearchResult({
+                        user: result,
+                        state: "valid"
+                    });
+                }
+            }
         }
 
-        const handleSendFriendRequest = async () => {
-            userController.sendFriendRequestById(currentUser.id, searchResult.id);
-            setSearchResult(null);
+        const handleOutPortal = () => {
+            setSearchResult({
+                user: null,
+                state: ""
+            });
+            setIsSearching(false);
         }
 
         const handleClickOutside = (event) => {
             const clickElement = event.target;
             if (!(clickElement.closest(".searching-friend-by-email .body"))) {
-                setIsSearching(false);
+                handleOutPortal();
             }
         }
-    
+
         return createPortal((
             <div className="searching-friend-by-email fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onClick={handleClickOutside}>
                 <div className="body bg-white p-6 rounded-lg shadow-lg">
-                    <form onSubmit={handleSearch}>
+                    <form className="email-form" onSubmit={handleSearch}>
                         <input
                             type="email"
                             placeholder="Enter friend's email!"
@@ -156,15 +186,54 @@ export default function AccountView() {
                         <button>Search</button>
                     </form>
 
-                    <button
-                        className="bg-blue-500 text-white rounded p-2 hover:bg-blue-600"
-                        onClick={handleSendFriendRequest}>
-                            Add Friend
-                    </button>
-                    {searchResult && (
-                        <div>
-                            <p>Username: {searchResult.userName}</p>
-                            <img src={searchResult.avatar} alt="Avatar" className="w-32 h-32 rounded-full cursor-pointer mx-auto"/>
+                    {searchResult.user != null && (
+                        <div className="search-result">
+                            <p>Username: {searchResult.user.userName}</p>
+                            <img src={searchResult.user.avatar? searchResult.user.avatar : "./default_avatar.jpg"} alt="Avatar" className="w-32 h-32 rounded-full cursor-pointer mx-auto"/>
+                            
+                            {searchResult.state === "valid" && (
+                                <button
+                                    className="bg-blue-500 text-white rounded p-2 hover:bg-blue-600"
+                                    onClick={async () => {
+                                        userController.sendFriendRequestById(searchResult.user.id);
+                                        handleOutPortal();
+                                    }}>
+                                        Add Friend
+                                </button>
+                            )}
+                            {searchResult.state === "friend" && (
+                                <p>You are friend!</p>
+                            )}
+                            {searchResult.state === "sended" && (
+                                <button
+                                    className="bg-gray-500 text-white rounded p-2 hover:bg-gray-600"
+                                    onClick={async () => {
+                                        userController.cancelFriendRequest(searchResult.user.id);
+                                        handleOutPortal();
+                                    }}>
+                                    Cancel Request
+                                </button>
+                            )}
+                            {searchResult.state === "received" && (
+                                <div>
+                                    <button
+                                        className="bg-blue-500 text-white rounded p-2 hover:bg-blue-600"
+                                        onClick={async () => {
+                                            userController.acceptFriendRequest(searchResult.user.id);
+                                            handleOutPortal();
+                                        }}>
+                                        Accept Request
+                                    </button>
+                                    <button
+                                        className="bg-gray-500 text-white rounded p-2 hover:bg-gray-600"
+                                        onClick={async () => {
+                                            userController.declineFriendRequest(searchResult.user.id);
+                                            handleOutPortal();
+                                        }}>
+                                        Decline Request
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -216,13 +285,6 @@ export default function AccountView() {
             }
 
             userController.changePassword(auth.currentUser, newPassword);
-            // try {
-            //     await updatePassword(auth.currentUser, newPassword);
-            //     toast.success("Changed your password!");
-            // } catch (error) {
-            //     toast.error("Something went wrong. Please try again!.");
-            //     console.log("Error changing password: ", error);
-            // }
             setIsChangingPassword(false);
         }
 
@@ -272,7 +334,7 @@ export default function AccountView() {
             </div>
             <div className="account-body">
                 {isSettingAvatar && avatarSettingPortal()}
-                {isSearching && searchingFriendByEmailPortal()}
+                {isSearching && searchingFriendPortal()}
                 {isChangingUserName && changingUserNamePortal()}
                 {isChangingPassword && changingPasswordPortal()}
                 
@@ -288,35 +350,30 @@ export default function AccountView() {
                     <p className="text-gray-600">{currentUser?.email}</p>
                     <div className="account-stat flex justify-around mt-4">
                         <div className="stat text-center">
-                            <p className="font-semibold">Pictures</p>
-                        </div>
-                        <div className="stat text-center">
                             <p className="font-semibold">Friends</p>
                             {friendsData?.map((friend) => (
                                 <div key={friend.id}>
                                     <p>{friend.name}</p>
-                                    <img src={friend.avatar} alt="" className="w-10 h-10 rounded-full cursor-pointer mx-auto" />
+                                    <img src={friend.avatar? friend.avatar : "./default_avatar.jpg"} alt="" className="w-10 h-10 rounded-full cursor-pointer mx-auto" />
                                 </div>
                             ))}
                         </div>
                         <div className="stat text-center">
                             <p className="font-semibold">Requests</p>
-                            {currentUser?.friendRequests?.map((request) => (
-                                <div key={request}>
-                                    <p>{request}</p>
+                            {requestsData?.map((request) => (
+                                <div key={request.id}>
+                                    <p>{request.name}</p>
+                                    <img src={request.avatar? request.avatar : "./default_avatar.jpg"} alt="" className="w-10 h-10 rounded-full cursor-pointer mx-auto" />
                                     <button
-                                        onClick={() => userController.acceptFriendRequest(currentUser.id, request)}>
+                                        onClick={() => userController.acceptFriendRequest(request.id)}>
                                         Accept
                                     </button>
                                     <button
-                                        onClick={() => userController.declineFriendRequest(currentUser.id, request)}>
+                                        onClick={() => userController.declineFriendRequest(request.id)}>
                                         Decline
                                     </button>
                                 </div>
                             ))}
-                        </div>
-                        <div className="stat text-center">
-                            <p className="font-semibold">Blocked</p>
                         </div>
                     </div>
                 </div>

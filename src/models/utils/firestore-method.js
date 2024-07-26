@@ -88,4 +88,13 @@ const getDocByValue = async (collectionName, fieldName, data) => {
     return null;
 }
 
-export { writeCol, writeDoc, exitDocWithValue, exitDoc, updateArrayField, getDocIdByValue, getDocByValue };
+const getDocById = async (collectionName, docId) => {
+    const docRef = doc(fs_db, collectionName, docId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        return docSnap.data();
+    }
+    return null;
+}
+
+export { writeCol, writeDoc, exitDocWithValue, exitDoc, updateArrayField, getDocIdByValue, getDocByValue, getDocById };
