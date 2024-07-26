@@ -55,8 +55,8 @@ export default function AuthenticationView() {
     return (
         <div className="authentication min-h-screen flex items-center justify-center bg-gray-100">
         <div className="header-container text-center mb-8">
-            <h1 className="app-title">Locket</h1>
-            <p className="app-subtitle">Locket giúp bạn kết nối và chia sẻ với mọi người trong cuộc sống của bạn.</p>
+            <h1 className="app-title">Clone-locket</h1>
+            <p className="app-subtitle">Clone-locket - Connect and share with your friends and family</p>
         </div>
         {isChecking ? (
             <div className="checking">Checking...</div>
@@ -67,13 +67,13 @@ export default function AuthenticationView() {
                     onClick={() => setShowLogin(true)}
                     className={`px-4 py-2 mx-2 ${showLogin ? "font-bold" : ""}`}
                 >
-                    Đăng Nhập
+                    Login
                 </button>
                 <button
                     onClick={() => setShowLogin(false)}
                     className={`px-4 py-2 mx-2 ${!showLogin ? "font-bold" : ""}`}
                 >
-                    Đăng ký
+                    Sign up
                 </button>
             </div>
 
@@ -84,7 +84,7 @@ export default function AuthenticationView() {
                         <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded"/>
                         <input type="password" placeholder="Password" name="password" required className="mb-3 p-2 border rounded"/>
                         <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                            {isLoading ? "Loading" : "Đăng nhập"}
+                            {isLoading ? "Loading" : "Login"}
                         </button>
                     </form>
                 </div>
@@ -96,7 +96,7 @@ export default function AuthenticationView() {
                         <input type="password" placeholder="Password" name="password" required className="mb-3 p-2 border rounded"/>
                         <input type="password" placeholder="Confirm Password" name="confirmPassword" required className="mb-3 p-2 border rounded"/>
                         <button disabled={isLoading} className="p-2 bg-green-500 text-white rounded hover:bg-green-700">
-                            {isLoading ? "Loading" : "Đăng ký"}
+                            {isLoading ? "Loading" : "Sign up"}
                         </button>
                     </form>
                 </div>
