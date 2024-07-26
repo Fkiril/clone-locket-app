@@ -1,0 +1,10 @@
+.friends-view {
+    .friend-card {
+      text-align: center;
+    }
+  
+    img {
+      object-fit: cover;
+    }
+  }
+  
