@@ -26,20 +26,6 @@ function App() {
     }
   }, [fetchUserInfo, auth]);
 
-  useEffect(() => {
-    if(currentUser) {
-      const userRef = doc(fs_db, "users", currentUser.id);
-      
-      const unSubscribe = onSnapshot(userRef, { includeMetadataChanges: false }, () => {
-          console.log("App.js: useEffect() for onSnapshot: ", currentUser);
-          fetchUserInfo(currentUser.id);
-      });
-
-      return () => unSubscribe();
-    }
-  }, [onSnapshot]);
-
-
   if(isLoading) return <div>Loading...</div>;
 
   // console.log("User's data: ", currentUser);

@@ -11,7 +11,7 @@ export default function ChatView() {
 
     const handleBoxChat = async (friendId) => {
         const boxChatId = ChatController.getBoxChatId(currentUser.id, friendId).toString();
-        console.log("handleBoxChat: ", boxChatId);
+        
         if (await ChatController.exitBoxChat(boxChatId)) {
             return navigate(`/box-chat/${boxChatId}`);
         }

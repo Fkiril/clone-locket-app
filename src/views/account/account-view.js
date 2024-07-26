@@ -1,5 +1,5 @@
 import "./account-view.css";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -7,11 +7,13 @@ import { useUserStore } from "../../hooks/user-store";
 import UserController from "../../controllers/user-controller";
 import AuthenticationController from "../../controllers/authentication-controller";
 import { toast } from "react-toastify";
+import { doc, onSnapshot } from "firebase/firestore";
+import { fs_db } from "../../models/services/firebase";
 
 export default function AccountView() {
     const navigate = useNavigate();
     
-    const { auth, currentUser, friendsData, requestsData } = useUserStore();
+    const { auth, currentUser, friendsData, requestsData, fetchUserInfo } = useUserStore();
     const userController = currentUser ? new UserController(currentUser) : null;
 
     const [isSettingAvatar, setIsSettingAvatar] = useState(false);
@@ -29,6 +31,20 @@ export default function AccountView() {
     const [isChangingUserName, setIsChangingUserName] = useState(false);
 
     const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+    
+    useEffect(() => {
+        if(currentUser) {
+        const userRef = doc(fs_db, "users", currentUser.id);
+        
+        const unSubscribe = onSnapshot(userRef, { includeMetadataChanges: false }, () => {
+            console.log("account-view.js: useEffect() for onSnapshot: ", currentUser);
+            fetchUserInfo(currentUser.id);
+        });
+
+        return () => unSubscribe();
+        }
+    }, [onSnapshot]);
 
     const handleLogOut = async () => {
         await AuthenticationController.logOut();
@@ -195,7 +211,7 @@ export default function AccountView() {
                                 <button
                                     className="bg-blue-500 text-white rounded p-2 hover:bg-blue-600"
                                     onClick={async () => {
-                                        userController.sendFriendRequestById(searchResult.user.id);
+                                        await userController.sendFriendRequestById(searchResult.user.id);
                                         handleOutPortal();
                                     }}>
                                         Add Friend
@@ -208,7 +224,7 @@ export default function AccountView() {
                                 <button
                                     className="bg-gray-500 text-white rounded p-2 hover:bg-gray-600"
                                     onClick={async () => {
-                                        userController.cancelFriendRequest(searchResult.user.id);
+                                        await userController.cancelFriendRequest(searchResult.user.id);
                                         handleOutPortal();
                                     }}>
                                     Cancel Request
@@ -219,7 +235,7 @@ export default function AccountView() {
                                     <button
                                         className="bg-blue-500 text-white rounded p-2 hover:bg-blue-600"
                                         onClick={async () => {
-                                            userController.acceptFriendRequest(searchResult.user.id);
+                                            await userController.acceptFriendRequest(searchResult.user.id);
                                             handleOutPortal();
                                         }}>
                                         Accept Request
@@ -227,7 +243,7 @@ export default function AccountView() {
                                     <button
                                         className="bg-gray-500 text-white rounded p-2 hover:bg-gray-600"
                                         onClick={async () => {
-                                            userController.declineFriendRequest(searchResult.user.id);
+                                            await userController.declineFriendRequest(searchResult.user.id);
                                             handleOutPortal();
                                         }}>
                                         Decline Request
@@ -246,7 +262,7 @@ export default function AccountView() {
             event.preventDefault();
             const formData = new FormData(event.target);
             const newUserName = formData.get("new-username");
-            userController.changeUserName(newUserName);
+            await userController.changeUserName(newUserName);
             setIsChangingUserName(false);
         }
 
@@ -284,7 +300,7 @@ export default function AccountView() {
                 return;
             }
 
-            userController.changePassword(auth.currentUser, newPassword);
+            await userController.changePassword(auth.currentUser, newPassword);
             setIsChangingPassword(false);
         }
 
@@ -365,11 +381,11 @@ export default function AccountView() {
                                     <p>{request.name}</p>
                                     <img src={request.avatar? request.avatar : "./default_avatar.jpg"} alt="" className="w-10 h-10 rounded-full cursor-pointer mx-auto" />
                                     <button
-                                        onClick={() => userController.acceptFriendRequest(request.id)}>
+                                        onClick={async () => await userController.acceptFriendRequest(request.id)}>
                                         Accept
                                     </button>
                                     <button
-                                        onClick={() => userController.declineFriendRequest(request.id)}>
+                                        onClick={async () => await userController.declineFriendRequest(request.id)}>
                                         Decline
                                     </button>
                                 </div>
