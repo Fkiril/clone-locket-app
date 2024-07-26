@@ -137,17 +137,25 @@ export default function AccountView() {
                     state: "invalid"
                 });
             }
-            else if (currentUser.friendRequests.includes(result.id) || result.friendRequests.includes(currentUser.id)) {
-                setSearchResult({
-                    user: result,
-                    state: currentUser.friendRequests.includes(result.id) ? "received" : "sended"
-                });
-            }
             else {
-                setSearchResult({
-                    user: result,
-                    state: "valid"
-                });
+                if (currentUser.friends.includes(result.id)) {
+                    setSearchResult({
+                        user: result,
+                        state: "friend"
+                    });
+                }
+                else if (currentUser.friendRequests.includes(result.id) || result.friendRequests.includes(currentUser.id)) {
+                    setSearchResult({
+                        user: result,
+                        state: currentUser.friendRequests.includes(result.id) ? "received" : "sended"
+                    });
+                }
+                else {
+                    setSearchResult({
+                        user: result,
+                        state: "valid"
+                    });
+                }
             }
         }
 
@@ -192,6 +200,9 @@ export default function AccountView() {
                                     }}>
                                         Add Friend
                                 </button>
+                            )}
+                            {searchResult.state === "friend" && (
+                                <p>You are friend!</p>
                             )}
                             {searchResult.state === "sended" && (
                                 <button
@@ -354,11 +365,11 @@ export default function AccountView() {
                                     <p>{request.name}</p>
                                     <img src={request.avatar? request.avatar : "./default_avatar.jpg"} alt="" className="w-10 h-10 rounded-full cursor-pointer mx-auto" />
                                     <button
-                                        onClick={() => userController.acceptFriendRequest(currentUser.id, request)}>
+                                        onClick={() => userController.acceptFriendRequest(request.id)}>
                                         Accept
                                     </button>
                                     <button
-                                        onClick={() => userController.declineFriendRequest(currentUser.id, request)}>
+                                        onClick={() => userController.declineFriendRequest(request.id)}>
                                         Decline
                                     </button>
                                 </div>

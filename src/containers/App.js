@@ -21,14 +21,14 @@ function App() {
     return () => {
       unSubscribe();
     }
-  }, [fetchUserInfo]);
+  }, [fetchUserInfo, auth]);
 
   useEffect(() => {
     if(currentUser) {
       console.log("App.js: useEffect() for onSnapshot: ", currentUser);
       const userRef = doc(fs_db, "users", currentUser.id);
 
-      const unSubscribe = onSnapshot(userRef, () => {
+      const unSubscribe = onSnapshot(userRef, { includeMetadataChanges: false }, () => {
           console.log("Refetch user's data!");
           fetchUserInfo(currentUser.id);
       });
