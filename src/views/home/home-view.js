@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useUserStore } from "../../hooks/user-store"; // Assuming you have a custom hook to fetch user data
+import { useUserStore } from "../../hooks/user-store"; 
 import "./home-view.css";
 
 export default function HomeView() {
