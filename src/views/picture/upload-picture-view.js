@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaCamera } from "react-icons/fa";
+// import { FaCamera } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import PictureController from "../../controllers/picture-controller";
@@ -86,7 +86,7 @@ export default function UploadPictureView() {
       </div>
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
         <div className="flex flex-col items-center mb-4">
-          <FaCamera className="text-5xl text-gray-500 mb-2" />
+          {/* <FaCamera className="text-5xl text-gray-500 mb-2" /> */}
           <button
             type="button"
             onClick={() => document.getElementById("file").click()}

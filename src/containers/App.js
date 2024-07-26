@@ -21,7 +21,7 @@ function App() {
     return () => {
       unSubscribe();
     }
-  }, [fetchUserInfo, currentUser, auth]);
+  }, [fetchUserInfo, auth]);
 
   useEffect(() => {
     if(currentUser) {
