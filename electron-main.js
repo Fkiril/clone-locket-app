@@ -12,7 +12,7 @@ function createWindow() {
   });
 
   const filePath = `file://${path.join(__dirname, "build", "index.html")}`;
-  // console.log(filePath);
+  console.log(filePath);
   win.loadURL(filePath);
 }
 
