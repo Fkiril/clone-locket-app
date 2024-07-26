@@ -56,5 +56,17 @@ export default class ChatController {
         }
     }
 
+    static async setIsSeenToMessages(messagesId) {
+        try {
+            messagesId?.map(async (messageId) => {
+                await writeDoc("messages", messageId, true, {
+                    isSeen: true
+                });
+            })
+        } catch (error) {
+            console.log("Error setIsSeenToMessages: ", error);
+        }
+    }
+
     static async loadMessage() {}
 }

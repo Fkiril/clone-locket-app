@@ -6,9 +6,8 @@
 
     .header {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
         padding: 10px;
+        gap: 30px;
     }
 
     .body {
@@ -22,14 +21,17 @@
 
         .conversation {
             flex: 1;
+            border: #7d7a7a solid 3px;
+            border-radius: 15px;
             
             .messages {
                 display: flex;
                 flex-direction: column;
                 width: 400px;
                 height: 600px;
-                overflow: scroll;
                 padding: 15px;
+                overflow: scroll;
+                scrollbar-width: none;
     
                 .message {
                     padding: 10px;
@@ -50,7 +52,7 @@
                     }
                 }
                 
-                .message.left {
+                .message.right {
                     background-color: #f1f1f1;
                     color: black;
                     font-size: 13px;
@@ -58,7 +60,7 @@
                     align-self: flex-end;
                 }
                 
-                .message.right {
+                .message.left {
                     background-color: #333;
                     color: #fff;
                     font-size: 13px;

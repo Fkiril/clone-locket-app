@@ -1,5 +1,5 @@
 import "./box-chat-view.css";
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useUserStore } from "../../hooks/user-store";
 import { useMessageStore } from "../../hooks/message-store";
 import { useNavigate, Link, useParams } from "react-router-dom";
@@ -12,6 +12,12 @@ export default function BoxChatView() {
     const navigate = useNavigate();
     const { currentUser, friendsData } = useUserStore();
     const { messages, fetchMessages } = useMessageStore();
+
+    const endRef = useRef(null);
+
+    useEffect(() => {
+        endRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
 
     useEffect(() => {
         const boxChatRef = doc(fs_db, "boxChats", boxChatId);
@@ -50,10 +56,21 @@ export default function BoxChatView() {
         event.target.reset();
     };
 
+    const handleFormFocus = async () => {
+        const messagesId = messages.filter(
+            (message) => (message.senderId !== currentUser.id && message.isSeen === false) 
+        ).map((message) => message.id);
+
+        await ChatController.setIsSeenToMessages(messagesId);
+    };
+
     return (
         <div className="box-chat" key={boxChatId}>
             <div className="header">
                 <p>Box Chat</p>
+                <button>
+                    <Link to="/chat">Back</Link>
+                </button>
                 <button>
                     <Link to="/home">Home</Link>
                 </button>
@@ -64,29 +81,31 @@ export default function BoxChatView() {
                         {messages?.map((message) => (
                             <>
                                 { message.senderId === currentUser.id ? (
-                                    <div className="message left" key={message.id}>
+                                    <div className="message right" key={message.id}>
                                         <div className="infor">
                                             <p className="text">{message.text}</p>
                                             <div className="time">{message.createTime}</div>
-                                            <div className="state"></div>
+                                            <div className="state">
+                                                {message.isSeen ? <p>Seen</p> : <p>Sended</p>}
+                                            </div>
                                         </div>
                                         <img src={handleGetAvatar(message.senderId)} alt="" />
                                     </div>
                                 ) : (
-                                    <div className="message right" key={message.id}>
+                                    <div className="message left" key={message.id}>
                                         <img src={handleGetAvatar(message.senderId)} alt="" />
                                         <div className="infor">
                                             <p className="text">{message.text}</p>
-                                            <div className="time">{message.createTime}</div>
-                                            <div className="state"></div>
+                                            <span>{message.createTime}</span>
                                         </div>
                                     </div>
                                 )}
                             </>
                         ))}
+                        <div ref={endRef} />
                     </div>
                     <div className="input">
-                        <form onSubmit={handleSendMessage} className="new-message">
+                        <form onSubmit={handleSendMessage} className="new-message" onFocus={() => handleFormFocus()}>
                             <input
                                 type="text"
                                 name="text"
