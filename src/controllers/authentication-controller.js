@@ -1,6 +1,6 @@
 import { auth } from "../models/services/firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { writeDoc, exitedValueInDoc } from "../models/utils/firestore-method";
+import { writeDoc, exitDocWithValue } from "../models/utils/firestore-method";
 import { toast } from "react-toastify";
 import User from "../models/entities/user";
 
@@ -9,8 +9,10 @@ export default class AuthenticationController {
     static async logIn(email, password) {
         try {
             await signInWithEmailAndPassword(auth, email, password);
+
+            toast.success("Login success!");
         } catch (err) {
-            toast.error(err.message);
+            toast.error("Invalid email or password!");
             console.log(err);
         }
     };
@@ -18,8 +20,10 @@ export default class AuthenticationController {
     static async logOut() {
         try {
             await signOut(auth);
+
+            toast.success("Logout success!");
         } catch (error) {
-            toast.error("Something went wrong. Please try logging out again.");
+            toast.error("Failed to log out. Please try again!");
             console.error(error);
         }
     }
@@ -33,7 +37,7 @@ export default class AuthenticationController {
             return toast.warn("Passwords do not match!");
     
         // VALIDATE UNIQUE USERNAME
-        if (await exitedValueInDoc("users", "userName", userName)){
+        if (await exitDocWithValue("users", "userName", userName)){
             return toast.warn("Username already exists!");
         }
 
@@ -48,6 +52,7 @@ export default class AuthenticationController {
                 [],
                 [],
                 [],
+                [],
                 {
                     systemTheme: "light",
                     language: "vn",
@@ -58,7 +63,7 @@ export default class AuthenticationController {
       
             toast.success("Account created! You can login now!");
           } catch (err) {
-            toast.error(err.message);
+            toast.error("Failed to create account. Please try again!");
             console.log(err);
           }
     }

@@ -1,13 +1,13 @@
 import { doc, getDoc } from "firebase/firestore";
 import { create } from "zustand";
-import { fs_db } from "../models/services/firebase";
+import { fs_db, auth } from "../models/services/firebase";
 
 export const useUserStore = create((set) => ({
   // store all the current user data from firebase
   currentUser: null,
   // store user's friend list with id and avatar's url
   friendsData: [],
-  isLoading: true,
+  auth: auth,
   fetchUserInfo: async (id) => {
     if (!id) return set({ currentUser: null, friendsData: [], isLoading: false });
 

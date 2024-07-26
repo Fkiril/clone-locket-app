@@ -73,3 +73,32 @@
 .logout-button {
     @apply w-full bg-red-500 text-white px-4 py-2 rounded-lg;
 }
+
+.searching-friend-by-email {
+    @apply fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center;
+}
+
+.changing-username {
+    @apply fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center;
+
+    input {
+        width: 200px;
+        height: 50px;
+    }
+}
+
+.changing-password {
+    @apply fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center;
+
+    display: flex;
+    .body {
+        display: flex;
+        flex-direction: column;
+        justify-items: center;
+        gap: 10px;
+
+        input {
+            padding: 10px;
+        }
+    }
+}
