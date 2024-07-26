@@ -1,4 +1,4 @@
-.container {
+.chat-view {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -21,12 +21,13 @@
         gap: 10px;
         overflow: scroll;
 
-        .item {
+        .friend {
             display: flex;
             border: 2px solid whitesmoke;
             width: 50%;
             height: 10%;
             padding: 10px;
+            cursor: pointer;
 
             img {
                 width: 50px;

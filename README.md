@@ -18,7 +18,6 @@ Base on MVC architecture:
         - some infors
         - setting options
         - a list to store frineds' id
-        - a list to store blocked's id
         - picturesCanBeSeen: a list to store pictures' id which that user can see (from that user and from that user's friends that prescribe permission for that user to see)
 
     picture:
@@ -32,6 +31,9 @@ Base on MVC architecture:
             + public
             + specify
         - specifyList
+
+    boxChat:
+        -
 
     So when a user post a picture, controller detects which scope does that picture in:
         - private: just that user can see

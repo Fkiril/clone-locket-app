@@ -1,0 +1,112 @@
+.box-chat {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+    }
+
+    .body {
+        display: flex;
+        align-self: center;
+        align-items: center;
+        width: 50%;
+        height: 70%;
+        padding: 10px;
+        gap: 100px;
+
+        .conversation {
+            flex: 1;
+            
+            .messages {
+                display: flex;
+                flex-direction: column;
+                width: 400px;
+                height: 600px;
+                overflow: scroll;
+                padding: 15px;
+    
+                .message {
+                    padding: 10px;
+                    margin-bottom: 5px;
+                    border-radius: 10px;
+                    display: flex;
+
+                    img {
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 50%;
+                    }
+
+                    .infor {
+                        display: flex;
+                        flex-direction: column;
+                        margin-left: 10px;
+                    }
+                }
+                
+                .message.left {
+                    background-color: #f1f1f1;
+                    color: black;
+                    font-size: 13px;
+                    left: 0;
+                    align-self: flex-end;
+                }
+                
+                .message.right {
+                    background-color: #333;
+                    color: #fff;
+                    font-size: 13px;
+                    right: 0;
+                    align-self: flex-start;
+                }
+            }
+
+            .input {
+                padding: 10px;
+                gap: 5px;
+                border-top: 1px solid #ccc;
+
+                input {
+                    width: 100%;
+                    padding: 10px;
+                    border: none;
+                    border-radius: 10px;
+                    resize: none;
+                }
+
+                button {
+                    background-color: #333;
+                    color: #fff;
+                    padding: 10px 20px;
+                    border: none;
+                    cursor: pointer;
+                    margin-left: 10px;
+                    border-radius: 10px;
+                    font-size: 13px;
+                }
+
+                button:hover {
+                    background-color: #f1f1f1;
+                    color: #333;
+                }
+            }
+        }
+        
+        .detail {
+            flex: 3;
+            align-items: left;
+            width: 400px;
+            height: 600px;
+        }
+    }
+
+    button {
+        @apply bg-blue-500 text-white px-4 py-2 rounded-lg;
+    }
+}

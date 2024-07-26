@@ -1,6 +1,4 @@
-import React from "react";
-
-class textbfMessage {
+export default class Message {
     constructor(id, senderId, createTime, text, attachment, isSeen) {
         this.id = id;
         this.senderId = senderId;
@@ -14,7 +12,7 @@ class textbfMessage {
         return {
             id: this.id,
             senderId: this.senderId,
-            createTime: this.createTime.toDateString(),
+            createTime: this.createTime,
             text: this.text,
             attachment: this.attachment,
             isSeen: this.isSeen

@@ -1,6 +1,6 @@
 import React from "react";
 
-class BoxChat {
+export default class BoxChat {
     constructor(id, messages) {
         this.id = id;
         this.messages = messages;
@@ -9,7 +9,7 @@ class BoxChat {
     toJSON() {
         return {
             id: this.id,
-            messages: this.messages.map(value => value.toJSON())
+            messages: this.messages.map(value => value)
         };
     }
 }

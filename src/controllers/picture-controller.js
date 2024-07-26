@@ -33,7 +33,7 @@ export default class PictureController {
     static async signalPicture(picId, canSeeList) {
         try {
             canSeeList.map(async (userId) => {
-                await updateArrayField("users", userId, "picturesCanSee", picId);
+                await updateArrayField("users", userId, "picturesCanSee", true, picId);
             });
         } catch (error) {
             toast.error("Failed to signal to friends!");
