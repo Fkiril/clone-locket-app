@@ -334,7 +334,6 @@ export default function AccountView() {
                         className="w-32 h-32 rounded-full cursor-pointer mx-auto"
                         onClick={() => setIsSettingAvatar(true)} />
                 </div>
-
                 <div className="account-information text-center mb-6">
                     <span className="block text-xl font-semibold">{currentUser?.userName}</span>
                     <p className="text-gray-600">{currentUser?.email}</p>
