@@ -6,7 +6,6 @@ export default class User {
         this.avatar = avatar;
         this.picturesCanSee = picturesCanSee;
         this.friends = friends;
-        this.blocked = blocked;
         this.friendRequests = friendRequests;
         this.setting = setting;
     };
@@ -19,7 +18,6 @@ export default class User {
             avatar: this.avatar,
             picturesCanSee: this.picturesCanSee.map(value => value),
             friends: this.friends.map(value => value),
-            blockeds: this.blocked.map(value => value),
             friendRequests: this.friendRequests.map(value => value),
             setting: {
                 systemTheme: this.setting.systemTheme,

@@ -1,5 +1,5 @@
 import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
-import { writeDoc, updateArrayField, exitDoc, getDocIdByValue, getDocByValue } from "../models/utils/firestore-method";
+import { writeDoc, updateArrayField, exitDoc, getDocIdByValue, getDocByValue, getDocById } from "../models/utils/firestore-method";
 import { changePassword } from "../models/utils/authetication-method";
 import { toast } from "react-toastify";
 
@@ -81,6 +81,18 @@ export default class UserController {
         }
     };
 
+    async unfriendById(friendId) {
+        try {
+            await updateArrayField("users", this.user.id, "friends", false, friendId);
+
+            toast.success("Unfriended a user!")
+        } catch(error) {
+            toast.error("Something went wrong. Please try again!");
+            
+            console.log("Error unfriending user: ", error);
+        }
+    }
+
     async getFriendByEmail(friendEmail) {
         try {
             const result = await getDocByValue("users", "email", friendEmail);
@@ -98,10 +110,10 @@ export default class UserController {
         }
     }
 
-    async sendFriendRequestById(senderId, receiverId) {
+    async sendFriendRequestById(receiverId) {
         try {
             if (await exitDoc("users", receiverId)) {
-                await updateArrayField("users", receiverId, "friendRequests", true, senderId);
+                await updateArrayField("users", receiverId, "friendRequests", true, this.user.id);
 
                 toast.success("Sended a friend request!")
                 return true;
@@ -118,11 +130,11 @@ export default class UserController {
         }
     }
 
-    async sendFriendRequestByEmail(senderId, receiverEmail) {
+    async sendFriendRequestByEmail(receiverEmail) {
         try {
             const receiverId = await getDocIdByValue("users", "email", receiverEmail);
             if (receiverId) {
-                await updateArrayField("users", receiverId, "friendRequests", true, senderId);
+                await updateArrayField("users", receiverId, "friendRequests", true, this.user.id);
 
                 toast.success("Sended a friend request!")
                 return true;
@@ -138,12 +150,26 @@ export default class UserController {
         }
     }
 
-    async acceptFriendRequest(receiverId, senderId) {
+    async cancelFriendRequest(receiverId) {
+        try {
+            await updateArrayField("users", receiverId, "friendRequests", false, this.user.id);
+
+            toast.success("Canceled a friend request!")
+            return true;
+        } catch (error) {
+            toast.error("Something went wrong. Please try again!");
+
+            console.error("Error canceling friend request:", error);
+            return false;
+        }
+    }
+
+    async acceptFriendRequest(senderId) {
         try {
             if (await exitDoc("users", senderId)) {
-                await updateArrayField("users", receiverId, "friends", true, senderId);
-                await updateArrayField("users", senderId, "friends", true, receiverId);
-                await updateArrayField("users", receiverId, "friendRequests", false, senderId);
+                await updateArrayField("users", this.user.id, "friends", true, senderId);
+                await updateArrayField("users", senderId, "friends", true, this.user.id);
+                await updateArrayField("users", this.user.id, "friendRequests", false, senderId);
 
                 toast.success("Accepted a friend request!");
                 return true;
@@ -160,10 +186,10 @@ export default class UserController {
         }
     }
 
-    async declineFriendRequest(receiverId, senderId) {
+    async declineFriendRequest(senderId) {
         try {
             if (await exitDoc("users", senderId)) {
-                await updateArrayField("users", receiverId, "friendRequests", false, senderId);
+                await updateArrayField("users", this.user.id, "friendRequests", false, senderId);
 
                 toast.success("Declined a friend request!")
                 return true;
@@ -177,6 +203,20 @@ export default class UserController {
 
             console.error("Error declining friend request:", error);
             return false;
+        }
+    }
+
+    async getUserInfo(userId) {
+        try {
+            const result = await getDocById("users", userId);
+            if (result) {
+                return result;
+            } else {
+                return null;
+            }
+        } catch (error) {
+            console.log("Error getting basic user info:", error);
+            return null;
         }
     }
 }
