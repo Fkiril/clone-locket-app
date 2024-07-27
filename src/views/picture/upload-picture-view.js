@@ -1,45 +1,173 @@
+import React, { useState } from "react";
+import { FaCamera } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import { updateArrayField, writeCol, writeDoc } from "../models/utils/firestore-method";
-import { uploadToFolder } from "../models/utils/storage-method";
+import PictureController from "../../controllers/picture-controller";
+import { useUserStore } from "../../hooks/user-store";
+import Picture, { ScopeEnum } from "../../models/entities/picture";
 
-export default class PictureController {
-    static async uploadPicture(picInstance, file) {
-        console.log("uploadPicture", picInstance, file);
-        try {
-            const { fileUrl, uploadTime } = await uploadToFolder(file, "pictures");
-            picInstance.url = fileUrl;
-            picInstance.uploadTime = uploadTime;
-            const docRefId = await writeCol("pictures", picInstance.toJSON());
-            
-            picInstance.id = docRefId;
-            
-            await writeDoc("pictures", docRefId, true, {
-                id: docRefId
-            });
+export default function UploadPictureView() {
+  const { currentUser, friendsData } = useUserStore();
+  const currentPicture = new Picture("", currentUser.id);
 
-            await this.signalPicture(picInstance.id, picInstance.canSee);
+  const [optionFile, setoptionFile] = useState(null);
+  const [optionFileUrl, setoptionFileUrl] = useState("");
 
-            console.log("uploadPicture successfully");
-        } catch (error) {
-            if (error.code === "STORAGE/UPLOAD_BYTES_RESUMABLE_ERROR") {
-                toast.error("Failed to upload picture. Please try again!");
-            }
-            else {
-                toast.error("Failed to write data!");
-            }
-            console.log(error);
-        } 
+  const [text, setText] = useState("");
+  const [scope, setScope] = useState(ScopeEnum.PUBLIC);
+  const [showScopeOption, setShowScopeOption] = useState(false);
+  const [selectedFriends, setSelectedFriends] = useState([]);
+
+  const handlePicture = (event) => {
+    if (event.target.files[0]) {
+      setoptionFile(event.target.files[0]);
+      setoptionFileUrl(URL.createObjectURL(event.target.files[0]));
     }
-    static async signalPicture(picId, canSeeList) {
-        try {
-            canSeeList.map(async (userId) => {
-                await updateArrayField("users", userId,true, "picturesCanSee", picId);
-            });
-        } catch (error) {
-            toast.error("Failed to signal to friends!");
-            console.log(error);
-        }
+  };
+
+  const submitOption = async () => {
+    currentPicture.text = text;
+    currentPicture.scope = scope;
+
+    currentPicture.canSee = [currentUser.id];
+    if (scope === ScopeEnum.SPECIFY) {
+      currentPicture.canSee.push(...selectedFriends);
+    } else if (scope === ScopeEnum.PUBLIC) {
+      currentPicture.canSee.push(...currentUser.friends);
     }
 
-    static async loadPictures() {}
+    await PictureController.uploadPicture(currentPicture, optionFile);
+
+    setoptionFile(null);
+    setoptionFileUrl("");
+  };
+
+  const cancelOption = () => {
+    const fileInput = document.getElementById("file");
+    fileInput.value = "";
+
+    setoptionFile(null);
+    setoptionFileUrl("");
+  };
+
+  const handleText = (event) => {
+    setText(event.target.value);
+  };
+
+  const checkTextInputLength = () => {
+    const textInput = document.getElementById("text-input");
+    if (textInput.value.length >= 35) {
+      toast.warning("Text input can be up to 35 characters!");
+    }
+  };
+
+  const handleShowScopeOption = () => {
+    setShowScopeOption(!showScopeOption);
+  };
+
+  const handleFriendCheckboxChange = (friendId) => {
+    setSelectedFriends((prevSelected) => {
+      if (prevSelected.includes(friendId)) {
+        return prevSelected.filter((id) => id !== friendId);
+      } else {
+        return [...prevSelected, friendId];
+      }
+    });
+  };
+
+  return (
+    <div className="flex flex-col items-center min-h-screen bg-gray-100 p-4">
+      <div className="bg-white p-10 rounded-lg shadow-md w-full max-w-xl relative">
+        <Link to="/home">
+          <button className="absolute top-4 right-4 px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400">
+            Back to Home
+          </button>
+        </Link>
+        <div className="flex flex-col items-center mb-8">
+          <FaCamera className="text-9xl text-gray-500 mb-4" />
+          <button
+            type="button"
+            onClick={() => document.getElementById("file").click()}
+            className="px-8 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-xl"
+          >
+            Choose Picture
+            <input
+              type="file"
+              id="file"
+              style={{ display: "none" }}
+              onChange={handlePicture}
+            />
+          </button>
+        </div>
+        {optionFileUrl && (
+          <div>
+            <div className="scope-select mb-4">
+              <button
+                onClick={handleShowScopeOption}
+                className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400"
+              >
+                Select Scope
+              </button>
+              {showScopeOption && (
+                <div className="mt-2">
+                  <select
+                    onChange={(event) => setScope(event.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value={ScopeEnum.PUBLIC}>Public</option>
+                    <option value={ScopeEnum.PRIVATE}>Private</option>
+                    <option value={ScopeEnum.SPECIFY}>Specify</option>
+                  </select>
+                  {scope === ScopeEnum.SPECIFY && (
+                    <div className="mt-2">
+                      {friendsData.map((friend) => (
+                        <label key={friend.name} className="block">
+                          <input
+                            type="checkbox"
+                            checked={selectedFriends.includes(friend.id)}
+                            onChange={() => handleFriendCheckboxChange(friend.id)}
+                            className="mr-2"
+                          />
+                          {friend.name}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="picture mb-4">
+              <img src={optionFileUrl} alt="" className="w-full rounded-lg" />
+              <input
+                id="text-input"
+                type="text"
+                maxLength="35"
+                placeholder="Enter text"
+                value={text}
+                onChange={handleText}
+                onInput={checkTextInputLength}
+                className="w-full mt-2 p-2 border border-gray-300 rounded-md"
+              />
+            </div>
+            <div className="buttons flex justify-between">
+              <button
+                type="button"
+                onClick={submitOption}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              >
+                Submit
+              </button>
+              <button
+                type="button"
+                onClick={cancelOption}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
