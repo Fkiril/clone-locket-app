@@ -21,7 +21,7 @@ function App() {
     return () => {
       unSubscribe();
     }
-  }, [fetchUserInfo, currentUser, auth]);
+  }, [fetchUserInfo, auth]);
 
   useEffect(() => {
     if(currentUser) {
@@ -37,25 +37,9 @@ function App() {
     }
   }, []);
 
-  // useEffect(() => {
-  //   const unsubscribeAuth = auth.onAuthStateChanged((user) => {
-  //     fetchUserInfo(user?.uid);
-  //   });
-
-  //   const unsubscribeSnapshot = currentUser ? onSnapshot(doc(fs_db, "users", currentUser.id), { includeMetadataChanges: false }, () => {
-  //     fetchUserInfo(currentUser.id);
-  //   }) : null;
-
-  //   return () => {
-  //     unsubscribeAuth();
-  //     unsubscribeSnapshot();
-  //   }
-  // }, [auth, currentUser, fetchUserInfo]);
-
-
   if(isLoading) return <div>Loading...</div>;
 
-  console.log("User's data: ", currentUser);
+  // console.log("User's data: ", currentUser);
 
   return (
     <HashRouter>

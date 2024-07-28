@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import PictureController from "../../controllers/picture-controller";
@@ -7,53 +7,63 @@ import { useUserStore } from "../../hooks/user-store";
 
 export default function UploadPictureView() {
     const { currentUser, friendsData } = useUserStore();
-    const currentPicture = new Picture("", currentUser.id);
 
-    const [optionFile, setOptionFile] = useState(null);
-    const [optionFileUrl, setOptionFileUrl] = useState("");
-    const [text, setText] = useState("");
-    const [scope, setScope] = useState(ScopeEnum.PUBLIC);
+    const [picture, setPicture] = useState({
+        file: null,
+        url: ""
+    });
+
     const [showScopeOption, setShowScopeOption] = useState(false);
+    const [scope, setScope] = useState(ScopeEnum.PUBLIC);
+
     const [selectedFriends, setSelectedFriends] = useState([]);
 
-    const handlePicture = (event) => {
+    const [isCameraOpen, setIsCameraOpen] = useState(false);
+
+    const handleSetPicture = (event) => {
         if (event.target.files[0]) {
-            setOptionFile(event.target.files[0]);
-            setOptionFileUrl(URL.createObjectURL(event.target.files[0]));
+            setPicture({
+                file: event.target.files[0],
+                url: URL.createObjectURL(event.target.files[0])
+            })
         }
     };
 
-    const submitOption = async () => {
-        currentPicture.text = text;
-        currentPicture.scope = scope;
+    const handleSubmitPicture = async () => {
+        const text = document.getElementById("status").value;
 
-        currentPicture.canSee = [currentUser.id];
+        const newPicture = new Picture({
+            text: text,
+            scope: scope,
+            canSee: [currentUser.id]
+        });
+
         if (scope === "specify") {
-            currentPicture.canSee.push(...selectedFriends);
+            newPicture.canSee.push(...selectedFriends);
         } else if (scope === "public") {
-            currentPicture.canSee.push(...currentUser.friends);
+            newPicture.canSee.push(...currentUser.friends);
         }
+        console.log("newPicture", newPicture);
+        await PictureController.uploadPicture(newPicture, picture.file);
 
-        await PictureController.uploadPicture(currentPicture, optionFile);
-
-        setOptionFile(null);
-        setOptionFileUrl("");
+        setPicture({
+            file: null,
+            url: ""
+        });
     };
 
-    const cancelOption = () => {
+    const handleCancel = () => {
         const fileInput = document.getElementById("file");
         fileInput.value = "";
 
-        setOptionFile(null);
-        setOptionFileUrl("");
+        setPicture({
+            file: null,
+            url: ""
+        });
     };
 
-    const handleText = (event) => {
-        setText(event.target.value);
-    };
-
-    const checkTextInputLength = () => {
-        const textInput = document.getElementById("text-input");
+    const handleCheckTextInput = () => {
+        const textInput = document.getElementById("status");
         if (textInput.value.length >= 35) {
             toast.warning("Text input can be up to 35 characters!");
         }
@@ -71,6 +81,65 @@ export default function UploadPictureView() {
                 return [...prevSelected, friendId];
             }
         });
+    };
+
+    const videoRef = useRef(null);
+    const canvasRef = useRef(null);
+
+    const handleOpenCamera = () => {
+        setIsCameraOpen(true);
+        setPicture({
+            file: null,
+            url: ""
+        })
+
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices
+                .getUserMedia({ video: true })
+                .then((stream) => {
+                    const video = videoRef.current;
+                    video.srcObject = stream;
+                    video.play();
+                })
+                .catch((error) => {
+                    toast.error("Can not access camera. Please gain permission!");
+                    console.error("Error accessing camera:", error);
+                });
+        }
+    };
+
+    const handleCloseCamera = () => {
+        setIsCameraOpen(false);
+        const video = videoRef.current;
+        const stream = video.srcObject;
+        const tracks = stream.getTracks();
+        tracks.forEach((track) => {
+            track.stop();
+        })
+    };
+
+    const handleTakePicture = async () => {
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        const context = canvas.getContext("2d");
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.save();
+        context.scale(-1, 1);
+        context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+        context.restore();
+
+        const blob = await new Promise((resolve) => {
+            canvas.toBlob(resolve, "image/png");
+        });
+
+        setPicture({
+            file: blob,
+            url: canvas.toDataURL("image/png")
+        });
+
+        handleCloseCamera();
     };
 
     return (
@@ -93,12 +162,33 @@ export default function UploadPictureView() {
                             type="file"
                             id="file"
                             className="hidden"
-                            onChange={handlePicture}
+                            onChange={handleSetPicture}
                         />
                     </button>
+                    <button
+                        type="button"
+                        className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onClick={isCameraOpen? handleCloseCamera : handleOpenCamera}
+                    >
+                        {isCameraOpen? "Close Camera": "Open Camera"}
+                    </button>
                 </div>
+                
+                {isCameraOpen && (
+                    <div className="camera">
+                        <video autoPlay playsInline muted ref={videoRef} style={{transform: "scaleX(-1)"}}></video>
+                        <canvas ref={canvasRef} aria-disabled className="hidden"></canvas>
+                        <button
+                            type="button"
+                            onClick={handleTakePicture}
+                            className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            Take Picture
+                        </button>
+                    </div>
+                )}
 
-                {optionFileUrl && (
+                {picture.url && (
                     <div>
                         <div className="mb-4">
                             <button
@@ -139,18 +229,16 @@ export default function UploadPictureView() {
                         </div>
 
                         <div className="mb-4">
-                            <img src={optionFileUrl} alt="Selected" className="w-full h-auto rounded-md shadow-md" />
+                            <img src={picture.url} alt="Selected" className="w-full h-auto rounded-md shadow-md" />
                         </div>
 
                         <div className="mb-4">
                             <input
-                                id="text-input"
+                                id="status"
                                 type="text"
                                 maxLength="35"
-                                placeholder="Enter text"
-                                value={text}
-                                onChange={handleText}
-                                onInput={checkTextInputLength}
+                                placeholder="Add status: "
+                                onInput={handleCheckTextInput}
                                 className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
@@ -158,14 +246,14 @@ export default function UploadPictureView() {
                         <div className="flex justify-between">
                             <button
                                 type="button"
-                                onClick={submitOption}
+                                onClick={handleSubmitPicture}
                                 className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 Submit
                             </button>
                             <button
                                 type="button"
-                                onClick={cancelOption}
+                                onClick={handleCancel}
                                 className="bg-red-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
                             >
                                 Cancel
