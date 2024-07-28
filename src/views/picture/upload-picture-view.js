@@ -43,7 +43,7 @@ export default function UploadPictureView() {
         } else if (scope === "public") {
             newPicture.canSee.push(...currentUser.friends);
         }
-        console.log("newPicture", newPicture);
+        
         await PictureController.uploadPicture(newPicture, picture.file);
 
         setPicture({

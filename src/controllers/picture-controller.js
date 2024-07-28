@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 
 export default class PictureController {
     static async uploadPicture(picInstance, file) {
-        console.log("uploadPicture", picInstance, file);
         try {
             const { fileUrl, uploadTime } = await uploadToFolder(file, "pictures");
             picInstance.url = fileUrl;
@@ -19,7 +18,7 @@ export default class PictureController {
 
             await this.signalPicture(picInstance.id, picInstance.canSee);
 
-            console.log("Successfully uploaded picture!");
+            toast.success("Successfully uploaded picture!");
         } catch (error) {
             if (error.code === "STORAGE/UPLOAD_BYTES_RESUMABLE_ERROR") {
                 toast.error("Failed to upload picture. Please try again!");
@@ -27,7 +26,6 @@ export default class PictureController {
             else {
                 toast.error("Failed to write data!");
             }
-            console.log(error);
         } 
     }
     static async signalPicture(picId, canSeeList) {
