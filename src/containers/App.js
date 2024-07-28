@@ -1,6 +1,6 @@
 import './App.css';
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { fs_db } from '../models/services/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import Notification from '../controllers/notification';
@@ -55,21 +55,21 @@ function App() {
 
   if(isLoading) return <div>Loading...</div>;
 
-  // console.log("User's data: ", currentUser);
+  console.log("User's data: ", currentUser);
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
-        <Route path='/account' element={<AccountView />} />
-
         <Route path='/' element={<AuthenticationView />} />
+
+        <Route path='/account' element={<AccountView />} />
 
         <Route path="/home" element={<HomeView />} />
 
         <Route path="/upload-picture" element={<UploadPictureView />} />
       </Routes>
       <Notification />
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
