@@ -1,3 +1,7 @@
+How to run:
+-Open terminal at root file
+-Run npm install and npm install raect-icons
+-Npm run start
 A real-time chat and sharing pictures, base on Locket.
 
 Using Electron, ReactJS and Firebase.
