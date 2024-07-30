@@ -1,8 +1,7 @@
 import './App.css';
 import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { fs_db, auth } from '../models/services/firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { auth } from '../models/services/firebase';
 import { useUserStore } from '../hooks/user-store';
 
 import Notification from '../controllers/notification';
@@ -11,7 +10,7 @@ import AccountView from '../views/account/account-view';
 import HomeView from '../views/home/home-view';
 import UploadPictureView from '../views/picture/upload-picture-view';
 import ChatView from '../views/chat/chat-view';
-import BoxChatView from '../views/chat/box-chat-view';
+import ConversationView from '../views/chat/conversation-view';
 
 function App() {
   const { currentUser, fetchUserInfo, isLoading } = useUserStore();
@@ -43,7 +42,7 @@ function App() {
 
         <Route path="/chat" element={<ChatView />} />
 
-        <Route path="/box-chat/:boxChatId" element={<BoxChatView />} />
+        <Route path="/conversation/:conversationId" element={<ConversationView />} />
       </Routes>
       <Notification />
     </HashRouter>

@@ -1,72 +1,173 @@
-import { exitDoc, updateArrayField, writeCol, writeDoc } from "../models/utils/firestore-method";
+import { createBatchedWrites, exitDoc, getDocDataById, getDocRef, updateArrayField, writeCol, writeDoc, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
 import { toast } from "react-toastify";
 import Message from "../models/entities/message";
+import Conversation from "../models/entities/conversation";
+import ChatManager from "../models/entities/chat-manager";
 
 export default class ChatController {
-    static getBoxChatId(user1, user2) {
-        return user1 > user2 ? user1 + user2 : user2 + user1;
+    static async createChatManager(userId) {
+        try {
+            await writeIntoDoc("chatManagers", userId, false, new ChatManager({ userId: userId }).toJSON());
+            toast.success("Created chat manager");
+        } catch (error) {
+            toast.error("Failed to create chat manager. Please try again");
+
+            console.log("Error create chat manager: ", error);
+        }
     }
 
-    static async exitBoxChat(boxChatId) {
+    static async createConversation(participantIds) {
         try {
-            if (await exitDoc("boxChats", boxChatId)) {
-                return true;
+            const conversationId = await writeIntoCol("conversations", {});
+
+            const writes = [{
+                work: "set",
+                docRef: getDocRef("conversations", conversationId),
+                data: new Conversation({
+                    id: conversationId,
+                    participants: participantIds
+                }).toJSON()
+            }];
+
+            participantIds.forEach((participant) => {
+                writes.push({
+                    work: "update-map",
+                    docRef: getDocRef("chatManagers", participant),
+                    field: "conversationStates",
+                    key: conversationId,
+                    data: 0
+                });
+
+                writes.push({
+                    work: "update-map",
+                    docRef: getDocRef("chatManagers", participant),
+                    field: "friendConversations",
+                    key: participantIds.filter(p => p !== participant),
+                    data: conversationId
+                });
+            });
+
+            await createBatchedWrites(writes);
+            toast.success("Created new conversation of: ", participantIds);
+            return conversationId;
+        } catch (error) {
+            console.log("Error create conversation: ", error);
+
+            return null;
+        }
+    }
+
+    static async getConversationIdWithFriend(userId, friendId) {
+        try {
+            const chatManagerData = await getDocDataById("chatManagers", userId);
+            if (chatManagerData) {
+                return chatManagerData.friendConversations[friendId];
+            }
+        } catch (error) {
+            console.log("Error get conversation id: ", error);
+
+            return null;
+        }
+    }
+
+    static async exitConversationWithFriend(userId, friendId) {
+        try {
+            const chatManagerData = await getDocDataById("chatManagers", userId);
+            if (chatManagerData) {
+                if (chatManagerData.friendConversations[friendId]) {
+                    return true;
+                }
             }
 
             return false;
         } catch (error) {
-            console.log("Error check exit box chat: ", error);
+            console.log("Error check exit conversation: ", error);
             return false;
         }
     }
 
-    static async createBoxChat(boxChatId) {
+    static async getFriendIdByConversationId(userId, conversationId) {
         try {
-            await writeDoc("boxChats", boxChatId, false, {
-                id: boxChatId,
-                messages: []
-            });
-
-            toast.success("New Box chat created");
+            const chatManagerData = await getDocDataById("chatManagers", userId);
+            if (chatManagerData) {
+                const result = Object.keys(chatManagerData.friendConversations).find(key => chatManagerData.friendConversations[key] === conversationId);
+                return result;
+            }
+            return null;
         } catch (error) {
-            toast.error("Failed to create new Box chat");
-            console.log("Error creating new Box chat: ", error);
+            console.log("Error get friend id: ", error);
+
+            return null;
         }
     }
 
-    static async sendMessage(boxChatId, message) {
+    static async sendMessage(conversationId, message) {
         try {
-            const new_message = new Message(
-                "",
-                message.senderId,
-                (new Date()).toLocaleString("vi-VN").replace(/\//g, "-"),
-                message.text,
-                "",
-                false
-            );
-            const messageId = await writeCol("messages", new_message.toJSON());
+            const messageData = new Message(message);
 
-            await writeDoc("messages", messageId, true, {
-                id: messageId
-            });
+            const messageId = await writeIntoCol("conversations/"+conversationId+"/messages", {});
 
-            await updateArrayField("boxChats", boxChatId, "messages", true, messageId);
+            const write = [{
+                work: "set",
+                docRef: getDocRef("conversations/"+conversationId+"/messages", messageId),
+                data: messageData.toJSON()
+            },
+            {
+                work: "update",
+                docRef: getDocRef("conversations", conversationId),
+                data: {
+                    lastMessage: messageData
+                }
+            }];
+            await createBatchedWrites(write);
         } catch (error) {
-            console.log("Error sending message: ", error);
+            console.log("Error send message: ", error);
         }
     }
 
-    static async setIsSeenToMessages(messagesId) {
+    static async signalMessage(conversationId) {
         try {
-            messagesId?.map(async (messageId) => {
-                await writeDoc("messages", messageId, true, {
-                    isSeen: true
+            const conversationData = await getDocDataById("conversations", conversationId);
+            if (conversationData) {
+                const writes = conversationData.participants.forEach((participant) => {
+                    return {
+                        work: "update-map",
+                        docRef: getDocRef("chatManagers", participant),
+                        field: "conversationStates",
+                        key: conversationId,
+                        isIncrement: true,
+                        data: 1
+                    };
                 });
-            })
+                await createBatchedWrites(writes);
+            }
+        } catch (error) {
+            console.log("Error signal message: ", error);
+        }
+    }
+
+    static async setIsSeenToMessages(conversationId, messageIds) {
+        try {
+            const writes = messageIds.map((messageId) => {
+                return {
+                    work: "update",
+                    docRef: getDocRef("conversations/"+conversationId+"/messages", messageId),
+                    data: {
+                        isSeen: true
+                    }
+                };
+            });
+            await createBatchedWrites(writes);
         } catch (error) {
             console.log("Error setIsSeenToMessages: ", error);
         }
     }
 
-    static async loadMessage() {}
+    static async getMessageById(conversationId, messageId) {
+        try {
+            return await getDocDataById("conversations/"+conversationId+"/messages", messageId);
+        } catch (error) {
+            console.log("Error getMessageById: ", error);
+        }
+    }
 }

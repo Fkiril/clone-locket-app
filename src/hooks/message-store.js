@@ -2,7 +2,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { create } from "zustand";
 import { fs_db } from "../models/services/firebase";
 
-export const useMessageStore = create((set) => ({
+export const useMessageStore = create((set, get) => ({
     messages: [],
     isLoading: false,
     fetchMessages: async (boxChatId) => {
@@ -12,8 +12,12 @@ export const useMessageStore = create((set) => ({
             const boxChatRef = doc(fs_db, "boxChats", boxChatId);
             const boxChatSnap = await getDoc(boxChatRef);
             if (boxChatSnap.exists()) {
+                console.log("get().messages", get().messages);
                 const boxChatData = boxChatSnap.data();
-                const msId = boxChatData.messages;
+                const msId = boxChatData.messages.filter((mId) => 
+                    !get().messages.find((m) => m.id === mId)
+                );
+                console.log("msId", msId);
                 
                 const msData = await Promise.all(
                     msId.map(async (mId) => {

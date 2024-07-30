@@ -1,4 +1,4 @@
-import "./box-chat-view.css";
+import "./conversation-view.css";
 import React, { useEffect, useState, useRef } from "react";
 import { useUserStore } from "../../hooks/user-store";
 import { useMessageStore } from "../../hooks/message-store";
@@ -7,9 +7,8 @@ import ChatController from "../../controllers/chat-controller";
 import { doc, onSnapshot } from "firebase/firestore";
 import { fs_db } from "../../models/services/firebase";
 
-export default function BoxChatView() {
-    const { boxChatId } = useParams();
-    const navigate = useNavigate();
+export default function ConversationView() {
+    const { conversationId } = useParams();
     const { currentUser, friendsData } = useUserStore();
     const { messages, fetchMessages } = useMessageStore();
 
@@ -19,16 +18,16 @@ export default function BoxChatView() {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    useEffect(() => {
-        const boxChatRef = doc(fs_db, "boxChats", boxChatId);
+    // useEffect(() => {
+    //     const boxChatRef = doc(fs_db, "boxChats", boxChatId);
 
-        const unSubscribe = onSnapshot(boxChatRef, { includeMetadataChanges: false }, () => {
-            console.log("box-chat-view.js: useEffect() for onSnapshot: ", messages);
-            fetchMessages(boxChatId);
-        });
+    //     const unSubscribe = onSnapshot(boxChatRef, { includeMetadataChanges: false }, () => {
+    //         console.log("box-chat-view.js: useEffect() for onSnapshot: ", messages);
+    //         fetchMessages(boxChatId);
+    //     });
   
-        return () => unSubscribe();
-    }, [onSnapshot]);
+    //     return () => unSubscribe();
+    // }, [onSnapshot]);
 
     const handleGetAvatar = (senderId) => {
         if (senderId === currentUser.id) {
@@ -51,21 +50,21 @@ export default function BoxChatView() {
             text: text,
             senderId: currentUser.id
         }
-        await ChatController.sendMessage(boxChatId, message);
+        await ChatController.sendMessage(conversationId, message);
 
         event.target.reset();
     };
 
     const handleFormFocus = async () => {
         const messagesId = messages.filter(
-            (message) => (message.senderId !== currentUser.id && message.isSeen === false) 
+            (message) => (message.senderId !== currentUser.id && message.isSeen === false)
         ).map((message) => message.id);
 
-        await ChatController.setIsSeenToMessages(messagesId);
+        await ChatController.setIsSeenToMessages(conversationId, messagesId);
     };
 
     return (
-        <div className="box-chat" key={boxChatId}>
+        <div className="box-chat" key={conversationId}>
             <div className="header">
                 <p>Box Chat</p>
                 <button>
