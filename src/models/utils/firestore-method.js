@@ -16,12 +16,15 @@ const createBatchedWrites = async (writes) => {
     try {
         const batch = writeBatch(fs_db);
 
-        writes.map((write) => {
+        writes?.map((write) => {
+            if(!write) return;
             if (write.work === "set") {
                 batch.set(write.docRef, write.data);
             }
             if (write.work === "update") {
-                batch.update(write.docRef, write.data);
+                batch.update(write.docRef, {
+                    [write.field]: write.data
+                });
             }
             if (write.work === "update-array") {
                 batch.update(write.docRef, {
@@ -180,4 +183,12 @@ const getDocRef = (path, docId) => {
     return doc(fs_db, path, docId);
 }
 
-export { creatTransaction, createBatchedWrites, writeCol, writeDoc, writeIntoCol, writeIntoDoc, exitDocWithValue, exitDoc, updateArrayField, getDocIdByValue, getDocDataByValue, getDocDataById, getDocRef };
+const getColRef = (path) => {
+    return collection(fs_db, path);
+}
+
+const getDocsCol = async (path) => {
+    return await getDocs(collection(fs_db, path));
+}
+
+export { creatTransaction, createBatchedWrites, writeCol, writeDoc, writeIntoCol, writeIntoDoc, exitDocWithValue, exitDoc, updateArrayField, getDocIdByValue, getDocDataByValue, getDocDataById, getDocRef, getColRef, getDocsCol };

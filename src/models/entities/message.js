@@ -2,7 +2,7 @@ export default class Message {
     constructor(props) {
         this.id = props.id? props.id : "";
         this.senderId = props.senderId? props.senderId : "";
-        this.createTime = props.createTime? props.createTime : "";
+        this.createdTime = props.createdTime? props.createdTime : "";
         this.text = props.text? props.text : "";
         this.attachment = props.attachment? props.attachment : "";
         this.isSeen = props.isSeen? props.isSeen : false;
@@ -12,7 +12,7 @@ export default class Message {
         return {
             id: this.id,
             senderId: this.senderId,
-            createTime: this.createTime,
+            createdTime: this.createdTime,
             text: this.text,
             attachment: this.attachment,
             isSeen: this.isSeen

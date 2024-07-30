@@ -17,14 +17,23 @@
         align-items: center;
         width: 50%;
         height: 70%;
-        padding: 10px;
-        gap: 10px;
-        overflow: scroll;
+        
+
+        .conversations {
+          flex-direction: column;
+          align-self: center;
+          align-items: center;
+          width: 100%;
+          height: 100%;
+          padding: 10px;
+          gap: 10px;
+          overflow: scroll;
+        }
 
         .friend {
             display: flex;
             border: 2px solid whitesmoke;
-            width: 50%;
+            width: 100%;
             height: 10%;
             padding: 10px;
             cursor: pointer;
@@ -39,19 +48,19 @@
             }
 
             .texts {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-          
-                span {
-                  font-weight: 500;
-                }
-          
-                p {
-                  font-size: 14px;
-                  font-weight: 300;
-                }
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+        
+              span {
+                font-weight: 500;
               }
+        
+              p {
+                font-size: 14px;
+                font-weight: 300;
+              }
+            }
         }
     }
 }

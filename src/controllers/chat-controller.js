@@ -103,21 +103,27 @@ export default class ChatController {
 
     static async sendMessage(conversationId, message) {
         try {
-            const messageData = new Message(message);
+            const messageIns = new Message(message);
+            console.log("messageIns", messageIns.toJSON());
 
             const messageId = await writeIntoCol("conversations/"+conversationId+"/messages", {});
 
             const write = [{
                 work: "set",
                 docRef: getDocRef("conversations/"+conversationId+"/messages", messageId),
-                data: messageData.toJSON()
+                data: messageIns.toJSON()
+            },
+            {
+                work: "update",
+                docRef: getDocRef("conversations/"+conversationId+"/messages", messageId),
+                field: "id",
+                data: messageId
             },
             {
                 work: "update",
                 docRef: getDocRef("conversations", conversationId),
-                data: {
-                    lastMessage: messageData
-                }
+                field: "lastMessage",
+                data: messageId
             }];
             await createBatchedWrites(write);
         } catch (error) {
@@ -125,20 +131,25 @@ export default class ChatController {
         }
     }
 
-    static async signalMessage(conversationId) {
+    static async signalMessage(conversationId, senderId) {
         try {
             const conversationData = await getDocDataById("conversations", conversationId);
             if (conversationData) {
-                const writes = conversationData.participants.forEach((participant) => {
-                    return {
-                        work: "update-map",
-                        docRef: getDocRef("chatManagers", participant),
-                        field: "conversationStates",
-                        key: conversationId,
-                        isIncrement: true,
-                        data: 1
-                    };
+                console.log("conversationData", conversationData);
+                const writes = [];
+                conversationData.participants.map((participant) => {
+                    if (participant !== senderId) {
+                        writes.push({
+                            work: "update-map",
+                            docRef: getDocRef("chatManagers", participant),
+                            field: "conversationStates",
+                            key: conversationId,
+                            isIncrement: true,
+                            data: 1
+                        });
+                    }
                 });
+                console.log("writes", writes);
                 await createBatchedWrites(writes);
             }
         } catch (error) {
@@ -146,17 +157,25 @@ export default class ChatController {
         }
     }
 
-    static async setIsSeenToMessages(conversationId, messageIds) {
+    static async setIsSeenToMessages(userId, conversationId, messageIds) {
         try {
+            if (!messageIds || messageIds.length === 0) return;
+
             const writes = messageIds.map((messageId) => {
                 return {
                     work: "update",
                     docRef: getDocRef("conversations/"+conversationId+"/messages", messageId),
-                    data: {
-                        isSeen: true
-                    }
+                    field: "isSeen",
+                    data: true
                 };
             });
+            writes.push({
+                work: "update-map",
+                docRef: getDocRef("chatManagers", userId),
+                field: "conversationStates",
+                key: conversationId,
+                data: 0
+            })
             await createBatchedWrites(writes);
         } catch (error) {
             console.log("Error setIsSeenToMessages: ", error);

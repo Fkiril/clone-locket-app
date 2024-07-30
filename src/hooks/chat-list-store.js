@@ -30,10 +30,10 @@ export const useChatListStore = create((set) => ({
                             return {
                                 id: lastMessageData.id,
                                 text: lastMessageData.text,
+                                createdTime: lastMessageData.createdTime,
                                 isSeen: lastMessageData.isSeen
                             }
                         }
-                        return null;
                     }
                 }));
 

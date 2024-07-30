@@ -13,7 +13,7 @@ import { fs_db } from "../../models/services/firebase";
 export default function AccountView() {
     const navigate = useNavigate();
     
-    const { auth, currentUser, friendsData, requestsData, fetchUserInfo } = useUserStore();
+    const { auth, currentUser, friendDatas, requestDatas, fetchUserInfo } = useUserStore();
     const userController = currentUser ? new UserController(currentUser) : null;
 
     const [isSettingAvatar, setIsSettingAvatar] = useState(false);
@@ -367,7 +367,7 @@ export default function AccountView() {
                     <div className="account-stat flex justify-around mt-4">
                         <div className="stat text-center">
                             <p className="font-semibold">Friends</p>
-                            {friendsData?.map((friend) => (
+                            {friendDatas?.map((friend) => (
                                 <div key={friend.id}>
                                     <p>{friend.name}</p>
                                     <img src={friend.avatar? friend.avatar : "./default_avatar.jpg"} alt="" className="w-10 h-10 rounded-full cursor-pointer mx-auto" />
@@ -376,7 +376,7 @@ export default function AccountView() {
                         </div>
                         <div className="stat text-center">
                             <p className="font-semibold">Requests</p>
-                            {requestsData?.map((request) => (
+                            {requestDatas?.map((request) => (
                                 <div key={request.id}>
                                     <p>{request.name}</p>
                                     <img src={request.avatar? request.avatar : "./default_avatar.jpg"} alt="" className="w-10 h-10 rounded-full cursor-pointer mx-auto" />

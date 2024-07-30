@@ -6,7 +6,7 @@ import Picture, { ScopeEnum } from "../../models/entities/picture";
 import { useUserStore } from "../../hooks/user-store";
 
 export default function UploadPictureView() {
-    const { currentUser, friendsData } = useUserStore();
+    const { currentUser, friendDatas } = useUserStore();
     const currentPicture = new Picture("", currentUser.id);
 
     const [optionFile, setOptionFile] = useState(null);
@@ -121,7 +121,7 @@ export default function UploadPictureView() {
                                     </select>
                                     {scope === ScopeEnum.SPECIFY && (
                                         <div className="mt-2">
-                                            {friendsData.map((friend) => (
+                                            {friendDatas.map((friend) => (
                                                 <label key={friend.id} className="block text-gray-700">
                                                     <input
                                                         type="checkbox"
