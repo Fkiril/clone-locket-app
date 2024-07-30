@@ -1,6 +1,7 @@
 How to run:
 -Open terminal at root file
--Run npm install and npm install raect-icons
+-Run npm install 
+-npm install react-icons --save
 -Npm run start
 A real-time chat and sharing pictures, base on Locket.
 
