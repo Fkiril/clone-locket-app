@@ -89,6 +89,7 @@ export const useUserStore = create((set) => ({
                   id: picData.id,
                   ownerId: picData.ownerId,
                   url: picData.url,
+                  text: picData.text,
                   uploadTime: picData.uploadTime
                 });
               }
