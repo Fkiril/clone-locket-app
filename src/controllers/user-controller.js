@@ -1,5 +1,5 @@
 import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
-import { writeDoc, updateArrayField, exitDoc, getDocIdByValue, getDocByValue, getDocById } from "../models/utils/firestore-method";
+import { writeDoc, updateArrayField, exitDoc, getDocIdByValue, getDocDataByValue, getDocDataById } from "../models/utils/firestore-method";
 import { changePassword } from "../models/utils/authetication-method";
 import { toast } from "react-toastify";
 
@@ -95,7 +95,7 @@ export default class UserController {
 
     async getFriendByEmail(friendEmail) {
         try {
-            const result = await getDocByValue("users", "email", friendEmail);
+            const result = await getDocDataByValue("users", "email", friendEmail);
             if (result) {
                 return result;
             } else {
@@ -208,7 +208,7 @@ export default class UserController {
 
     async getUserInfo(userId) {
         try {
-            const result = await getDocById("users", userId);
+            const result = await getDocDataById("users", userId);
             if (result) {
                 return result;
             } else {

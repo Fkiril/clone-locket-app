@@ -18,7 +18,7 @@ export default class PictureController {
 
             await this.signalPicture(picInstance.id, picInstance.canSee);
 
-            toast.success("Successfully uploaded picture!");
+            toast.success("Successfully uploaded a picture!");
         } catch (error) {
             if (error.code === "STORAGE/UPLOAD_BYTES_RESUMABLE_ERROR") {
                 toast.error("Failed to upload picture. Please try again!");
@@ -34,8 +34,7 @@ export default class PictureController {
                 await updateArrayField("users", userId, "picturesCanSee", true, picId);
             });
         } catch (error) {
-            toast.error("Failed to signal to friends!");
-            console.log(error);
+            console.log("Failed to signal to friends", error);
         }
     }
 

@@ -15,26 +15,41 @@ Base on MVC architecture:
 
     user:
         - id
-        - some infors
-        - setting options
-        - a list to store frineds' id
-        - a list to store blocked's id
-        - picturesCanBeSeen: a list to store pictures' id which that user can see (from that user and from that user's friends that prescribe permission for that user to see)
+        - userName
+        - email
+        - friends: a list to store frineds' id
+        - friendRequests: a list to store friendId that send the request
+        - picturesCanBeSeen: a list to store pictures' id which that user can see from that user and from that user's friends that prescribe permission for that user to see
+
+    chat-manager: (only for user)
+        - userId
+        - conversationStates: object with key is conversationId and value is number of unread messages
+        - friendConversations: object with key is friendId and value is conversationId with that friend
+
+    conversation:
+        - id
+        - participants: list of userId
+        - conversationImg: url (in firebase storage)
+        - attachments
+        - pictures
+        - lastMessage: message (document of "messages" subcollection)
+        # messages: subcollection
+
+    message: (document of "messages" subcollection)
+        - id
+        - senderId
+        - createdTime
+        - text
+        - attachment
+        - isSeen
 
     picture:
         - id
-        - userId
-        - some infors
+        - ownerId
         - url (in firebase storage)
         - text
         - scope:
             + private
             + public
             + specify
-        - specifyList
-
-    So when a user post a picture, controller detects which scope does that picture in:
-        - private: just that user can see
-        - public: all of that user's friend can see
-        - specify: just some specify friends of that user can see
-    then, create "willSee" list (a list of user's id that can see this picture, if scope is specify we will use specifyList), concurrently upload this picture to storage and add this picture's id to "picturesCanBeSeen" list of all user that appear in "willSee"
+        - canSee: a list of user's id that can see this picture
