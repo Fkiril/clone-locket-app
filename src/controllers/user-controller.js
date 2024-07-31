@@ -83,7 +83,11 @@ export default class UserController {
 
     async unfriendById(friendId) {
         try {
+            // Remove friendId from the current user's friends list
             await updateArrayField("users", this.user.id, "friends", false, friendId);
+            
+            // Remove current user from the friend's friends list
+            await updateArrayField("users", friendId, "friends", false, this.user.id);
 
             toast.success("Unfriended a user!")
         } catch(error) {
@@ -219,4 +223,39 @@ export default class UserController {
             return null;
         }
     }
+
+    async getUsersInfoByIds(userIds) {
+        try {
+            const usersInfo = await Promise.all(userIds.map(async (id) => {
+                const userInfo = await getDocById("users", id);
+                return userInfo;
+            }));
+            return usersInfo;
+        } catch (error) {
+            console.log("Error getting users info:", error);
+            return [];
+        }
+    }
+
+    // New methods for blocking and unblocking users
+    async blockUser(blockedUserId) {
+        try {
+            await updateArrayField("users", this.user.id, "blockedUsers", true, blockedUserId);
+            toast.success("User blocked!");
+        } catch (error) {
+            toast.error("Something went wrong. Please try again!");
+            console.error("Error blocking user:", error);
+        }
+    }
+
+    async unblockUser(unblockedUserId) {
+        try {
+            await updateArrayField("users", this.user.id, "blockedUsers", false, unblockedUserId);
+            toast.success("User unblocked!");
+        } catch (error) {
+            toast.error("Something went wrong. Please try again!");
+            console.error("Error unblocking user:", error);
+        }
+    }
+    
 }
