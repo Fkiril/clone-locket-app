@@ -2,7 +2,7 @@ import "./conversation-view.css";
 import React, { useEffect, useState, useRef } from "react";
 import { useUserStore } from "../../hooks/user-store";
 import { useMessageStore } from "../../hooks/message-store";
-import { useNavigate, Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import ChatController from "../../controllers/chat-controller";
 import { getDocRef } from "../../models/utils/firestore-method";
 import { onSnapshot } from "firebase/firestore";

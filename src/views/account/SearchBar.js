@@ -2,19 +2,20 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useUserStore } from "../../hooks/user-store";
 import UserController from "../../controllers/user-controller";
-import { toast } from "react-toastify";
 
-const SearchBar = ({ currentUser }) => {
+const SearchBar = () => {
+  const { currentUser, friendDatas } = useUserStore();
+  const userController = currentUser ? new UserController(currentUser) : null;
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResult, setSearchResult] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
-  const { friendsData } = useUserStore();
-  const userController = currentUser ? new UserController(currentUser) : null;
 
   const handleSearch = async () => {
-    if (!userController) return;
-    const result = await userController.getFriendByEmail(searchQuery);
-    setSearchResult(result);
+    if (userController) {
+      const result = await userController.getFriendByEmail(searchQuery);
+      setSearchResult(result);
+    }
   };
 
   const handleSendFriendRequest = async () => {
@@ -23,8 +24,10 @@ const SearchBar = ({ currentUser }) => {
   };
 
   const handleBlockUser = async () => {
-    await userController.blockUser(searchResult.id);
-    setSearchResult(null);
+    if (userController) {
+      await userController.blockUser(searchResult.id);
+      setSearchResult(null);
+    }
   };
 
   const handleClickOutside = (event) => {
@@ -44,13 +47,13 @@ const SearchBar = ({ currentUser }) => {
               <p className="text-xl font-semibold mb-2">{searchResult.userName}</p>
               {searchResult.id === currentUser.id ? (
                 <p className="text-gray-500">This is your account</p>
-              ) : friendsData.some((friend) => friend.id === searchResult.id) ? (
+              ) : friendDatas?.find((friend) => friend?.id === searchResult.id) ? (
                 <>
                   <p className="text-green-500 mb-2">This person is your friend</p>
                   <div className="flex gap-4">
                     <button
                       className="unfriend-button px-4 py-2 rounded-full bg-red-500 text-white hover:bg-red-700 transition"
-                      onClick={() => userController.unfriendById(searchResult.id)}
+                      onClick={async () => await userController.unfriendById(searchResult.id)}
                     >
                       Unfriend
                     </button>
@@ -65,7 +68,7 @@ const SearchBar = ({ currentUser }) => {
                   <div className="flex gap-4">
                     <button
                       className="unfriend-button px-4 py-2 rounded-full bg-red-500 text-white hover:bg-red-700 transition"
-                      onClick={() => userController.cancelFriendRequest(searchResult.id)}
+                      onClick={async () => await userController.cancelFriendRequest(searchResult.id)}
                     >
                       Cancel Request
                     </button>
@@ -108,12 +111,12 @@ const SearchBar = ({ currentUser }) => {
         <span className="icon" onClick={() => { setIsSearching(true); handleSearch(); }}>
           <svg width="19px" height="19px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" strokeLinejoin="round"></g>
             <g id="SVGRepo_iconCarrier">
-              <path opacity="1" d="M14 5H20" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-              <path opacity="1" d="M14 8H17" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path opacity="1" d="M14 5H20" stroke="#000" stroke-width="1.5" stroke-linecap="round" strokeLinejoin="round"></path>
+              <path opacity="1" d="M14 8H17" stroke="#000" stroke-width="1.5" stroke-linecap="round" strokeLinejoin="round"></path>
               <path d="M21 11.5C21 16.75 16.75 21 11.5 21C6.25 21 2 16.75 2 11.5C2 6.25 6.25 2 11.5 2" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
-              <path opacity="1" d="M22 22L20 20" stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path opacity="1" d="M22 22L20 20" stroke="#000" stroke-width="3.5" stroke-linecap="round" strokeLinejoin="round"></path>
             </g>
           </svg>
         </span>

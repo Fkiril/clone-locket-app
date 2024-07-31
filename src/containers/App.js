@@ -17,8 +17,8 @@ function App() {
 
   useEffect(() => {
     const unSubscribe = auth.onAuthStateChanged((user) => {
-      console.log("App.js: useEffect() for fetchUserInfo:", currentUser);
       fetchUserInfo(user?.uid);
+      console.log("App.js: useEffect() for fetchUserInfo:", currentUser);
     });
     return () => {
       unSubscribe();

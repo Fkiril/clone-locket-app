@@ -52,16 +52,12 @@ export default function ChatView() {
         else {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (emailRegex.test(searchInput)) {
-                // searchInput is an email
-                console.log("searchInput is an email");
                 const friend = friendDatas.find((friend) => friend.email === searchInput);
                 if (friend) {
                     console.log("friend", friend);
                     setSearchedFriend(friend);
                 }
             } else {
-                // searchInput is not an email
-                console.log("searchInput is not an email");
                 const friend = friendDatas.find((friend) => friend.name === searchInput);
                 if (friend) {
                     console.log("friend", friend);

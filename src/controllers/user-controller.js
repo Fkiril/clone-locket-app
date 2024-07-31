@@ -11,11 +11,7 @@ export default class UserController {
     async changePassword(user, newPassword) {
         try {
             await changePassword(user, newPassword);
-
-            toast.success("Changed your password!");
         } catch(error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.log("Error changing password: ", error);
         }
     };
@@ -31,8 +27,6 @@ export default class UserController {
                 avatar: fileUrl
             });
             this.user.avatar = fileUrl;
-
-            toast.success("Changed your avatar!");
             return fileUrl;
         } catch(error) {
             if (error.code === "STORAGE/DELETE_OBJECT_ERROR") {
@@ -54,8 +48,6 @@ export default class UserController {
             await writeDoc("users", this.user.id, true, {
                 avatar: ""
             });
-
-            toast.success("Deleted your avatar!");
         } catch(error) {
             if (error.code === "STORAGE/DELETE_OBJECT_ERROR") {
                 toast.error("Failed to delete avatar. Please try again!");
@@ -72,27 +64,17 @@ export default class UserController {
             await writeDoc("users", this.user.id, true, {
                 userName: newUserName
             });
-
-            toast.success("Changed your user's name!")
         } catch(error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.log("Error changing user's name: ", error);
         }
     };
 
     async unfriendById(friendId) {
         try {
-            // Remove friendId from the current user's friends list
             await updateArrayField("users", this.user.id, "friends", false, friendId);
             
-            // Remove current user from the friend's friends list
             await updateArrayField("users", friendId, "friends", false, this.user.id);
-
-            toast.success("Unfriended a user!")
         } catch(error) {
-            toast.error("Something went wrong. Please try again!");
-            
             console.log("Error unfriending user: ", error);
         }
     }
@@ -103,12 +85,9 @@ export default class UserController {
             if (result) {
                 return result;
             } else {
-                toast.warning("Invalid email!");
                 return null;
             }
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.log("Error getting friend:", error);
             return null;
         }
@@ -119,7 +98,6 @@ export default class UserController {
             if (await exitDoc("users", receiverId)) {
                 await updateArrayField("users", receiverId, "friendRequests", true, this.user.id);
 
-                toast.success("Sended a friend request!")
                 return true;
             }
             else {
@@ -127,8 +105,6 @@ export default class UserController {
                 return false;
             }
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.error("Error sending friend request:", error);
             return false;
         }
@@ -139,8 +115,6 @@ export default class UserController {
             const receiverId = await getDocIdByValue("users", "email", receiverEmail);
             if (receiverId) {
                 await updateArrayField("users", receiverId, "friendRequests", true, this.user.id);
-
-                toast.success("Sended a friend request!")
                 return true;
             } else {
                 toast.warning("Invalid email!");
@@ -157,8 +131,6 @@ export default class UserController {
     async cancelFriendRequest(receiverId) {
         try {
             await updateArrayField("users", receiverId, "friendRequests", false, this.user.id);
-
-            toast.success("Canceled a friend request!")
             return true;
         } catch (error) {
             toast.error("Something went wrong. Please try again!");
@@ -175,16 +147,12 @@ export default class UserController {
                 await updateArrayField("users", senderId, "friends", true, this.user.id);
                 await updateArrayField("users", this.user.id, "friendRequests", false, senderId);
 
-                toast.success("Accepted a friend request!");
                 return true;
             }
             else {
-                toast.warning("Invalid ID!");
                 return false;
             }
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.error("Error accepting friend request:", error);
             return false;
         }
@@ -195,16 +163,12 @@ export default class UserController {
             if (await exitDoc("users", senderId)) {
                 await updateArrayField("users", this.user.id, "friendRequests", false, senderId);
 
-                toast.success("Declined a friend request!")
                 return true;
             }
             else {
-                toast.warning("Invalid ID!");
                 return false;
             }
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.error("Error declining friend request:", error);
             return false;
         }
@@ -227,7 +191,7 @@ export default class UserController {
     async getUsersInfoByIds(userIds) {
         try {
             const usersInfo = await Promise.all(userIds.map(async (id) => {
-                const userInfo = await getDocById("users", id);
+                const userInfo = await getDocDataById("users", id);
                 return userInfo;
             }));
             return usersInfo;

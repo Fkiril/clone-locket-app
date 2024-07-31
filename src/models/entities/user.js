@@ -1,15 +1,18 @@
 export default class User {
-    constructor(id, userName, email, avatar, picturesCanSee, friends, blockeds, friendRequests, setting) {
-        this.id = id;
-        this.userName = userName;
-        this.email = email;
-        this.avatar = avatar;
-        this.picturesCanSee = picturesCanSee;
-        this.friends = friends;
-        this.friendRequests = friendRequests;
-        this.boxChats = boxChats;
-        this.setting = setting;
-        this.blockeds = blockeds;
+    constructor(props) {
+        this.id = props.id? props.id : "";
+        this.userName = props.userName? props.userName : "";
+        this.email = props.email? props.email : "";
+        this.avatar = props.avatar? props.avatar : "";
+        this.picturesCanSee = props.picturesCanSee? props.picturesCanSee : [];
+        this.friends = props.friends? props.friends : [];
+        this.friendRequests = props.friendRequests? props.friendRequests : [];
+        this.blockeds = props.blockeds? props.blockeds : [];
+        this.setting = props.setting? props.setting : {
+            systemTheme: "light",
+            language: "en",
+            notificationSetting: "all"
+        };
     };
 
     toJSON() {

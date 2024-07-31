@@ -8,67 +8,78 @@ import Picture, { ScopeEnum } from "../../models/entities/picture";
 
 export default function UploadPictureView() {
   const { currentUser, friendsData } = useUserStore();
-  const currentPicture = new Picture("", currentUser.id);
 
-  const [optionFile, setoptionFile] = useState(null);
-  const [optionFileUrl, setoptionFileUrl] = useState("");
   const [picture, setPicture] = useState({
-      file: null,
-      url: ""
+    file: null,
+    url: ""
   });
 
   const [text, setText] = useState("");
   const [scope, setScope] = useState(ScopeEnum.PUBLIC);
-  const [showScopeOption, setShowScopeOption] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState([]);
-  
+
+  const [isScopeListOpen, setIsScopeListOpen] = useState(false);
+
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  
+
   const handlePicture = (event) => {
     if (event.target.files[0]) {
-      setoptionFile(event.target.files[0]);
-      setoptionFileUrl(URL.createObjectURL(event.target.files[0]));
+      setPicture({
+        file: event.target.files[0],
+        url: URL.createObjectURL(event.target.files[0])
+      })
     }
   };
 
-  const submitOption = async () => {
-    currentPicture.text = text;
-    currentPicture.scope = scope;
+  const handleSubmitPicture = async () => {
+    const picInstance = new Picture({
+      text: text,
+      scope: scope,
+      canSee: [currentUser.id],
+      ownerId: currentUser.id
+    });
 
-    currentPicture.canSee = [currentUser.id];
     if (scope === ScopeEnum.SPECIFY) {
-      currentPicture.canSee.push(...selectedFriends);
+      picInstance.canSee.push(...selectedFriends);
     } else if (scope === ScopeEnum.PUBLIC) {
-      currentPicture.canSee.push(...currentUser.friends);
+      picInstance.canSee.push(...currentUser.friends);
     }
 
-    await PictureController.uploadPicture(currentPicture, optionFile);
+    await PictureController.uploadPicture(picInstance, picture.file);
 
-    setoptionFile(null);
-    setoptionFileUrl("");
+    setPicture({
+      file: null,
+      url: ""
+    });
+    setText("");
+    setScope(ScopeEnum.PUBLIC);
+    setIsScopeListOpen(false);
+    setSelectedFriends([]);
   };
 
-  const cancelOption = () => {
+  const handleCancelPicture = () => {
     const fileInput = document.getElementById("file");
     fileInput.value = "";
 
-    setoptionFile(null);
-    setoptionFileUrl("");
+    setPicture({
+      file: null,
+      url: ""
+    });
   };
 
   const handleText = (event) => {
     setText(event.target.value);
   };
 
-  const checkTextInputLength = () => {
+  const hanldeCheckTextInput = () => {
     const textInput = document.getElementById("text-input");
     if (textInput.value.length >= 35) {
       toast.warning("Text input can be up to 35 characters!");
     }
   };
 
-  const handleShowScopeOption = () => {
-    setShowScopeOption(!showScopeOption);
+  const handleScopeList = () => {
+    setIsScopeListOpen(!isScopeListOpen);
   };
 
   const handleFriendCheckboxChange = (friendId) => {
@@ -80,7 +91,7 @@ export default function UploadPictureView() {
       }
     });
   };
-  
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -186,16 +197,16 @@ export default function UploadPictureView() {
             </div>
         )}
                 
-        {optionFileUrl && (
+        {picture.url && (
           <div>
             <div className="scope-select mb-4">
               <button
-                onClick={handleShowScopeOption}
+                onClick={handleScopeList}
                 className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400"
               >
                 Select Scope
               </button>
-              {showScopeOption && (
+              {isScopeListOpen && (
                 <div className="mt-2">
                   <select
                     onChange={(event) => setScope(event.target.value)}
@@ -224,7 +235,7 @@ export default function UploadPictureView() {
               )}
             </div>
             <div className="picture mb-4">
-              <img src={optionFileUrl} alt="" className="w-full rounded-lg" />
+              <img src={picture.url} alt="" className="w-full rounded-lg" />
               <input
                 id="text-input"
                 type="text"
@@ -232,21 +243,21 @@ export default function UploadPictureView() {
                 placeholder="Enter text"
                 value={text}
                 onChange={handleText}
-                onInput={checkTextInputLength}
+                onInput={hanldeCheckTextInput}
                 className="w-full mt-2 p-2 border border-gray-300 rounded-md"
               />
             </div>
             <div className="buttons flex justify-between">
               <button
                 type="button"
-                onClick={submitOption}
+                onClick={handleSubmitPicture}
                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
               >
                 Submit
               </button>
               <button
                 type="button"
-                onClick={cancelOption}
+                onClick={handleCancelPicture}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
               >
                 Cancel
