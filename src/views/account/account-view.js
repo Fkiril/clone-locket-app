@@ -1,13 +1,14 @@
 import "./account-view.css";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
 import UserController from "../../controllers/user-controller";
 import AuthenticationController from "../../controllers/authentication-controller";
 import { toast } from "react-toastify";
-import { updatePassword } from "firebase/auth";
+import { doc, onSnapshot } from "firebase/firestore";
+import { fs_db } from "../../models/services/firebase";
+
 import RequestsListPortal from "./RequestsListPortal";
 import FriendsListPortal from "./FriendsListPortal";
 import BlockedListPortal from "./BlockedListPortal";
@@ -15,10 +16,10 @@ import PicturesListPortal from "./PicturesListPortal";
 import SearchBar from "./SearchBar"; // Import the new SearchBar component
 
 export default function AccountView() {
-  const navigate = useNavigate();
-  
-  const { auth, currentUser, friendsData, blockedUsers } = useUserStore();
-  const userController = currentUser ? new UserController(currentUser) : null;
+    const navigate = useNavigate();
+    
+    const { auth, currentUser, friendDatas, requestDatas, fetchUserInfo } = useUserStore();
+    const userController = currentUser ? new UserController(currentUser) : null;
 
   const [isSettingAvatar, setIsSettingAvatar] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState({
@@ -37,6 +38,19 @@ export default function AccountView() {
   const [isShowingBlocked, setIsShowingBlocked] = useState(false);
 
   const [isShowingPictures, setIsShowingPictures] = useState(false);
+  
+  useEffect(() => {
+        if(currentUser) {
+        const userRef = doc(fs_db, "users", currentUser.id);
+        
+        const unSubscribe = onSnapshot(userRef, { includeMetadataChanges: false }, () => {
+            console.log("account-view.js: useEffect() for onSnapshot: ", currentUser);
+            fetchUserInfo(currentUser.id);
+        });
+
+        return () => unSubscribe();
+        }
+    }, [onSnapshot]);
 
   const handleLogOut = async () => {
     await AuthenticationController.logOut();

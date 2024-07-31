@@ -7,6 +7,7 @@ export default class User {
         this.picturesCanSee = picturesCanSee;
         this.friends = friends;
         this.friendRequests = friendRequests;
+        this.boxChats = boxChats;
         this.setting = setting;
         this.blockeds = blockeds;
     };

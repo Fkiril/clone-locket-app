@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 // import { FaCamera } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -12,12 +12,18 @@ export default function UploadPictureView() {
 
   const [optionFile, setoptionFile] = useState(null);
   const [optionFileUrl, setoptionFileUrl] = useState("");
+  const [picture, setPicture] = useState({
+      file: null,
+      url: ""
+  });
 
   const [text, setText] = useState("");
   const [scope, setScope] = useState(ScopeEnum.PUBLIC);
   const [showScopeOption, setShowScopeOption] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState([]);
-
+  
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  
   const handlePicture = (event) => {
     if (event.target.files[0]) {
       setoptionFile(event.target.files[0]);
@@ -74,6 +80,65 @@ export default function UploadPictureView() {
       }
     });
   };
+  
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  const handleOpenCamera = () => {
+      setIsCameraOpen(true);
+      setPicture({
+          file: null,
+          url: ""
+      })
+
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices
+              .getUserMedia({ video: true })
+              .then((stream) => {
+                  const video = videoRef.current;
+                  video.srcObject = stream;
+                  video.play();
+              })
+              .catch((error) => {
+                  toast.error("Can not access camera. Please gain permission!");
+                  console.error("Error accessing camera:", error);
+              });
+      }
+  };
+
+  const handleCloseCamera = () => {
+      setIsCameraOpen(false);
+      const video = videoRef.current;
+      const stream = video.srcObject;
+      const tracks = stream.getTracks();
+      tracks.forEach((track) => {
+          track.stop();
+      })
+  };
+
+  const handleTakePicture = async () => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext("2d");
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.save();
+      context.scale(-1, 1);
+      context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+      context.restore();
+
+      const blob = await new Promise((resolve) => {
+          canvas.toBlob(resolve, "image/png");
+      });
+
+      setPicture({
+          file: blob,
+          url: canvas.toDataURL("image/png")
+      });
+
+      handleCloseCamera();
+  };
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-gray-100 p-4">
@@ -98,7 +163,29 @@ export default function UploadPictureView() {
               onChange={handlePicture}
             />
           </button>
+          <button
+              type="button"
+              className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onClick={isCameraOpen? handleCloseCamera : handleOpenCamera}
+          >
+              {isCameraOpen? "Close Camera": "Open Camera"}
+          </button>
         </div>
+
+        {isCameraOpen && (
+            <div className="camera">
+                <video autoPlay playsInline muted ref={videoRef} style={{transform: "scaleX(-1)"}}></video>
+                <canvas ref={canvasRef} aria-disabled className="hidden"></canvas>
+                <button
+                    type="button"
+                    onClick={handleTakePicture}
+                    className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    Take Picture
+                </button>
+            </div>
+        )}
+                
         {optionFileUrl && (
           <div>
             <div className="scope-select mb-4">

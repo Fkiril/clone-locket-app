@@ -5,14 +5,14 @@ const ScopeEnum = {
 };
 
 export default class Picture {
-    constructor(id, ownerId, uploadTime, url, scope, text, canSee) {
-        this.id = id;
-        this.ownerId = ownerId;
-        this.uploadTime = uploadTime;
-        this.url = url;
-        this.text = text;
-        this.scope = scope;
-        this.canSee = canSee;
+    constructor(props) {
+        this.id = props.id? props.id : "";
+        this.ownerId = props.ownerId? props.ownerId : "";
+        this.uploadTime = props.uploadTime? props.uploadTime : "";
+        this.url = props.url? props.url : "";
+        this.text = props.text? props.text : "";
+        this.scope = props.scope? props.scope : "";
+        this.canSee = props.canSee? props.canSee : [];
     };
 
     toJSON() {
