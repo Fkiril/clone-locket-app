@@ -20,7 +20,6 @@ export default function ChatView() {
             const unSubscribe = onSnapshot(docRef, { includeMetadataChanges: false }, () => {
                 fetchLastMessages(currentUser.id);
             });
-            
             return () => {
                 unSubscribe();
             }
@@ -65,21 +64,9 @@ export default function ChatView() {
         event.target.reset();
     }
 
-    // Hàm tính toán khoảng thời gian đã trôi qua
-    const timeSince = (date) => {
-        const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-        let interval = Math.floor(seconds / 31536000);
-
-        if (interval >= 1) return `${interval}y ago`;
-        interval = Math.floor(seconds / 2592000);
-        if (interval >= 1) return `${interval}m ago`;
-        interval = Math.floor(seconds / 86400);
-        if (interval >= 1) return `${interval}d ago`;
-        interval = Math.floor(seconds / 3600);
-        if (interval >= 1) return `${interval}h ago`;
-        interval = Math.floor(seconds / 60);
-        if (interval >= 1) return `${interval}m ago`;
-        return `${Math.floor(seconds)}s ago`;
+    const formatTime = (date) => {
+        const options = { hour: '2-digit', minute: '2-digit', hour12: true };
+        return new Date(date).toLocaleTimeString([], options);
     };
 
     return (
@@ -98,34 +85,34 @@ export default function ChatView() {
                     </form>
                 </div>
                 <div className="conversations">
-                    {(searchedFriend ? [searchedFriend] : friendDatas).map((friend) => {
-                        const conversation = conversations?.find((conv) => 
-                            conv.participants.includes(currentUser.id) && 
-                            conv.participants.includes(friend.id)
-                        );
-                        const lastMessage = lastMessages?.find((m) => m?.id === conversation?.lastMessage);
-
-                        return (
+                    {(searchedFriend ? [searchedFriend] : friendDatas)
+                        .map(friend => ({
+                            ...friend,
+                            conversation: conversations?.find(conv => 
+                                conv.participants.includes(currentUser.id) && 
+                                conv.participants.includes(friend.id)
+                            ),
+                            lastMessage: lastMessages?.find(m => m?.id === conversations?.find(conv => 
+                                conv.participants.includes(currentUser.id) && 
+                                conv.participants.includes(friend.id)
+                            )?.lastMessage)
+                        }))
+                        .filter(friend => friend.conversation && friend.lastMessage)
+                        .sort((a, b) => new Date(b.lastMessage?.createdTime) - new Date(a.lastMessage?.createdTime))
+                        .map(friend => (
                             <div className="friend" key={friend.id} onClick={() => handleNavigate(friend.id)}>
                                 <div className="friend-info">
                                     <img src={friend.avatar || "./default_avatar.jpg"} alt="avatar" />
                                     <div className="friend-details">
                                         <p className="friend-name">{friend.name}</p>
                                         <p className="last-message">
-                                            {lastMessage ? (
-                                                <>
-                                                    <span className="message-text">{lastMessage.text}</span>
-                                                    <span className="message-time">{timeSince(lastMessage.createdTime)}</span>
-                                                </>
-                                            ) : (
-                                                <span className="message-text">Let send your first message!</span>
-                                            )}
+                                            <span className="message-text">{friend.lastMessage?.text}</span>
+                                            <span className="message-time">{formatTime(friend.lastMessage?.createdTime)}</span>
                                         </p>
                                     </div>
                                 </div>
                             </div>
-                        );
-                    })}
+                        ))}
                 </div>
             </div>
         </div>
