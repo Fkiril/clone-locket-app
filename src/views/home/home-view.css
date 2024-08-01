@@ -1,4 +1,4 @@
-.home {
+/* .home {
     @apply min-h-screen flex flex-col items-center bg-gray-100;
 }
 
@@ -17,19 +17,35 @@
 
 .body {
     @apply flex flex-col items-center gap-4;
-}
+} */
 
-.nav-buttons {
-    @apply flex gap-4 mt-8; 
-}
-
-.nav-button {
-    @apply w-40 h-12 border-2 border-gray-300 rounded-lg bg-blue-500 text-white cursor-pointer flex items-center justify-center font-medium hover:bg-blue-600;
+.nav-buttons, .avatar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80px; /* Adjust width as needed */
+    height: 60px; /* Adjust height as needed */
+    background-color: #4A90E2; /* Same background color as buttons */
+    color: white;
     text-decoration: none;
-    display: flex; 
+    border-radius: 8px; /* Same border radius as buttons */
+    transition: background-color 0.3s;
+    font-size: 14px;
+    text-align: center;
 }
 
-.nav-button a {
-    @apply w-full h-full flex items-center justify-center text-white;
-    text-decoration: none; 
+.nav-buttons:hover, .avatar-container:hover {
+    background-color: #357ABD; /* Hover effect */
+}
+
+.user-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px; /* Ensure the avatar image fits within the container */
+}
+
+.nav-buttons-container {
+    display: flex;
+    gap: 10px; /* Adjust gap as needed */
 }
