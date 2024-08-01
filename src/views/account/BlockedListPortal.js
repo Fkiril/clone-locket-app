@@ -2,10 +2,19 @@ import React from "react";
 import { createPortal } from "react-dom";
 import UserController from "../../controllers/user-controller"; 
 import { useUserStore } from "../../hooks/user-store";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const BlockedListPortal = ({ setIsShowingBlocked }) => {
+    const navigate = useNavigate();
+
     const { currentUser, blockedDatas } = useUserStore(); 
     const userController = currentUser? new UserController(currentUser) : null;
+
+    if (!currentUser) {
+        toast.warning("You are not logged in. Please log in first.");
+        return navigate("/");
+    }
     
     const handleClickOutside = (event) => {
         const clickElement = event.target;
@@ -15,10 +24,12 @@ const BlockedListPortal = ({ setIsShowingBlocked }) => {
     };
 
     const handleUnblockUser = async (userId) => {
-        if (userController) {
-            await userController.unblockUser(userId);
+        await userController.unblockUser(userId).then(() => {
+            toast.success("User unblocked successfully");
             setIsShowingBlocked(false);
-        }
+        }).catch((error) => {
+            toast.error("Failed to unblock user. Please try again.");
+        });
     };
 
     return createPortal((

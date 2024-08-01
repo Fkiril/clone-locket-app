@@ -2,24 +2,42 @@ import React from "react";
 import { createPortal } from "react-dom";
 import UserController from "../../controllers/user-controller";
 import { useUserStore } from "../../hooks/user-store";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const RequestsListPortal = ({ setIsShowingRequests }) => {
+    const navigate = useNavigate();
+
     const { currentUser, requestDatas } = useUserStore();
     const userController = currentUser? new UserController(currentUser) : null;
 
+    if (!currentUser) {
+        toast.warning("You are not logged in. Please log in first.");
+        return navigate("/");
+    }
+
     const handleAccept = async (requestId) => {
-        if (userController)
-            await userController.acceptFriendRequest(requestId);
+        await userController.acceptFriendRequest(requestId).then(() => {
+            toast.success("Friend request accepted successfully!");
+        }).catch((error) => {
+            toast.error("Failed to accept friend request. Please try again.");
+        });
     };
 
     const handleDecline = async (requestId) => {
-        if (userController)
-            await userController.declineFriendRequest(requestId);
+        await userController.declineFriendRequest(requestId).then(() => {
+            toast.success("Friend request declined successfully!");
+        }).catch((error) => {
+            toast.error("Failed to decline friend request. Please try again.");
+        });
     };
 
     const handleBlock = async (requestId) => {
-        if (userController)
-            await userController.blockUser(requestId);
+        await userController.blockUser(requestId).then(() => {
+            toast.success("User blocked successfully!");
+        }).catch((error) => {
+            toast.error("Failed to block user. Please try again.");
+        });
     };
 
     const handleClickOutside = (event) => {

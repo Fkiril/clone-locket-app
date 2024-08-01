@@ -22,7 +22,7 @@ export const useMessageStore = create((set, get) => ({
                     }
                     return;
                 });
-                if (get().messages) {
+                if (get().messages && get().messages.length > 0) {
                     mDatas.push(...get().messages);
                 }
                 mDatas.sort((a, b) => {

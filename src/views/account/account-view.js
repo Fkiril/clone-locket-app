@@ -48,16 +48,23 @@ export default function AccountView() {
             fetchUserInfo(currentUser.id);
             console.log("account-view.js: useEffect() for onSnapshot: ");
             console.log("Current user: ", currentUser);
-            console.log("Friend datas: ", friendDatas);
         });
 
         return () => unSubscribe();
         }
     }, [onSnapshot]);
 
+    if (!currentUser) {
+        return navigate("/");
+    }
+
     const handleLogOut = async () => {
-        await AuthenticationController.logOut();
-        navigate("/");
+        await AuthenticationController.logOut().then(() => {
+            toast.success("Logout successfull");
+            navigate("/");
+        }).catch((error) => {
+            toast.error("Failed to log out. Please try again.");
+        });
     };
 
     const avatarSettingPortal = () => {
@@ -73,12 +80,16 @@ export default function AccountView() {
         };
     
         const submitOption = async () => {
-            await userController.changeAvatar(selectedAvatar.file);
-            setSelectedAvatar({
-                file: null,
-                url: ""
+            await userController.changeAvatar(selectedAvatar.file).then(() => {
+                toast.success("Change avatar successfull!");
+                setSelectedAvatar({
+                    file: null,
+                    url: ""
+                });
+                setIsSettingAvatar(false);
+            }).catch((error) => {
+                toast.error("Failed to change avatar. Please try again.");
             });
-            setIsSettingAvatar(false);
         };
     
         const cancelOption = () => {
@@ -91,8 +102,10 @@ export default function AccountView() {
         };
 
         const handleDeleteAvatar = async () => {
-            await userController.deleteAvatar();
-            setIsSettingAvatar(false);
+            await userController.deleteAvatar().then(() => {
+                toast.success("Delete avatar successfull!");
+                setIsSettingAvatar(false);
+            });
         };
 
         const handleClickOutside = (event) => {
@@ -154,8 +167,13 @@ export default function AccountView() {
             event.preventDefault();
             const formData = new FormData(event.target);
             const newUserName = formData.get("new-username");
-            await userController.changeUserName(newUserName);
-            setIsChangingUserName(false);
+
+            await userController.changeUserName(newUserName).then(() => {
+                toast.success("Change username successfull!");
+                setIsChangingUserName(false);
+            }).catch((error) => {
+                toast.error("Failed to change username. Please try again.");
+            });
         };
 
         const handleClickOutside = (event) => {
@@ -192,8 +210,12 @@ export default function AccountView() {
                 return;
             }
 
-            await userController.changePassword(currentAuth.currentUser, newPassword);
-            setIsChangingPassword(false);
+            await userController.changePassword(currentAuth.currentUser, newPassword).then(() => {
+                toast.success("Change password successfull!");
+                setIsChangingPassword(false);
+            }).catch((error) => {
+                toast.error("Failed to change password. Please try again.");
+            });
         };
 
         const handleClickOutside = (event) => {
