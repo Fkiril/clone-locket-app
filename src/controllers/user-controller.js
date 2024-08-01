@@ -1,5 +1,5 @@
 import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
-import { writeDoc, updateArrayField, exitDoc, getDocIdByValue, getDocDataByValue, getDocDataById } from "../models/utils/firestore-method";
+import { writeDoc, updateArrayField, exitDoc, getDocIdByValue, getDocDataByValue, getDocDataById, getDocRef, createBatchedWrites } from "../models/utils/firestore-method";
 import { changePassword } from "../models/utils/authetication-method";
 import { toast } from "react-toastify";
 
@@ -13,49 +13,40 @@ export default class UserController {
             await changePassword(user, newPassword);
         } catch(error) {
             console.log("Error changing password: ", error);
+            throw error;
         }
     };
 
     async changeAvatar(newAvatar) {
         try {
+            const { fileUrl } = await uploadToFolder(newAvatar, "avatars");
+            
             if (this.user.avatar !== "") {
                 await deleteFile(this.user.avatar);
             }
-    
-            const { fileUrl } = await uploadToFolder(newAvatar, "avatars");
+
             await writeDoc("users", this.user.id, true, {
                 avatar: fileUrl
             });
+            
             this.user.avatar = fileUrl;
             return fileUrl;
         } catch(error) {
-            if (error.code === "STORAGE/DELETE_OBJECT_ERROR") {
-                toast.error("Failed to delete avatar. Please try again!");
-            }
-            else if (error.code === "STORAGE/UPLOAD_BYTES_RESUMABLE_ERROR") {
-                toast.error("Failed to upload avatar. Please try again!");
-            }
-            else {
-                toast.error("Something went wrong. Please try again!");
-            }
             console.log("Error changing avatar: ", error);
+            throw error;
         }
     };
 
     async deleteAvatar() {
         try {
             await deleteFile(this.user.avatar);
+
             await writeDoc("users", this.user.id, true, {
                 avatar: ""
             });
         } catch(error) {
-            if (error.code === "STORAGE/DELETE_OBJECT_ERROR") {
-                toast.error("Failed to delete avatar. Please try again!");
-            }
-            else {
-                toast.error("Something went wrong. Please try again!");
-            }
             console.log("Error deleting avatar: ", error);
+            throw error;
         }
     }
 
@@ -66,16 +57,32 @@ export default class UserController {
             });
         } catch(error) {
             console.log("Error changing user's name: ", error);
+            throw error;
         }
     };
 
     async unfriendById(friendId) {
         try {
-            await updateArrayField("users", this.user.id, "friends", false, friendId);
-            
-            await updateArrayField("users", friendId, "friends", false, this.user.id);
+            const writes = [
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", this.user.id),
+                    field: "friends",
+                    isRemovement: true,
+                    data: friendId
+                },
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", friendId),
+                    field: "friends",
+                    isRemovement: true,
+                    data: this.user.id
+                }
+            ];
+            await createBatchedWrites(writes);
         } catch(error) {
             console.log("Error unfriending user: ", error);
+            throw error;
         }
     }
 
@@ -89,24 +96,16 @@ export default class UserController {
             }
         } catch (error) {
             console.log("Error getting friend:", error);
-            return null;
+            throw error;
         }
     }
 
     async sendFriendRequestById(receiverId) {
         try {
-            if (await exitDoc("users", receiverId)) {
-                await updateArrayField("users", receiverId, "friendRequests", true, this.user.id);
-
-                return true;
-            }
-            else {
-                toast.warning("Invalid ID!");
-                return false;
-            }
+            await updateArrayField("users", receiverId, "friendRequests", true, this.user.id);
         } catch (error) {
             console.error("Error sending friend request:", error);
-            return false;
+            throw error;
         }
     }
 
@@ -115,76 +114,68 @@ export default class UserController {
             const receiverId = await getDocIdByValue("users", "email", receiverEmail);
             if (receiverId) {
                 await updateArrayField("users", receiverId, "friendRequests", true, this.user.id);
-                return true;
-            } else {
-                toast.warning("Invalid email!");
-                return false;
             }
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.error("Error sending friend request:", error);
-            return false;
+            throw error;
         }
     }
 
     async cancelFriendRequest(receiverId) {
         try {
             await updateArrayField("users", receiverId, "friendRequests", false, this.user.id);
-            return true;
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.error("Error canceling friend request:", error);
-            return false;
+            throw error;
         }
     }
 
     async acceptFriendRequest(senderId) {
         try {
-            if (await exitDoc("users", senderId)) {
-                await updateArrayField("users", this.user.id, "friends", true, senderId);
-                await updateArrayField("users", senderId, "friends", true, this.user.id);
-                await updateArrayField("users", this.user.id, "friendRequests", false, senderId);
+            const writes = [
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", this.user.id),
+                    field: "friends",
+                    data: senderId
+                },
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", senderId),
+                    field: "friends",
+                    data: this.user.id
+                },
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", this.user.id),
+                    field: "friendRequests",
+                    isRemovement: true,
+                    data: senderId
+                }
+            ];
 
-                return true;
-            }
-            else {
-                return false;
-            }
+            await createBatchedWrites(writes);
         } catch (error) {
             console.error("Error accepting friend request:", error);
-            return false;
+            throw error;
         }
     }
 
     async declineFriendRequest(senderId) {
         try {
-            if (await exitDoc("users", senderId)) {
-                await updateArrayField("users", this.user.id, "friendRequests", false, senderId);
-
-                return true;
-            }
-            else {
-                return false;
-            }
+            await updateArrayField("users", this.user.id, "friendRequests", false, senderId);
         } catch (error) {
             console.error("Error declining friend request:", error);
-            return false;
+            throw error;
         }
     }
 
     async getUserInfo(userId) {
         try {
-            const result = await getDocDataById("users", userId);
-            if (result) {
-                return result;
-            } else {
-                return null;
-            }
+            return await getDocDataById("users", userId);
         } catch (error) {
             console.log("Error getting basic user info:", error);
-            return null;
+            throw error;
         }
     }
 
@@ -197,7 +188,7 @@ export default class UserController {
             return usersInfo;
         } catch (error) {
             console.log("Error getting users info:", error);
-            return [];
+            throw error;
         }
     }
 
@@ -205,20 +196,18 @@ export default class UserController {
     async blockUser(blockedUserId) {
         try {
             await updateArrayField("users", this.user.id, "blockedUsers", true, blockedUserId);
-            toast.success("User blocked!");
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
             console.error("Error blocking user:", error);
+            throw error;
         }
     }
 
     async unblockUser(unblockedUserId) {
         try {
             await updateArrayField("users", this.user.id, "blockedUsers", false, unblockedUserId);
-            toast.success("User unblocked!");
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
             console.error("Error unblocking user:", error);
+            throw error;
         }
     }
     

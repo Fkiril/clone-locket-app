@@ -1,4 +1,4 @@
-import { createBatchedWrites, exitDoc, getDocDataById, getDocRef, updateArrayField, writeCol, writeDoc, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
+import { createBatchedWrites, exitDoc, getDocDataById, getDocRef, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
 import { toast } from "react-toastify";
 import Message from "../models/entities/message";
 import Conversation from "../models/entities/conversation";
@@ -8,28 +8,36 @@ export default class ChatController {
     static async createChatManager(userId) {
         try {
             await writeIntoDoc("chatManagers", userId, false, new ChatManager({ userId: userId }).toJSON());
-            toast.success("Created chat manager");
         } catch (error) {
-            toast.error("Failed to create chat manager. Please try again");
-
             console.log("Error create chat manager: ", error);
+            throw error;
         }
     }
 
     static async createConversation(participantIds) {
         try {
-            const conversationId = await writeIntoCol("conversations", {});
+            const conversationId = await writeIntoCol("conversations", (
+                new Conversation({
+                    participants: participantIds
+                })
+            ).toJSON());
 
             const writes = [{
-                work: "set",
+                work: "update",
                 docRef: getDocRef("conversations", conversationId),
-                data: new Conversation({
-                    id: conversationId,
-                    participants: participantIds
-                }).toJSON()
+                field: "id",
+                data: conversationId
             }];
 
-            participantIds.forEach((participant) => {
+            for (const participant of participantIds) {
+                if (!(await exitDoc("chatManagers", participant))) {
+                    writes.push({
+                        work: "set",
+                        docRef: getDocRef("chatManagers", participant),
+                        data: new ChatManager({ userId: participant }).toJSON()
+                    })
+                }
+                
                 writes.push({
                     work: "update-map",
                     docRef: getDocRef("chatManagers", participant),
@@ -42,10 +50,12 @@ export default class ChatController {
                     work: "update-map",
                     docRef: getDocRef("chatManagers", participant),
                     field: "friendConversations",
-                    key: participantIds.filter(p => p !== participant),
+                    key: participantIds.find(p => p !== participant),
                     data: conversationId
                 });
-            });
+            };
+            
+            console.log("Create conversation writes: ", writes);
 
             await createBatchedWrites(writes);
             toast.success("Created new conversation of: ", participantIds);
@@ -63,6 +73,8 @@ export default class ChatController {
             if (chatManagerData) {
                 return chatManagerData.friendConversations[friendId];
             }
+
+            return null;
         } catch (error) {
             console.log("Error get conversation id: ", error);
 
