@@ -17,41 +17,51 @@ const createBatchedWrites = async (writes) => {
         const batch = writeBatch(fs_db);
 
         writes?.map((write) => {
-            if(!write) return;
-            if (write.work === "set") {
-                batch.set(write.docRef, write.data);
-            }
-            if (write.work === "update") {
-                batch.update(write.docRef, {
-                    [write.field]: write.data
-                });
-            }
-            if (write.work === "update-array") {
-                batch.update(write.docRef, {
-                    [write.field]: arrayUnion(write.data)
-                });
-            }
-            if (write.work === "update-map") {
-                const str = write.field + "." + write.key;
-                if (write.isIncrement) {
+            if(write) {
+                if (write.work === "set") {
+                    batch.set(write.docRef, write.data);
+                }
+                if (write.work === "update") {
                     batch.update(write.docRef, {
-                        [str]: increment(write.data)
+                        [write.field]: write.data
                     });
                 }
-                else {
-                    batch.update(write.docRef, {
-                        [str]: write.data
-                    });
+                if (write.work === "update-array") {
+                    if (write.isRemovement) {
+                        batch.update(write.docRef, {
+                            [write.field]: arrayRemove(write.data)
+                        });
+                    }
+                    else {
+                        batch.update(write.docRef, {
+                            [write.field]: arrayUnion(write.data)
+                        });
+                    }
                 }
-            }
-            if (write.work === "delete") {
-                batch.delete(write.docRef);
+                if (write.work === "update-map") {
+                    const str = write.field + "." + write.key;
+                    if (write.isIncrement) {
+                        batch.update(write.docRef, {
+                            [str]: increment(write.data)
+                        });
+                    }
+                    else {
+                        batch.update(write.docRef, {
+                            [str]: write.data
+                        });
+                    }
+                }
+                if (write.work === "delete") {
+                    batch.delete(write.docRef);
+                }
             }
         })
 
         await batch.commit();
     } catch (error) {
-        console.log("Error creating batched writes: ", error);
+        const newError = new Error("createBatchedWrites's error: " + error);
+        newError.code = "FIRESTORE/CREATE_BATCHED_WRITES_ERROR";
+        throw newError;
     }
 }
 

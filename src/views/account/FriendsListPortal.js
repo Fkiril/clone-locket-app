@@ -2,24 +2,34 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { useUserStore } from "../../hooks/user-store";
 import UserController from "../../controllers/user-controller";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const FriendsListPortal = ({ setIsShowingFriends }) => {
-  const { currentUser, friendDatas } = useUserStore();
+  const navigate = useNavigate();
 
+  const { currentUser, friendDatas } = useUserStore();
   const userController = currentUser? new UserController(currentUser) : null;
 
+  if (!currentUser) {
+    toast.warning("You are not logged in. Please log in first.");
+    return navigate("/");
+  }
+
   const handleUnfriend = async (friendId) => {
-    if (userController) {
-      await userController.unfriendById(friendId);
-      // Refresh the friends list or update the state
-    }
+    await userController.unfriendById(friendId).then(() => {
+      toast.success("Unfriended successfully");
+    }).catch((error) => {
+      toast.error("Failed to unfriend. Please try again.");
+    });
   };
 
   const handleBlock = async (friendId) => {
-    if (userController) {
-      await userController.blockUser(friendId);
-      // Refresh the blocked list or update the state
-    }
+    await userController.blockUser(friendId).then(() => {
+      toast.success("Blocked successfully");
+    }).catch((error) => {
+      toast.error("Failed to block. Please try again.");
+    });
   };
 
   const handleClickOutside = (event) => {

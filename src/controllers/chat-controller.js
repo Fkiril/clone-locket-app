@@ -1,4 +1,4 @@
-import { createBatchedWrites, exitDoc, getDocDataById, getDocRef, updateArrayField, writeCol, writeDoc, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
+import { createBatchedWrites, exitDoc, getDocDataById, getDocRef, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
 import { toast } from "react-toastify";
 import Message from "../models/entities/message";
 import Conversation from "../models/entities/conversation";
@@ -8,11 +8,9 @@ export default class ChatController {
     static async createChatManager(userId) {
         try {
             await writeIntoDoc("chatManagers", userId, false, new ChatManager({ userId: userId }).toJSON());
-            toast.success("Created chat manager");
         } catch (error) {
-            toast.error("Failed to create chat manager. Please try again");
-
             console.log("Error create chat manager: ", error);
+            throw error;
         }
     }
 
@@ -29,7 +27,15 @@ export default class ChatController {
                 }).toJSON()
             }];
 
-            participantIds.forEach((participant) => {
+            participantIds.map(async (participant) => {
+                if (!(await exitDoc("chatManagers", participant))) {
+                    writes.push({
+                        work: "set",
+                        docRef: getDocRef("chatManagers", participant),
+                        data: new ChatManager({ userId: participant }).toJSON()
+                    })
+                }
+
                 writes.push({
                     work: "update-map",
                     docRef: getDocRef("chatManagers", participant),

@@ -3,15 +3,19 @@ import { useNavigate } from "react-router-dom";
 import AuthenticationController from "../../controllers/authentication-controller";
 import { useUserStore } from "../../hooks/user-store";
 import "./authentication-view.css";
+import { toast } from "react-toastify";
 
 export default function AuthenticationView() {
     const navigate = useNavigate();
+
+    const { currentUser } = useUserStore();
+
     const [isLoading, setIsLoading] = useState(false);
     const [showLogin, setShowLogin] = useState(true);
-    const { currentUser } = useUserStore();
     const [isChecking, setIsChecking] = useState(true);
+
     useEffect(() => {
-        const checkCurrentUser = () => {
+        const unSubscribe = () => {
             if (currentUser) {
                 setIsChecking(false);
                 navigate("/home");
@@ -21,13 +25,14 @@ export default function AuthenticationView() {
                     setIsChecking(false);
                 }, 2000);
             }
-            return () => {};
-        };
+        }
 
-        const cleanup = checkCurrentUser();
-        return cleanup;
+        return () => unSubscribe();
     }, [currentUser, navigate]);
 
+    if (currentUser) {
+        navigate("/home");
+    }
 
     const handleLogIn = async (e) => {
         e.preventDefault();
@@ -35,19 +40,57 @@ export default function AuthenticationView() {
 
         const formData = new FormData(e.target);
         const { email, password } = Object.fromEntries(formData);
-        await AuthenticationController.logIn(email, password);
 
-        if (currentUser) navigate("/home");
-        setIsLoading(false);
+        await AuthenticationController.logIn(email, password).then(() => {
+            toast.success("Login successfull!");
+            setIsLoading(false);
+
+            if (currentUser) navigate("/home");
+        }).catch((error) => {
+            toast.error("Invalid email or password. Please try again.");
+            setIsLoading(false);
+        });
     }
 
-    const handleCreateAccount = async (e) => {
-        e.preventDefault();
+    const handleCreateAccount = async (event) => {
+        event.preventDefault();
         setIsLoading(true);
 
-        const formData = new FormData(e.target);
+        const formData = new FormData(event.target);
         const { userName, email, password, confirmPassword } = Object.fromEntries(formData);
-        await AuthenticationController.createAccount(userName, email, password, confirmPassword);
+
+        if (!userName || !email || !password || !confirmPassword) {
+            toast.warning("All fields are required!");
+            setIsLoading(false);
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.(com|edu\.vn)$/;
+        if (emailRegex.test(email) === false) {
+            toast.warning("Invalid email address!");
+            setIsLoading(false);
+            return;
+        }
+        
+        if (password.length < 6) {
+            toast.warning("Password must be at least 6 characters!");
+            setIsLoading(false);
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            toast.warning("Password does not match!");
+            setIsLoading(false);
+            return;
+        }
+
+        await AuthenticationController.createAccount(userName, email, password, confirmPassword).then(() => {
+            toast.success("Create account successfull!");
+            event.target.reset();
+            setShowLogin(true);
+        }).catch((error) => {
+            toast.error("Failed to create account. Please try again.");
+        });
 
         setIsLoading(false);
     }

@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useUserStore } from "../../hooks/user-store";
 
 const PicturesListPortal = ({ setIsShowingPictures }) => {
-  const { currentUser, pictureDatas } = useUserStore();
+  const { pictureDatas } = useUserStore();
 
   const handleClickOutside = (event) => {
     const clickElement = event.target;

@@ -124,7 +124,11 @@ export default function ChatView() {
                 <div className="search-result">
                     {searchedFriend? (
                         <div className="friend-info">
-                            <img src={searchedFriend?.avatar? searchedFriend.avatar : "./default_avatar.jpg"} alt="avatar" />
+                            <img
+                                src={searchedFriend?.avatar? searchedFriend.avatar : "./default_avatar.jpg"}
+                                alt="avatar"
+                                onClick={handleNagigate(searchedFriend?.id)}    
+                            />
                             <p>{searchedFriend?.name}</p>
                         </div>
                     ) : null}
