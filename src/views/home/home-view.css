@@ -49,3 +49,63 @@
     display: flex;
     gap: 10px; /* Adjust gap as needed */
 }
+
+.friend-picture-container {
+    display: flex;
+    flex-direction: column; /* Adjust margin as needed */
+    gap: 20px;
+}
+
+.friend-picture-frame {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 2px solid #4A90E2; /* Border color */
+    border-radius: 8px;
+    padding: 10px; /* Adjust padding as needed */
+    background-color: white;
+}
+
+.picture-header {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 10px; /* Adjust margin as needed */
+}
+
+.owner-name {
+    font-weight: bold;
+}
+
+.send-time {
+    font-size: italic;
+    color: gray;
+}
+
+.friend-picture {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.picture-actions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 10px; /* Adjust margin as needed */
+}
+
+.react-button, .message-button {
+    background-color: #4A90E2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.react-button:hover, .message-button:hover {
+    background-color: #357ABD;
+}

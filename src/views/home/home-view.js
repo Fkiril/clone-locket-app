@@ -6,6 +6,7 @@ import "./home-view.css";
 export default function HomeView() {
 	const { currentUser } = useUserStore();
 	const avatarUrl = currentUser?.avatar ? currentUser.avatar : "./default_avatar.jpg";
+    const friendPictures = currentUser?.friendPicture || [];
 
 	return (
 		<div className="home min-h-screen flex flex-col items-center bg-gray-100">
@@ -23,6 +24,25 @@ export default function HomeView() {
 				<Link to="/account" className="avatar-container">
 					<img src={avatarUrl} alt="User Avatar" className="user-avatar" />
 				</Link>
+			</div>
+			<div className="friends-pictures-container mt-4">
+				{friendPictures.length > 0 ? (
+					friendPictures.map((picture, index) => (
+						<div key={index} className="friend-picture-frame">
+							<div className="picture-header">
+								<span className="owner-name">{picture.ownerName}</span>
+								<span className="send-time">{picture.sendTime}</span>
+							</div>
+							<img src={picture.url} alt="Friend's Uploaded Picture" className="friend-picture" />
+							<div className="picture-actions">
+								<button className="react-button">React</button>
+								<button className="message-button">Send Message</button>
+							</div>
+						</div>
+					))
+				) : (
+					<p>No pictures to display.</p>
+				)}
 			</div>
 		</div>
 	);
