@@ -33,9 +33,12 @@ export default function ChatView() {
     }, [onSnapshot]);
 
     const handleNagigate = async (friendId) => {
+        console.log("handleNagigate called with friendId:", friendId);
         let conversationId = await ChatController.getConversationIdWithFriend(currentUser.id, friendId);
+        console.log("Existing conversationId:", conversationId);
         if (!conversationId) {
             conversationId = await ChatController.createConversation([currentUser.id, friendId]);
+            console.log("New conversationId created:", conversationId);
         }
         navigate(`/conversation/${conversationId}`);
     }
@@ -88,10 +91,10 @@ export default function ChatView() {
                                     onClick={() => handleNagigate(friendId)}
                                 >
                                     <div className="friend-info">
-                                        <img src={friend?.avatar? friend.avatar : "./default_avatar.jpg"} alt="avatar" />
+                                        <img src={friend?.avatar ? friend.avatar : "./default_avatar.jpg"} alt="avatar" />
                                         <p>{friend?.name}</p>
                                     </div>
-                                    {(lastMessage)? (
+                                    {(lastMessage) ? (
                                         <div className="last-message">
                                             <p>{lastMessage.text}</p>
                                             <p>{lastMessage.createdTime}</p>
@@ -127,7 +130,7 @@ export default function ChatView() {
                             <img
                                 src={searchedFriend?.avatar? searchedFriend.avatar : "./default_avatar.jpg"}
                                 alt="avatar"
-                                onClick={handleNagigate(searchedFriend?.id)}    
+                                onClick={()=>handleNagigate(searchedFriend?.id)}    
                             />
                             <p>{searchedFriend?.name}</p>
                         </div>
