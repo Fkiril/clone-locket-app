@@ -9,7 +9,7 @@ export default class ChatController {
         try {
             await writeIntoDoc("chatManagers", userId, false, new ChatManager({ userId: userId }).toJSON());
         } catch (error) {
-            console.log("Error create chat manager: ", error);
+            console.log("Error creating chat manager: ", error);
             throw error;
         }
     }
@@ -17,7 +17,6 @@ export default class ChatController {
     static async createConversation(participantIds) {
         try {
             const conversationId = await writeIntoCol("conversations", {});
-
             const writes = [{
                 work: "set",
                 docRef: getDocRef("conversations", conversationId),
@@ -27,13 +26,13 @@ export default class ChatController {
                 }).toJSON()
             }];
 
-            participantIds.map(async (participant) => {
+            for (const participant of participantIds) {
                 if (!(await exitDoc("chatManagers", participant))) {
                     writes.push({
                         work: "set",
                         docRef: getDocRef("chatManagers", participant),
                         data: new ChatManager({ userId: participant }).toJSON()
-                    })
+                    });
                 }
 
                 writes.push({
@@ -51,14 +50,13 @@ export default class ChatController {
                     key: participantIds.filter(p => p !== participant),
                     data: conversationId
                 });
-            });
+            }
 
             await createBatchedWrites(writes);
-            toast.success("Created new conversation of: ", participantIds);
+            toast.success("Created new conversation with participants: " + participantIds.join(", "));
             return conversationId;
         } catch (error) {
-            console.log("Error create conversation: ", error);
-
+            console.log("Error creating conversation: ", error);
             return null;
         }
     }
@@ -70,8 +68,7 @@ export default class ChatController {
                 return chatManagerData.friendConversations[friendId];
             }
         } catch (error) {
-            console.log("Error get conversation id: ", error);
-
+            console.log("Error getting conversation ID: ", error);
             return null;
         }
     }
@@ -79,15 +76,12 @@ export default class ChatController {
     static async exitConversationWithFriend(userId, friendId) {
         try {
             const chatManagerData = await getDocDataById("chatManagers", userId);
-            if (chatManagerData) {
-                if (chatManagerData.friendConversations[friendId]) {
-                    return true;
-                }
+            if (chatManagerData && chatManagerData.friendConversations[friendId]) {
+                return true;
             }
-
             return false;
         } catch (error) {
-            console.log("Error check exit conversation: ", error);
+            console.log("Error checking exit conversation: ", error);
             return false;
         }
     }
@@ -96,13 +90,11 @@ export default class ChatController {
         try {
             const chatManagerData = await getDocDataById("chatManagers", userId);
             if (chatManagerData) {
-                const result = Object.keys(chatManagerData.friendConversations).find(key => chatManagerData.friendConversations[key] === conversationId);
-                return result;
+                return Object.keys(chatManagerData.friendConversations).find(key => chatManagerData.friendConversations[key] === conversationId);
             }
             return null;
         } catch (error) {
-            console.log("Error get friend id: ", error);
-
+            console.log("Error getting friend ID: ", error);
             return null;
         }
     }
@@ -110,30 +102,27 @@ export default class ChatController {
     static async sendMessage(conversationId, message) {
         try {
             const messageIns = new Message(message);
-            console.log("messageIns", messageIns.toJSON());
+            const messageId = await writeIntoCol(`conversations/${conversationId}/messages`, {});
 
-            const messageId = await writeIntoCol("conversations/"+conversationId+"/messages", {});
-
-            const write = [{
+            const writes = [{
                 work: "set",
-                docRef: getDocRef("conversations/"+conversationId+"/messages", messageId),
+                docRef: getDocRef(`conversations/${conversationId}/messages`, messageId),
                 data: messageIns.toJSON()
-            },
-            {
+            }, {
                 work: "update",
-                docRef: getDocRef("conversations/"+conversationId+"/messages", messageId),
+                docRef: getDocRef(`conversations/${conversationId}/messages`, messageId),
                 field: "id",
                 data: messageId
-            },
-            {
+            }, {
                 work: "update",
                 docRef: getDocRef("conversations", conversationId),
                 field: "lastMessage",
                 data: messageId
             }];
-            await createBatchedWrites(write);
+
+            await createBatchedWrites(writes);
         } catch (error) {
-            console.log("Error send message: ", error);
+            console.log("Error sending message: ", error);
         }
     }
 
@@ -141,9 +130,8 @@ export default class ChatController {
         try {
             const conversationData = await getDocDataById("conversations", conversationId);
             if (conversationData) {
-                console.log("conversationData", conversationData);
                 const writes = [];
-                conversationData.participants.map((participant) => {
+                for (const participant of conversationData.participants) {
                     if (participant !== senderId) {
                         writes.push({
                             work: "update-map",
@@ -154,12 +142,11 @@ export default class ChatController {
                             data: 1
                         });
                     }
-                });
-                console.log("writes", writes);
+                }
                 await createBatchedWrites(writes);
             }
         } catch (error) {
-            console.log("Error signal message: ", error);
+            console.log("Error signaling message: ", error);
         }
     }
 
@@ -167,32 +154,33 @@ export default class ChatController {
         try {
             if (!messageIds || messageIds.length === 0) return;
 
-            const writes = messageIds.map((messageId) => {
-                return {
-                    work: "update",
-                    docRef: getDocRef("conversations/"+conversationId+"/messages", messageId),
-                    field: "isSeen",
-                    data: true
-                };
-            });
+            const writes = messageIds.map((messageId) => ({
+
+                work: "update",
+                docRef: getDocRef(`conversations/${conversationId}/messages`, messageId),
+                field: "isSeen",
+                data: true
+            }));
+
             writes.push({
                 work: "update-map",
                 docRef: getDocRef("chatManagers", userId),
                 field: "conversationStates",
                 key: conversationId,
                 data: 0
-            })
+            });
+
             await createBatchedWrites(writes);
         } catch (error) {
-            console.log("Error setIsSeenToMessages: ", error);
+            console.log("Error setting messages as seen: ", error);
         }
     }
 
     static async getMessageById(conversationId, messageId) {
         try {
-            return await getDocDataById("conversations/"+conversationId+"/messages", messageId);
+            return await getDocDataById(`conversations/${conversationId}/messages`, messageId);
         } catch (error) {
-            console.log("Error getMessageById: ", error);
+            console.log("Error getting message by ID: ", error);
         }
     }
 }
