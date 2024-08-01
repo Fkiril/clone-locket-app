@@ -16,18 +16,20 @@ export default class ChatController {
 
     static async createConversation(participantIds) {
         try {
-            const conversationId = await writeIntoCol("conversations", {});
+            const conversationId = await writeIntoCol("conversations", (
+                new Conversation({
+                    participants: participantIds
+                })
+            ).toJSON());
 
             const writes = [{
-                work: "set",
+                work: "update",
                 docRef: getDocRef("conversations", conversationId),
-                data: new Conversation({
-                    id: conversationId,
-                    participants: participantIds
-                }).toJSON()
+                field: "id",
+                data: conversationId
             }];
 
-            participantIds.map(async (participant) => {
+            for (const participant of participantIds) {
                 if (!(await exitDoc("chatManagers", participant))) {
                     writes.push({
                         work: "set",
@@ -35,7 +37,7 @@ export default class ChatController {
                         data: new ChatManager({ userId: participant }).toJSON()
                     })
                 }
-
+                
                 writes.push({
                     work: "update-map",
                     docRef: getDocRef("chatManagers", participant),
@@ -48,10 +50,12 @@ export default class ChatController {
                     work: "update-map",
                     docRef: getDocRef("chatManagers", participant),
                     field: "friendConversations",
-                    key: participantIds.filter(p => p !== participant),
+                    key: participantIds.find(p => p !== participant),
                     data: conversationId
                 });
-            });
+            };
+            
+            console.log("Create conversation writes: ", writes);
 
             await createBatchedWrites(writes);
             toast.success("Created new conversation of: ", participantIds);
@@ -69,6 +73,8 @@ export default class ChatController {
             if (chatManagerData) {
                 return chatManagerData.friendConversations[friendId];
             }
+
+            return null;
         } catch (error) {
             console.log("Error get conversation id: ", error);
 

@@ -4,6 +4,7 @@ import AuthenticationController from "../../controllers/authentication-controlle
 import { useUserStore } from "../../hooks/user-store";
 import "./authentication-view.css";
 import { toast } from "react-toastify";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function AuthenticationView() {
     const navigate = useNavigate();
@@ -12,27 +13,25 @@ export default function AuthenticationView() {
 
     const [isLoading, setIsLoading] = useState(false);
     const [showLogin, setShowLogin] = useState(true);
-    const [isChecking, setIsChecking] = useState(true);
+    // const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
         const unSubscribe = () => {
+            // console.log("authentication-view.js: useEffect for currentUser: ", currentUser);
             if (currentUser) {
-                setIsChecking(false);
+                // setIsChecking(false);
                 navigate("/home");
             }
             else {
                 setTimeout(() => {
-                    setIsChecking(false);
+                    // setIsChecking(false);
+                    unSubscribe();
                 }, 2000);
             }
         }
 
         return () => unSubscribe();
-    }, [currentUser, navigate]);
-
-    if (currentUser) {
-        navigate("/home");
-    }
+    }, [currentUser]);
 
     const handleLogIn = async (e) => {
         e.preventDefault();
@@ -101,9 +100,9 @@ export default function AuthenticationView() {
             <h1 className="app-title">Clone-locket</h1>
             <p className="app-subtitle">Clone-locket - Connect and share with your friends and family</p>
         </div>
-        {isChecking ? (
+        {/* {isChecking ? (
             <div className="checking">Checking...</div>
-        ) : (
+        ) : ( */}
         <div className="flex flex-col items-center">
             <div className="flex justify-center mb-5">
                 <button
@@ -145,7 +144,7 @@ export default function AuthenticationView() {
                 </div>
             )}
         </div>
-        )}
+        {/* )} */}
         </div>
     );
 }

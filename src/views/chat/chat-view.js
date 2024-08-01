@@ -33,11 +33,19 @@ export default function ChatView() {
     }, [onSnapshot]);
 
     const handleNagigate = async (friendId) => {
-        let conversationId = await ChatController.getConversationIdWithFriend(currentUser.id, friendId);
-        if (!conversationId) {
-            conversationId = await ChatController.createConversation([currentUser.id, friendId]);
-        }
-        navigate(`/conversation/${conversationId}`);
+        await ChatController.getConversationIdWithFriend(currentUser.id, friendId).then(async (conversationId) => {
+            console.log("conversationId", conversationId);
+            if (!conversationId) {
+                await ChatController.createConversation([currentUser.id, friendId]).then((conversationId) => {
+                    navigate(`/conversation/${conversationId}`);
+                });
+            }
+            else {
+                navigate(`/conversation/${conversationId}`);
+            }
+        }).catch((error) => {
+            console.error(error);
+        });
     }
 
     const handleSearchFriend = (event) => {
@@ -127,7 +135,7 @@ export default function ChatView() {
                             <img
                                 src={searchedFriend?.avatar? searchedFriend.avatar : "./default_avatar.jpg"}
                                 alt="avatar"
-                                onClick={handleNagigate(searchedFriend?.id)}    
+                                onClick={() => handleNagigate(searchedFriend?.id)}    
                             />
                             <p>{searchedFriend?.name}</p>
                         </div>
