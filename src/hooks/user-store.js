@@ -2,14 +2,13 @@ import { create } from "zustand";
 import { auth } from "../models/services/firebase";
 import { getDocDataById } from "../models/utils/firestore-method";
 
-export const useUserStore = create((set) => ({
+export const useUserStore = create((set, get) => ({
   currentUser: null,
-  currentAuth: auth,
   friendDatas: [],
   requestDatas: [],
   blockedDatas: [],
   pictureDatas: [],
-  isLoading: false,
+  isFetching: false,
   fetchUserInfo: async (id) => {
     if (!id) return set({
       currentUser: null,
@@ -17,15 +16,22 @@ export const useUserStore = create((set) => ({
       requestData: [],
       blockedDatas: [],
       pictureDatas: [],
-      isLoading: false
+      isFetching: false
     });
 
     try {
+      console.log(`fetching user's info with id: ${id}`);
+      get().isFetching = true;
+
       const userData = await getDocDataById("users", id);
+      const fDatas = [];
+      const rDatas = [];
+      const bDatas = [];
+      const picDatas = [];
 
       if (userData) {
+
         const fIds = userData.friends;
-        const fDatas = [];
         if (fIds && fIds.length > 0) {
           await Promise.all(
             fIds.map(async (fId) => {
@@ -41,9 +47,9 @@ export const useUserStore = create((set) => ({
             })
           );
         }
+        
 
         const rIds = userData.friendRequests;
-        const rDatas = [];
         if (rIds && rIds.length > 0) {
           await Promise.all(
             rIds.map(async (rId) => {
@@ -59,9 +65,9 @@ export const useUserStore = create((set) => ({
             })
           );
         }
+        
 
         const bIds = userData.blockeds;
-        const bDatas = [];
         if (bIds && bIds.length > 0) {
           await Promise.all(
             bIds.map(async (bId) => {
@@ -79,7 +85,6 @@ export const useUserStore = create((set) => ({
         }
 
         const picIds = userData.picturesCanSee;
-        const picDatas = [];
         if (picIds && picIds.length > 0) {
           await Promise.all(
             picIds.map(async (picId) => {
@@ -99,12 +104,11 @@ export const useUserStore = create((set) => ({
 
         set({ 
           currentUser: userData,
-          currentAuth: auth,
-          friendDatas: fDatas, 
+          friendDatas: fDatas,
           requestDatas: rDatas, 
           blockedDatas: bDatas, 
-          pictureDatas: picDatas, 
-          isLoading: false 
+          pictureDatas: picDatas,
+          isFetching: false 
         });
       } else {
           return set({
@@ -113,7 +117,7 @@ export const useUserStore = create((set) => ({
             requestData: [],
             blockedDatas: [],
             pictureDatas: [],
-            isLoading: false
+            isFetching: false
           });
       }
     } catch (err) {
@@ -124,7 +128,7 @@ export const useUserStore = create((set) => ({
           requestData: [],
           blockedDatas: [],
           pictureDatas: [],
-          isLoading: false
+          isFetching: false
       });
     }
   },

@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useUserStore } from "../../hooks/user-store";
 import { useMessageStore } from "../../hooks/message-store";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import ChatController from "../../controllers/chat-controller";
 import { getDocRef } from "../../models/utils/firestore-method";
 import { onSnapshot } from "firebase/firestore";
@@ -9,6 +9,9 @@ import { dateToString } from "../../models/utils/date-method";
 import "./conversation-view.css";
 
 export default function ConversationView() {
+    const navigate = useNavigate();
+    const [state, setState] = useState(useLocation().state);
+
     const { conversationId } = useParams();
     const { currentUser, friendDatas } = useUserStore();
     const { messages, fetchMessages } = useMessageStore();
@@ -19,13 +22,19 @@ export default function ConversationView() {
     }, [messages[conversationId]]);
 
     useEffect(() => {
-        const conversationRef = getDocRef("conversations", conversationId);
-        const unSubscribe = onSnapshot(conversationRef, { includeMetadataChanges: false }, () => {
-            fetchMessages(conversationId);
-            console.log("ConversationView: useEffect() for fetchMessages: ", messages);
-        });
-        return () => unSubscribe();
-    }, [onSnapshot, conversationId, fetchMessages]);
+        if (state?.routing && messages[conversationId]) {
+            setState(null);
+        }
+        else {
+            const conversationRef = getDocRef("conversations", conversationId);
+            const unSubscribe = onSnapshot(conversationRef, { includeMetadataChanges: false }, () => {
+                fetchMessages(conversationId);
+                console.log("ConversationView: useEffect() for fetchMessages: ", messages);
+            });
+            
+            return () => unSubscribe();
+        }
+    }, [onSnapshot]);
 
     const handleGetAvatar = (senderId) => {
         if (senderId === currentUser.id) {
@@ -62,16 +71,26 @@ export default function ConversationView() {
         Array.isArray(messages[conversationId]) && messages[conversationId].some((message) => message.senderId === friend.id && message.senderId !== currentUser.id)
     );
 
+    const handleRouting = (path) => {
+        navigate(path, { state: { routing: true } });
+    }
+
     return (
         <div className="box-chat" key={conversationId}>
             <div className="header">
                 <h2>Box Chat</h2>
                 <div className="header-buttons">
-                    <button>
+                    {/* <button>
                         <Link to="/chat">Trở về</Link>
-                    </button>
-                    <button>
+                    </button> */}
+                    {/* <button>
                         <Link to="/home">Trang chủ</Link>
+                    </button> */}
+                    <button onClick={() => handleRouting("/chat")}>
+                        Back
+                    </button>
+                    <button onClick={() => handleRouting("/home")}>
+                        Home
                     </button>
                 </div>
             </div>

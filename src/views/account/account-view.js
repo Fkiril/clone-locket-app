@@ -1,11 +1,12 @@
 import "./account-view.css";
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
 import { toast } from "react-toastify";
 import { onSnapshot } from "firebase/firestore";
 import { getDocRef } from "../../models/utils/firestore-method";
+import { auth } from "../../models/services/firebase";
 
 import UserController from "../../controllers/user-controller";
 import AuthenticationController from "../../controllers/authentication-controller";
@@ -15,12 +16,17 @@ import FriendsListPortal from "./FriendsListPortal";
 import BlockedListPortal from "./BlockedListPortal";
 import PicturesListPortal from "./PicturesListPortal";
 import SearchBar from "./SearchBar"; // Import the new SearchBar component
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function AccountView() {
     const navigate = useNavigate();
+    const [state, setState] = useState(useLocation().state);
     
-    const { currentAuth, currentUser, friendDatas, fetchUserInfo } = useUserStore();
-    const userController = currentUser ? new UserController(currentUser) : null;
+    const { currentUser, friendDatas, fetchUserInfo } = useUserStore();
+
+    const [userController, setUserController] = useState(
+        currentUser? new UserController(currentUser) : null
+    );
 
     const [isSettingAvatar, setIsSettingAvatar] = useState(false);
     const [selectedAvatar, setSelectedAvatar] = useState({
@@ -41,27 +47,45 @@ export default function AccountView() {
     const [isShowingPictures, setIsShowingPictures] = useState(false);
     
     useEffect(() => {
-        if(currentUser) {
-        const userRef = getDocRef("users", currentUser.id);
-        
-        const unSubscribe = onSnapshot(userRef, { includeMetadataChanges: false }, () => {
-            fetchUserInfo(currentUser.id);
-            console.log("account-view.js: useEffect() for onSnapshot: ");
-            console.log("Current user: ", currentUser);
-        });
-
-        return () => unSubscribe();
+        if (state?.routing && currentUser) {
+            setState(null);
+        }
+        else if (auth?.currentUser?.uid) {
+            const unSubscribe = onSnapshot(getDocRef("users", auth?.currentUser.uid), { includeMetadataChanges: false }, async () => {
+                await fetchUserInfo(auth?.currentUser.uid);
+    
+                setUserController(new UserController(currentUser));
+                
+                console.log("account-view.js: useEffect() for onSnapshot");
+            });
+    
+            return () => {
+                unSubscribe();
+            }
+        }
+        else {
+            auth.authStateReady().then(async () => {
+                await fetchUserInfo(auth?.currentUser.uid);
+            }).catch((error) => {
+                console.log("account-view.js: auth.authStateReady() error: ", error);
+            });
         }
     }, [onSnapshot]);
 
-    if (!currentUser) {
-        return navigate("/");
-    }
+    useEffect(() => {
+        const unSubscribe = auth.onAuthStateChanged(() => {
+            console.log("account-view.js: useEffect() for onAuthStateChanged");
+            if (!(auth?.currentUser) || !currentUser) navigate("/");
+        });
+
+        return () => {
+            unSubscribe();
+        }
+    }, [auth, onAuthStateChanged]);
 
     const handleLogOut = async () => {
         await AuthenticationController.logOut().then(() => {
             toast.success("Logout successfull");
-            navigate("/");
         }).catch((error) => {
             toast.error("Failed to log out. Please try again.");
         });
@@ -210,7 +234,7 @@ export default function AccountView() {
                 return;
             }
 
-            await userController.changePassword(currentAuth.currentUser, newPassword).then(() => {
+            await userController.changePassword(auth.currentUser, newPassword).then(() => {
                 toast.success("Change password successfull!");
                 setIsChangingPassword(false);
             }).catch((error) => {
@@ -246,14 +270,21 @@ export default function AccountView() {
         ), document.body);
     };
 
+    const handleBackToHome = () => {
+        navigate("/home", { state: { routing: true } });
+    };
+
     return (
         <div className="account-container">
         <div className="card gradient-overlay">
             <div className="account-header">
                 <h2>Account</h2>
-                <Link to="/home" className="back-button">
+                {/* <Link to="/home" className="back-button">
                     Back to Home
-                </Link>
+                </Link> */}
+                <button className="back-button" onClick={handleBackToHome}>
+                    Back to Home
+                </button>
             </div>
             <div className="image">
                 <img 
@@ -296,9 +327,9 @@ export default function AccountView() {
                 className="stat-button"
                 onClick={() => setIsShowingFriends(true)}>
                 Friends
-                {friendDatas.length > 0 && (
+                {currentUser?.friends.length > 0 && (
                     <span className="friends-count">
-                    {friendDatas.length}
+                    {currentUser?.friends.length}
                     </span>
                 )}
                 </button>

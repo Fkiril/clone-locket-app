@@ -1,62 +1,78 @@
 import React, { useRef, useState } from "react";
-// import { FaCamera } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { useUserStore } from "../../hooks/user-store";
 import { toast } from "react-toastify";
 import PictureController from "../../controllers/picture-controller";
-import { useUserStore } from "../../hooks/user-store";
 import Picture, { ScopeEnum } from "../../models/entities/picture";
+// import { FaCamera } from "react-icons/fa";
 
 export default function UploadPictureView() {
-  const { currentUser, friendDatas } = useUserStore();
-  const currentPicture = new Picture("", currentUser.id);
+  const navigate = useNavigate();
 
-  const [optionFile, setOptionFile] = useState(null);
-  const [optionFileUrl, setOptionFileUrl] = useState("");
+  const { currentUser, friendDatas } = useUserStore();
+
+  const [picture, setPicture] = useState({
+    file: null,
+    url: "",
+  });
+
   const [text, setText] = useState("");
   const [scope, setScope] = useState(ScopeEnum.PUBLIC);
   const [showScopeOption, setShowScopeOption] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState([]);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
 
+  const [uploaded, setUploaded] = useState(false);
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const navigate = useNavigate();
 
   const handlePicture = (event) => {
     if (event.target.files[0]) {
-      setOptionFile(event.target.files[0]);
-      setOptionFileUrl(URL.createObjectURL(event.target.files[0]));
+      setPicture({
+        file: event.target.files[0],
+        url: URL.createObjectURL(event.target.files[0]),
+      })
     }
   };
 
-  const submitOption = async () => {
-    currentPicture.text = text;
-    currentPicture.scope = scope;
+  const handleSubmitPicture = async () => {
+    const picInstance = new Picture({
+      ownerId: currentUser.id,
+      text: text,
+      scope: scope,
+      canSee: [currentUser.id],
+    })
 
-    currentPicture.canSee = [currentUser.id];
     if (scope === ScopeEnum.SPECIFY) {
-      currentPicture.canSee.push(...selectedFriends);
+      picInstance.canSee.push(...selectedFriends);
     } else if (scope === ScopeEnum.PUBLIC) {
-      currentPicture.canSee.push(...currentUser.friends);
+      picInstance.canSee.push(...currentUser.friends);
     }
-    await PictureController.uploadPicture(currentPicture, optionFile);
-    toast.success("Picture uploaded successfully!");
-    setOptionFile(null);
-    setOptionFileUrl("");
+
+    await PictureController.uploadPicture(picInstance, picture.file).then(() => {
+      toast.success("Picture uploaded successfully!");
+      handleCancelOption();
+      setUploaded(true);
+    }).catch((error) => {
+      toast.error("Failed to upload picture. Please try again!");
+    });
   };
 
-  const cancelOption = () => {
+  const handleCancelOption = () => {
     const fileInput = document.getElementById("file");
     fileInput.value = "";
-    setOptionFile(null);
-    setOptionFileUrl("");
+    setPicture({
+      file: null,
+      url: "",
+    })
   };
 
   const handleText = (event) => {
     setText(event.target.value);
   };
 
-  const checkTextInputLength = () => {
+  const handleCheckTextInput = () => {
     const textInput = document.getElementById("text-input");
     if (textInput.value.length >= 35) {
       toast.warning("Text input can be up to 35 characters!");
@@ -78,6 +94,8 @@ export default function UploadPictureView() {
   };
 
   const handleOpenCamera = () => {
+    if (picture.file) handleCancelOption();
+
     setIsCameraOpen(true);
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices
@@ -108,17 +126,23 @@ export default function UploadPictureView() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
+    
     context.save();
     context.scale(-1, 1);
     context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+    
     context.restore();
     const blob = await new Promise((resolve) => {
       canvas.toBlob(resolve, "image/png");
     });
-    setOptionFile(blob);
-    setOptionFileUrl(canvas.toDataURL("image/png"));
+
+    setPicture({
+      file: blob,
+      url: canvas.toDataURL("image/png"),
+    })
     handleCloseCamera();
   };
 
@@ -126,7 +150,7 @@ export default function UploadPictureView() {
     if (isCameraOpen) {
       handleCloseCamera();
     }
-    navigate("/home");
+    navigate("/home", { state: { routing: uploaded? false : true } });
   };
 
   return (
@@ -142,7 +166,10 @@ export default function UploadPictureView() {
         <div className="flex gap-4 mb-8">
           <button
             type="button"
-            onClick={() => document.getElementById("file").click()}
+            onClick={() => {
+              document.getElementById("file").click();
+              if (isCameraOpen) handleCloseCamera();
+            }}
             className="px-8 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-xl"
           >
             Choose Picture
@@ -181,7 +208,7 @@ export default function UploadPictureView() {
           </div>
         )}
         
-        {optionFileUrl && (
+        {picture.url && (
           <div className="w-full">
             <div className="scope-select mb-4">
               <button
@@ -221,7 +248,7 @@ export default function UploadPictureView() {
               )}
             </div>
             <div className="picture mb-4">
-              <img src={optionFileUrl} alt="" className="w-full rounded-lg" />
+              <img src={picture.url} alt="" className="w-full rounded-lg" />
               <input
                 id="text-input"
                 type="text"
@@ -229,21 +256,21 @@ export default function UploadPictureView() {
                 placeholder="Enter text"
                 value={text}
                 onChange={handleText}
-                onInput={checkTextInputLength}
+                onInput={handleCheckTextInput}
                 className="w-full mt-2 p-2 border border-gray-300 rounded-md"
               />
             </div>
             <div className="buttons flex justify-between">
               <button
                 type="button"
-                onClick={submitOption}
+                onClick={handleSubmitPicture}
                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
               >
                 Submit
               </button>
               <button
                 type="button"
-                onClick={cancelOption}
+                onClick={handleCancelOption}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
               >
                 Cancel

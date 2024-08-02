@@ -1,37 +1,35 @@
+import "./authentication-view.css";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AuthenticationController from "../../controllers/authentication-controller";
+import { auth } from "../../models/services/firebase";
 import { useUserStore } from "../../hooks/user-store";
-import "./authentication-view.css";
 import { toast } from "react-toastify";
-import { onAuthStateChanged } from "firebase/auth";
+import AuthenticationController from "../../controllers/authentication-controller";
 
 export default function AuthenticationView() {
     const navigate = useNavigate();
 
-    const { currentUser } = useUserStore();
+    const { currentUser, fetchUserInfo } = useUserStore();
 
     const [isLoading, setIsLoading] = useState(false);
     const [showLogin, setShowLogin] = useState(true);
-    // const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
-        const unSubscribe = () => {
-            console.log("authentication-view.js: useEffect for currentUser: ", currentUser);
-            if (currentUser) {
-                // setIsChecking(false);
-                navigate("/home");
-            }
-            else {
-                setTimeout(() => {
-                    // setIsChecking(false);
-                    unSubscribe();
-                }, 2000);
-            }
+        const unSubscribe = auth.onAuthStateChanged(async () => {
+            await fetchUserInfo(auth?.currentUser?.uid, {});
+            console.log("authentication-view.js: useEffect() for onAuthStateChanged");
+        });
+        return () => {
+            unSubscribe();
         }
+    }, [auth]);
 
-        return () => unSubscribe();
-    }, [currentUser]);
+    useEffect(() => {
+        if (auth?.currentUser && currentUser) {
+            setIsLoading(false);
+            navigate("/home", { state: { routing: true } });
+        } else console.log("checking ...");
+    }, [auth, currentUser]);
 
     const handleLogIn = async (e) => {
         e.preventDefault();
@@ -42,9 +40,6 @@ export default function AuthenticationView() {
 
         await AuthenticationController.logIn(email, password).then(() => {
             toast.success("Login successfull!");
-            setIsLoading(false);
-
-            if (currentUser) navigate("/home");
         }).catch((error) => {
             toast.error("Invalid email or password. Please try again.");
             setIsLoading(false);

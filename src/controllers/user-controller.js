@@ -1,11 +1,77 @@
 import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
-import { writeDoc, updateArrayField, exitDoc, getDocIdByValue, getDocDataByValue, getDocDataById, getDocRef, createBatchedWrites } from "../models/utils/firestore-method";
+import { writeDoc, updateArrayField, getDocIdByValue, getDocDataByValue, getDocDataById, getDocRef, createBatchedWrites } from "../models/utils/firestore-method";
 import { changePassword } from "../models/utils/authetication-method";
-import { toast } from "react-toastify";
 
 export default class UserController {
     constructor(user) {
         this.user = user;
+    }
+
+    static async getUserInfo(userId) {
+        try {
+            const user = await getDocDataById("users", userId);
+
+            return user;
+        } catch (error) {
+            console.log("Error getting basic user info:", error);
+            throw error;
+        }
+    }
+
+    static async getFriendDatas(friendIds) {
+        try {
+            const friendDatas = await Promise.all(friendIds.map(async (id) => {
+                const friendData = await getDocDataById("users", id);
+                return friendData;
+            }));
+
+            return friendDatas;
+        } catch(error) {
+            console.log("Error getting friend datas: ", error);
+            throw error;
+        }
+    }
+
+    static async getRequestDatas(requestIds) {
+        try {
+            const requestDatas = await Promise.all(requestIds.map(async (id) => {
+                const requestData = await getDocDataById("users", id);
+                return requestData;
+            }));
+
+            return requestDatas;
+        } catch(error) {
+            console.log("Error getting request datas: ", error);
+            throw error;
+        }
+    }
+
+    static async getBlockedDatas(blockedIds) {
+        try {
+            const blockedDatas = await Promise.all(blockedIds.map(async (id) => {
+                const blockedData = await getDocDataById("users", id);
+                return blockedData;
+            }));
+
+            return blockedDatas;
+        } catch(error) {
+            console.log("Error getting blocked datas: ", error);
+            throw error;
+        }
+    }
+
+    static async getPictureDatas(pictureIds) {
+        try {
+            const pictureDatas = await Promise.all(pictureIds.map(async (id) => {
+                const pictureData = await getDocDataById("pictures", id);
+                return pictureData;
+            }));
+
+            return pictureDatas;
+        } catch(error) {
+            console.log("Error getting picture datas: ", error);
+            throw error;
+        }
     }
 
     async changePassword(user, newPassword) {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
 import { useChatListStore } from "../../hooks/chat-list-store";
 import ChatController from "../../controllers/chat-controller";
@@ -10,16 +10,23 @@ import "./chat-view.css";
 
 export default function ChatView() {
     const navigate = useNavigate();
+    const [state, setState] = useState(useLocation().state);
+    
     const { currentUser, friendDatas } = useUserStore();
     const { conversations, lastMessages, fetchLastMessages } = useChatListStore();
     const [searchedFriend, setSearchedFriend] = useState(null);
 
     useEffect(() => {
-        if (currentUser) {
-            const docRef = getDocRef("chatManagers", currentUser.id);
+        if (state?.routing && lastMessages) {
+            setState(null);
+        }
+        else {
+            const docRef = getDocRef("chatManagers", currentUser?.id);
             const unSubscribe = onSnapshot(docRef, { includeMetadataChanges: false }, () => {
-                fetchLastMessages(currentUser.id);
+                fetchLastMessages(currentUser?.id);
+                console.log("ChatView: useEffect() for fetchLastMessages: ", lastMessages);
             });
+
             return () => {
                 unSubscribe();
             }
@@ -31,7 +38,7 @@ export default function ChatView() {
         if (!conversationId) {
             conversationId = await ChatController.createConversation([currentUser.id, friendId]);
         }
-        navigate(`/conversation/${conversationId}`);
+        navigate(`/conversation/${conversationId}`, { state: { routing: true } });
     }
 
     const handleSearchFriend = (event) => {
@@ -81,12 +88,16 @@ export default function ChatView() {
         };
     }).filter(friend => friend.conversation);
 
+    const handleRouting = (path) => {
+        navigate(path, { state: { routing: true } });
+    }
+
     return (
         <div className="chat-view-container">
             <div className="header">
                 <h2>Chat List</h2>
-                <button>
-                    <Link to="/home">Home</Link>
+                <button onClick={() => handleRouting("/home")}>
+                    Home
                 </button>
             </div>
             <div className="chat-view">
