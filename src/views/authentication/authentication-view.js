@@ -17,7 +17,7 @@ export default function AuthenticationView() {
 
     useEffect(() => {
         const unSubscribe = () => {
-            // console.log("authentication-view.js: useEffect for currentUser: ", currentUser);
+            console.log("authentication-view.js: useEffect for currentUser: ", currentUser);
             if (currentUser) {
                 // setIsChecking(false);
                 navigate("/home");

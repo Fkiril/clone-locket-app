@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { FaCamera } from "react-icons/fa";
+// import { FaCamera } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PictureController from "../../controllers/picture-controller";
@@ -7,7 +7,7 @@ import { useUserStore } from "../../hooks/user-store";
 import Picture, { ScopeEnum } from "../../models/entities/picture";
 
 export default function UploadPictureView() {
-  const { currentUser, friendsData } = useUserStore();
+  const { currentUser, friendDatas } = useUserStore();
   const currentPicture = new Picture("", currentUser.id);
 
   const [optionFile, setOptionFile] = useState(null);
@@ -138,7 +138,7 @@ export default function UploadPictureView() {
         >
           Back to Home
         </button>
-        <FaCamera className="text-9xl text-gray-500 mb-8" />
+        {/* <FaCamera className="text-9xl text-gray-500 mb-8" /> */}
         <div className="flex gap-4 mb-8">
           <button
             type="button"
@@ -202,7 +202,7 @@ export default function UploadPictureView() {
                   </select>
                   {scope === ScopeEnum.SPECIFY && (
                     <div className="mt-2">
-                      {friendsData.map((friend) => (
+                      {friendDatas.map((friend) => (
                         <label key={friend.name} className="block">
                           <input
                             type="checkbox"

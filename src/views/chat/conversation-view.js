@@ -22,6 +22,7 @@ export default function ConversationView() {
         const conversationRef = getDocRef("conversations", conversationId);
         const unSubscribe = onSnapshot(conversationRef, { includeMetadataChanges: false }, () => {
             fetchMessages(conversationId);
+            console.log("ConversationView: useEffect() for fetchMessages: ", messages);
         });
         return () => unSubscribe();
     }, [onSnapshot, conversationId, fetchMessages]);
