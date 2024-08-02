@@ -6,6 +6,7 @@ import "./home-view.css";
 export default function HomeView() {
     const { currentUser } = useUserStore();
     const avatarUrl = currentUser?.avatar ? currentUser.avatar : "./default_avatar.jpg";
+    const friendPictures = currentUser?.friendPicture || [];
 
     return (
         <div className="home min-h-screen flex flex-col items-center bg-gray-100">
@@ -13,19 +14,38 @@ export default function HomeView() {
                 <h1 className="app-title">Clone-locket</h1>
                 <p className="app-subtitle">Clone-locket - Connect and share with your friends and family</p>
             </div>
-            <div className="nav-buttons flex gap-4 mb-1">
-                <button className="nav-button">
-                    <Link to="/chat">Chat</Link>
-                </button>
-                <button className="nav-button">
-                    <Link to="/upload-picture">Upload a picture</Link>
-                </button>
-            </div>
-            <div className="body flex flex-col items-center gap-4">
-                <Link to="/account" className="avatar-container">
-                    <img src={avatarUrl} alt="User Avatar" className="user-avatar" />
+            <div className="nav-buttons-container mb-1">
+                <Link to="/chat" className="nav-buttons">
+                    Chat
                 </Link>
+                <Link to="/upload-picture" className="nav-buttons">
+					Upload a picture
+				</Link>
+                <Link to="/account" className="avatar-container">
+					<img src={avatarUrl} alt="User Avatar" className="user-avatar" />
+				</Link>
             </div>
+            <div className="friends-pictures-container mt-4"> 
+                {
+                    friendPictures.length > 0 ? (
+                        friendPictures.map((picture, index) => (
+                            <div key = {index} className="friend-picture-frame"> 
+                                <div className="picture-header">    
+                                    <span className="owner-name">{picture.ownerName}</span>
+                                    <span className="send-time">{picture.sendTime}</span>
+                                </div>
+                                <img src={picture.url} alt="Friend's Picture" className="friend-picture" />
+                                <div className="picture-actions">
+                                    <button className="react-button">React</button>
+                                    <button className="message-button"> Send message</button>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="no-friend-pictures">No pictures to display</p>
+                    )
+                }
         </div>
+    </div>
     );
 }
