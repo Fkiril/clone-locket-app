@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { FaCamera } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PictureController from "../../controllers/picture-controller";
 import { useUserStore } from "../../hooks/user-store";
@@ -12,17 +12,15 @@ export default function UploadPictureView() {
 
   const [optionFile, setOptionFile] = useState(null);
   const [optionFileUrl, setOptionFileUrl] = useState("");
-  const [picture, setPicture] = useState({
-    file: null,
-    url: "",
-  });
-
   const [text, setText] = useState("");
   const [scope, setScope] = useState(ScopeEnum.PUBLIC);
   const [showScopeOption, setShowScopeOption] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState([]);
-
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const navigate = useNavigate();
 
   const handlePicture = (event) => {
     if (event.target.files[0]) {
@@ -41,9 +39,8 @@ export default function UploadPictureView() {
     } else if (scope === ScopeEnum.PUBLIC) {
       currentPicture.canSee.push(...currentUser.friends);
     }
-
     await PictureController.uploadPicture(currentPicture, optionFile);
-
+    toast.success("Picture uploaded successfully!");
     setOptionFile(null);
     setOptionFileUrl("");
   };
@@ -51,7 +48,6 @@ export default function UploadPictureView() {
   const cancelOption = () => {
     const fileInput = document.getElementById("file");
     fileInput.value = "";
-
     setOptionFile(null);
     setOptionFileUrl("");
   };
@@ -81,16 +77,8 @@ export default function UploadPictureView() {
     });
   };
 
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-
   const handleOpenCamera = () => {
     setIsCameraOpen(true);
-    setPicture({
-      file: null,
-      url: "",
-    });
-
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices
         .getUserMedia({ video: true })
@@ -120,34 +108,36 @@ export default function UploadPictureView() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
-
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     context.save();
     context.scale(-1, 1);
     context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
     context.restore();
-
     const blob = await new Promise((resolve) => {
       canvas.toBlob(resolve, "image/png");
     });
-
-    setPicture({
-      file: blob,
-      url: canvas.toDataURL("image/png"),
-    });
-
+    setOptionFile(blob);
+    setOptionFileUrl(canvas.toDataURL("image/png"));
     handleCloseCamera();
+  };
+
+  const handleBackToHome = () => {
+    if (isCameraOpen) {
+      handleCloseCamera();
+    }
+    navigate("/home");
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <div className="bg-white p-10 rounded-lg shadow-md w-full max-w-2xl flex flex-col items-center relative">
-        <Link to="/home">
-          <button className="absolute top-4 right-4 px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400">
-            Back to Home
-          </button>
-        </Link>
+        <button
+          onClick={handleBackToHome}
+          className="absolute top-4 right-4 px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+        >
+          Back to Home
+        </button>
         <FaCamera className="text-9xl text-gray-500 mb-8" />
         <div className="flex gap-4 mb-8">
           <button
@@ -171,7 +161,6 @@ export default function UploadPictureView() {
             {isCameraOpen ? "Close Camera" : "Open Camera"}
           </button>
         </div>
-
         {isCameraOpen && (
           <div className="camera mb-8">
             <video
@@ -191,7 +180,7 @@ export default function UploadPictureView() {
             </button>
           </div>
         )}
-
+        
         {optionFileUrl && (
           <div className="w-full">
             <div className="scope-select mb-4">

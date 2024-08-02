@@ -155,3 +155,14 @@
   margin-left: 10px;
   color: #b0b0b0;
 }
+
+.unread-count {
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+    margin-left: 10px;
+}

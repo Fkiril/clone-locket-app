@@ -38,7 +38,6 @@ export default function ChatView() {
         event.preventDefault();
         const formData = new FormData(event.target);
         const searchInput = formData.get("search-input");
-
         if (!searchInput) {
             setSearchedFriend(null);
         } else {
@@ -95,7 +94,11 @@ export default function ChatView() {
                             lastMessage: lastMessages?.find(m => m?.id === conversations?.find(conv => 
                                 conv.participants.includes(currentUser.id) && 
                                 conv.participants.includes(friend.id)
-                            )?.lastMessage)
+                            )?.lastMessage),
+                            unreadCount: lastMessages?.filter(m => 
+                                m?.senderId === friend.id && 
+                                !m?.readBy?.includes(currentUser.id)
+                            ).length
                         }))
                         .filter(friend => friend.conversation && friend.lastMessage)
                         .sort((a, b) => new Date(b.lastMessage?.createdTime) - new Date(a.lastMessage?.createdTime))
@@ -109,10 +112,13 @@ export default function ChatView() {
                                             <span className="message-text">{friend.lastMessage?.text}</span>
                                             <span className="message-time">{formatTime(friend.lastMessage?.createdTime)}</span>
                                         </p>
+                                        {friend.unreadCount > 0 && (
+                                            <span className="unread-count">{friend.unreadCount}</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
-                        ))}
+                        )) || null}
                 </div>
             </div>
         </div>
