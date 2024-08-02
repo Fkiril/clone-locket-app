@@ -3,41 +3,39 @@ import { getDocDataById, getDocsCol } from "../models/utils/firestore-method";
 import { stringToDate } from "../models/utils/date-method";
 
 export const useMessageStore = create((set, get) => ({
-    messages: [],
+    messages: {},
     isLoading: false,
     fetchMessages: async (conversationId) => {
         try {
-            if (!conversationId) return set({ messages: [], isLoading: false });
+            if (!conversationId) return set({ messages: { ...get().messages, [conversationId]: [] }, isLoading: false });
 
             const conversationData = await getDocDataById("conversations", conversationId);
             if (conversationData) {
                 const querySnapshot = await getDocsCol("conversations/" + conversationId + "/messages");
                 const mDatas = [];
-                querySnapshot.docs.map((doc) => {
+                querySnapshot.docs.forEach((doc) => {
                     if (doc.exists()) {
-                        if (get().messages && get().messages.find((m) => m?.id === doc.data().id)) {
+                        if (get().messages[conversationId] && get().messages[conversationId].find((m) => m?.id === doc.data().id)) {
                             return;
                         }
                         mDatas.push(doc.data());
                     }
-                    return;
                 });
-                if (get().messages && get().messages.length > 0) {
-                    mDatas.push(...get().messages);
+                if (get().messages[conversationId] && get().messages[conversationId].length > 0) {
+                    mDatas.push(...get().messages[conversationId]);
                 }
                 mDatas.sort((a, b) => {
                     const aDate = stringToDate(a?.createdTime);
                     const bDate = stringToDate(b?.createdTime);
                     return aDate - bDate;
-                })
-                set({ messages: mDatas, isLoading: false });
-            }
-            else {
-                set({ messages: [], isLoading: false });
+                });
+                set({ messages: { ...get().messages, [conversationId]: mDatas }, isLoading: false });
+            } else {
+                set({ messages: { ...get().messages, [conversationId]: [] }, isLoading: false });
             }
         } catch (error) {
             console.log("Error fetching messages: ", error);
-            set({ messages: [], isLoading: false });
+            set({ messages: { ...get().messages, [conversationId]: [] }, isLoading: false });
         }
     }
-}))
+}));

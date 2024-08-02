@@ -1,4 +1,3 @@
-import "./conversation-view.css";
 import React, { useEffect, useRef } from "react";
 import { useUserStore } from "../../hooks/user-store";
 import { useMessageStore } from "../../hooks/message-store";
@@ -7,6 +6,7 @@ import ChatController from "../../controllers/chat-controller";
 import { getDocRef } from "../../models/utils/firestore-method";
 import { onSnapshot } from "firebase/firestore";
 import { dateToString } from "../../models/utils/date-method";
+import "./conversation-view.css";
 
 export default function ConversationView() {
     const { conversationId } = useParams();
@@ -16,7 +16,7 @@ export default function ConversationView() {
 
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+    }, [messages[conversationId]]);
 
     useEffect(() => {
         const conversationRef = getDocRef("conversations", conversationId);
@@ -32,12 +32,6 @@ export default function ConversationView() {
         }
         const friend = friendDatas.find((friend) => friend.id === senderId);
         return friend?.avatar || "./default_avatar.jpg";
-    };
-
-    //chỗ này đang lỗi chưa lấy được tên, fix giúp tui :>
-    const handleGetUsername = (userId) => {
-        const friend = friendDatas.find((friend) => friend.id === userId);
-        return friend?.username || "Chỗ này lấy tên mà chưa lấy đc";
     };
 
     const handleSendMessage = async (event) => {
@@ -56,14 +50,15 @@ export default function ConversationView() {
     };
 
     const handleFormFocus = async () => {
-        const messagesId = messages.filter(
+        const messagesArray = Array.isArray(messages[conversationId]) ? messages[conversationId] : [];
+        const messagesId = messagesArray.filter(
             (message) => (message.senderId !== currentUser.id && !message.isSeen)
         ).map((message) => message.id);
         await ChatController.setIsSeenToMessages(currentUser.id, conversationId, messagesId);
     };
 
     const friendInfo = friendDatas.find((friend) =>
-        messages.some((message) => message.senderId === friend.id && message.senderId !== currentUser.id)
+        Array.isArray(messages[conversationId]) && messages[conversationId].some((message) => message.senderId === friend.id && message.senderId !== currentUser.id)
     );
 
     return (
@@ -82,13 +77,13 @@ export default function ConversationView() {
             {friendInfo && (
                 <div className="detail">
                     <img src={handleGetAvatar(friendInfo.id)} alt="avatar" className="friend-avatar" />
-                    <p className="friend-username">{handleGetUsername(friendInfo.id)}</p>
+                    <p className="friend-username">{friendInfo.name}</p>
                 </div>
             )}
             <div className="body">
                 <div className="conversation">
                     <div className="messages">
-                        {messages?.map((message) => (
+                        {Array.isArray(messages[conversationId]) && messages[conversationId].map((message) => (
                             <div
                                 className={`message ${message?.senderId === currentUser.id ? "right" : "left"}`}
                                 key={message?.id}
