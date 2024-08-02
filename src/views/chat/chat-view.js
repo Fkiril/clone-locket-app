@@ -1,4 +1,3 @@
-import "./chat-view.css";
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
@@ -7,6 +6,7 @@ import ChatController from "../../controllers/chat-controller";
 import { toast } from "react-toastify";
 import { onSnapshot } from "firebase/firestore";
 import { getDocRef } from "../../models/utils/firestore-method";
+import "./chat-view.css";
 
 export default function ChatView() {
     const navigate = useNavigate();
@@ -42,22 +42,14 @@ export default function ChatView() {
             setSearchedFriend(null);
         } else {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (emailRegex.test(searchInput)) {
-                const friend = friendDatas.find((friend) => friend.email === searchInput);
-                if (friend) {
-                    setSearchedFriend(friend);
-                } else {
-                    toast.info("No friend found with this email.");
-                    setSearchedFriend(null);
-                }
+            const friend = friendDatas.find((friend) => 
+                emailRegex.test(searchInput) ? friend.email === searchInput : friend.name.toLowerCase() === searchInput.toLowerCase()
+            );
+            if (friend) {
+                setSearchedFriend(friend);
             } else {
-                const friend = friendDatas.find((friend) => friend.name.toLowerCase() === searchInput.toLowerCase());
-                if (friend) {
-                    setSearchedFriend(friend);
-                } else {
-                    toast.info("No friend found with this name.");
-                    setSearchedFriend(null);
-                }
+                toast.info("No friend found with this email or name.");
+                setSearchedFriend(null);
             }
         }
         event.target.reset();
@@ -67,6 +59,27 @@ export default function ChatView() {
         const options = { hour: '2-digit', minute: '2-digit', hour12: true };
         return new Date(date).toLocaleTimeString([], options);
     };
+
+    const filteredFriends = searchedFriend ? [searchedFriend] : friendDatas;
+
+    const friendsWithConversations = filteredFriends.map(friend => {
+        const conversation = conversations?.find(conv => 
+            conv.participants.includes(currentUser.id) && 
+            conv.participants.includes(friend.id)
+        );
+        const lastMessage = lastMessages?.find(m => m?.id === conversation?.lastMessage);
+        const unreadCount = lastMessages?.filter(m => 
+            m?.senderId === friend.id && 
+            !m?.readBy?.includes(currentUser.id)
+        ).length;
+
+        return {
+            ...friend,
+            conversation,
+            lastMessage,
+            unreadCount
+        };
+    }).filter(friend => friend.conversation);
 
     return (
         <div className="chat-view-container">
@@ -84,23 +97,7 @@ export default function ChatView() {
                     </form>
                 </div>
                 <div className="conversations">
-                    {(searchedFriend ? [searchedFriend] : friendDatas)
-                        .map(friend => ({
-                            ...friend,
-                            conversation: conversations?.find(conv => 
-                                conv.participants.includes(currentUser.id) && 
-                                conv.participants.includes(friend.id)
-                            ),
-                            lastMessage: lastMessages?.find(m => m?.id === conversations?.find(conv => 
-                                conv.participants.includes(currentUser.id) && 
-                                conv.participants.includes(friend.id)
-                            )?.lastMessage),
-                            unreadCount: lastMessages?.filter(m => 
-                                m?.senderId === friend.id && 
-                                !m?.readBy?.includes(currentUser.id)
-                            ).length
-                        }))
-                        .filter(friend => friend.conversation && friend.lastMessage)
+                    {friendsWithConversations
                         .sort((a, b) => new Date(b.lastMessage?.createdTime) - new Date(a.lastMessage?.createdTime))
                         .map(friend => (
                             <div className="friend" key={friend.id} onClick={() => handleNavigate(friend.id)}>
