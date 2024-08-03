@@ -12,8 +12,7 @@ import ChatView from '../views/chat/chat-view';
 import ConversationView from '../views/chat/conversation-view';
 
 function App() {
-  const { currentUser, fetchUserInfo, isLoading } = useUserStore();
-
+  // const { currentUser, fetchUserInfo, isFetching } = useUserStore();
   // useEffect(() => {
   //   const unSubscribe = auth.onAuthStateChanged ((user) => {
   //     fetchUserInfo(user?.uid, {});
@@ -23,9 +22,6 @@ function App() {
   //     unSubscribe();
   //   }
   // }, [fetchUserInfo, auth]);
-
-  if(isLoading) return <div>Loading...</div>;
-
   // console.log("User's data: ", currentUser);
 
   return (

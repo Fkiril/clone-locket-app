@@ -54,16 +54,12 @@ export default class ChatController {
                     data: conversationId
                 });
             };
-            
-            console.log("Create conversation writes: ", writes);
-
             await createBatchedWrites(writes);
-            toast.success("Created new conversation of: ", participantIds);
+
             return conversationId;
         } catch (error) {
             console.log("Error create conversation: ", error);
-
-            return null;
+            throw error;
         }
     }
 
@@ -77,8 +73,7 @@ export default class ChatController {
             return null;
         } catch (error) {
             console.log("Error get conversation id: ", error);
-
-            return null;
+            throw error;
         }
     }
 
@@ -94,7 +89,7 @@ export default class ChatController {
             return false;
         } catch (error) {
             console.log("Error check exit conversation: ", error);
-            return false;
+            throw error;
         }
     }
 
@@ -108,15 +103,13 @@ export default class ChatController {
             return null;
         } catch (error) {
             console.log("Error get friend id: ", error);
-
-            return null;
+            throw error;
         }
     }
 
     static async sendMessage(conversationId, message) {
         try {
             const messageIns = new Message(message);
-            console.log("messageIns", messageIns.toJSON());
 
             const messageId = await writeIntoCol("conversations/"+conversationId+"/messages", {});
 
@@ -140,14 +133,14 @@ export default class ChatController {
             await createBatchedWrites(write);
         } catch (error) {
             console.log("Error send message: ", error);
+            throw error;
         }
     }
 
-    static async signalMessage(conversationId, senderId) {
+    static async signalNewMessage(conversationId, senderId) {
         try {
             const conversationData = await getDocDataById("conversations", conversationId);
             if (conversationData) {
-                console.log("conversationData", conversationData);
                 const writes = [];
                 conversationData.participants.map((participant) => {
                     if (participant !== senderId) {
@@ -161,11 +154,11 @@ export default class ChatController {
                         });
                     }
                 });
-                console.log("writes", writes);
                 await createBatchedWrites(writes);
             }
         } catch (error) {
             console.log("Error signal message: ", error);
+            throw error;
         }
     }
 
@@ -191,6 +184,7 @@ export default class ChatController {
             await createBatchedWrites(writes);
         } catch (error) {
             console.log("Error setIsSeenToMessages: ", error);
+            throw error;
         }
     }
 
@@ -199,6 +193,7 @@ export default class ChatController {
             return await getDocDataById("conversations/"+conversationId+"/messages", messageId);
         } catch (error) {
             console.log("Error getMessageById: ", error);
+            throw error;
         }
     }
 }

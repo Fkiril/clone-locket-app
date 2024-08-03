@@ -56,8 +56,8 @@ const createBatchedWrites = async (writes) => {
                 }
             }
         })
-
         await batch.commit();
+        console.log("createBatchedWrites's writes: ", writes);
     } catch (error) {
         const newError = new Error("createBatchedWrites's error: " + error);
         newError.code = "FIRESTORE/CREATE_BATCHED_WRITES_ERROR";

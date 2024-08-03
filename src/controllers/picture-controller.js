@@ -1,5 +1,4 @@
-import { toast } from "react-toastify";
-import { createBatchedWrites, getDocRef, updateArrayField, writeCol, writeDoc } from "../models/utils/firestore-method";
+import { createBatchedWrites, getDocRef, writeIntoCol } from "../models/utils/firestore-method";
 import { uploadToFolder } from "../models/utils/storage-method";
 
 export default class PictureController {
@@ -9,7 +8,7 @@ export default class PictureController {
 
             picInstance.url = fileUrl;
             picInstance.uploadTime = uploadTime;
-            const docRefId = await writeCol("pictures", picInstance.toJSON());
+            const docRefId = await writeIntoCol("pictures", picInstance.toJSON());
             
             picInstance.id = docRefId;
             
@@ -17,13 +16,13 @@ export default class PictureController {
                 id: docRefId
             });
 
-            await this.signalPicture(picInstance.id, picInstance.canSee);
+            await this.signalNewPicture(picInstance.id, picInstance.canSee);
         } catch (error) {
             console.log("Error uploading picture: ", error);
             throw error;
         } 
     }
-    static async signalPicture(picId, canSeeList) {
+    static async signalNewPicture(picId, canSeeList) {
         try {
             const writes = [];
             for (const userId of canSeeList) {

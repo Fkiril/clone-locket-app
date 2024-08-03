@@ -55,7 +55,7 @@ export default function ConversationView() {
             createdTime: dateToString(new Date())
         };
         await ChatController.sendMessage(conversationId, message);
-        await ChatController.signalMessage(conversationId, currentUser.id);
+        await ChatController.signalNewMessage(conversationId, currentUser.id);
         event.target.reset();
     };
 

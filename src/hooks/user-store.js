@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { auth } from "../models/services/firebase";
 import { getDocDataById } from "../models/utils/firestore-method";
 
 export const useUserStore = create((set, get) => ({
