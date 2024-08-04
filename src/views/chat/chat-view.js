@@ -36,7 +36,6 @@ export default function ChatView() {
             unSubscribe();
         }
     }, [currentUser, fetchLastMessages]);
-    console.log("newMessageAt: ", newMessageAt);
 
     const handleNavigate = async (friendId) => {
         let conversationId = await ChatController.getConversationIdWithFriend(currentUser.id, friendId);
@@ -63,9 +62,9 @@ export default function ChatView() {
                 emailRegex.test(searchInput) ? friend.email === searchInput : friend.name.toLowerCase() === searchInput.toLowerCase()
             );
             if (friend) {
-                setSearchedFriend(friend);
+                setSearchedFriend([friend]);
             } else {
-                toast.info("No friend found with this email or name.");
+                toast.warning("No friend found with this email or name.");
                 setSearchedFriend(null);
             }
         }
@@ -97,7 +96,8 @@ export default function ChatView() {
             unreadCount
         };
     }).filter(friend => friend.conversation);
-
+    console.log("friendsWithConversations: ", friendsWithConversations);
+    
     const handleRouting = (path) => {
         navigate(path, { state: { routing: true } });
     }

@@ -14,18 +14,13 @@ export default function AuthenticationView() {
     const [isLoading, setIsLoading] = useState(false);
     const [showLogin, setShowLogin] = useState(true);
 
-    const isMounted = useRef(false);
-
     useEffect(() => {
-        if (!isMounted.current) {
-            isMounted.current = true;
-            const unSubscribe = auth.onAuthStateChanged(async () => {
-                await fetchUserInfo(auth?.currentUser?.uid);
-                console.log("authentication-view.js: useEffect() for onAuthStateChanged");
-            });
-            return () => {
-                unSubscribe();
-            }
+        const unSubscribe = auth.onAuthStateChanged(async () => {
+            await fetchUserInfo(auth?.currentUser?.uid);
+            console.log("authentication-view.js: useEffect() for onAuthStateChanged");
+        });
+        return () => {
+            unSubscribe();
         }
     }, [auth]);
 

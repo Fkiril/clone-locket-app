@@ -28,8 +28,8 @@ export default function ConversationView() {
         }
         else {
             const conversationRef = getDocRef("conversations", conversationId);
-            const unSubscribe = onSnapshot(conversationRef, { includeMetadataChanges: false }, () => {
-                fetchMessages(conversationId);
+            const unSubscribe = onSnapshot(conversationRef, { includeMetadataChanges: false }, async () => {
+                await fetchMessages(conversationId);
                 console.log("ConversationView: useEffect() for fetchMessages");
             });
             
@@ -73,7 +73,7 @@ export default function ConversationView() {
         const messagesId = messagesArray.filter(
             (message) => (message.senderId !== currentUser.id && !message.isSeen)
         ).map((message) => message.id);
-
+        if (messagesId.length === 0) return;
         await ChatController.setIsSeenToMessages(currentUser.id, conversationId, messagesId);
     };
 

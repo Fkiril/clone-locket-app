@@ -7,6 +7,7 @@ export const useMessageStore = create((set, get) => ({
     isLoading: false,
     fetchMessages: async (conversationId) => {
         try {
+            console.log("Fetching messages: ", conversationId);
             if (!conversationId) return set({ messages: { ...get().messages, [conversationId]: [] }, isLoading: false });
 
             const conversationData = await getDocDataById("conversations", conversationId);

@@ -8,6 +8,7 @@ export const useChatListStore = create((set) => ({
     lastMessages: null,
     fetchLastMessages: async (userId) => {
         try {
+            console.log("fetchLastMessages: ", userId);
             if (!userId) set({ isLoading: false, chatManager: null, conversations: null, lastMessages: null });
 
             const chatManagerData = await getDocDataById("chatManagers", userId);
