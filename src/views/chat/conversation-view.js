@@ -1,12 +1,12 @@
+import "./conversation-view.css";
 import React, { useEffect, useRef, useState } from "react";
-import { useUserStore } from "../../hooks/user-store";
-import { useMessageStore } from "../../hooks/message-store";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import ChatController from "../../controllers/chat-controller";
 import { getDocRef } from "../../models/utils/firestore-method";
 import { onSnapshot } from "firebase/firestore";
+import { useUserStore } from "../../hooks/user-store";
+import { useMessageStore } from "../../hooks/message-store";
+import ChatController from "../../controllers/chat-controller";
 import { dateToString } from "../../models/utils/date-method";
-import "./conversation-view.css";
 import { toast } from "react-toastify";
 
 export default function ConversationView() {
@@ -16,21 +16,21 @@ export default function ConversationView() {
     const { conversationId } = useParams();
     const { currentUser, friendDatas } = useUserStore();
     const { messages, fetchMessages } = useMessageStore();
-    const endRef = useRef(null);
 
+    const endRef = useRef(null);
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages[conversationId]]);
 
     useEffect(() => {
-        if (state?.routing && messages[conversationId]) {
+        if (state?.routing && messages[conversationId] && !state?.newMessage) {
             setState(null);
         }
         else {
             const conversationRef = getDocRef("conversations", conversationId);
             const unSubscribe = onSnapshot(conversationRef, { includeMetadataChanges: false }, () => {
                 fetchMessages(conversationId);
-                console.log("ConversationView: useEffect() for fetchMessages: ", messages);
+                console.log("ConversationView: useEffect() for fetchMessages");
             });
             
             return () => unSubscribe();

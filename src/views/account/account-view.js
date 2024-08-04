@@ -1,12 +1,13 @@
 import "./account-view.css";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
 import { toast } from "react-toastify";
 import { onSnapshot } from "firebase/firestore";
 import { getDocRef } from "../../models/utils/firestore-method";
 import { auth } from "../../models/services/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 import UserController from "../../controllers/user-controller";
 import AuthenticationController from "../../controllers/authentication-controller";
@@ -16,13 +17,12 @@ import FriendsListPortal from "./FriendsListPortal";
 import BlockedListPortal from "./BlockedListPortal";
 import PicturesListPortal from "./PicturesListPortal";
 import SearchBar from "./SearchBar"; // Import the new SearchBar component
-import { onAuthStateChanged } from "firebase/auth";
 
 export default function AccountView() {
     const navigate = useNavigate();
     const [state, setState] = useState(useLocation().state);
     
-    const { currentUser, friendDatas, fetchUserInfo } = useUserStore();
+    const { currentUser, fetchUserInfo } = useUserStore();
 
     const [userController, setUserController] = useState(
         currentUser? new UserController(currentUser) : null
@@ -45,30 +45,37 @@ export default function AccountView() {
     const [isShowingBlocked, setIsShowingBlocked] = useState(false);
 
     const [isShowingPictures, setIsShowingPictures] = useState(false);
+
+    const isMounted = useRef(false);
     
     useEffect(() => {
-        if (state?.routing && currentUser) {
-            setState(null);
-        }
-        else if (auth?.currentUser?.uid) {
-            const unSubscribe = onSnapshot(getDocRef("users", auth?.currentUser.uid), { includeMetadataChanges: false }, async () => {
-                await fetchUserInfo(auth?.currentUser.uid);
-    
-                setUserController(new UserController(currentUser));
-                
-                console.log("account-view.js: useEffect() for onSnapshot");
-            });
-    
-            return () => {
-                unSubscribe();
+        if (!isMounted.current) {
+            isMounted.current = true;
+            if (state?.routing && currentUser) {
+                setState(null);
             }
-        }
-        else {
-            auth.authStateReady().then(async () => {
-                await fetchUserInfo(auth?.currentUser.uid);
-            }).catch((error) => {
-                console.log("account-view.js: auth.authStateReady() error: ", error);
-            });
+            else if (auth?.currentUser?.uid) {
+                const unSubscribe = onSnapshot(getDocRef("users", auth?.currentUser.uid), { includeMetadataChanges: false }, async () => {
+                    await fetchUserInfo(auth?.currentUser.uid);
+        
+                    setUserController(new UserController(currentUser));
+                    
+                    console.log("account-view.js: useEffect() for onSnapshot");
+                });
+        
+                return () => {
+                    unSubscribe();
+                }
+            }
+            else {
+                auth.authStateReady().then(async () => {
+                    await fetchUserInfo(auth?.currentUser.uid);
+    
+                    console.log("account-view.js: auth.authStateReady()");
+                }).catch((error) => {
+                    console.log("account-view.js: auth.authStateReady() error: ", error);
+                });
+            }
         }
     }, [onSnapshot]);
 

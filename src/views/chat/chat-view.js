@@ -1,44 +1,54 @@
+import "./chat-view.css";
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { onSnapshot } from "firebase/firestore";
+import { getDocRef } from "../../models/utils/firestore-method";
 import { useUserStore } from "../../hooks/user-store";
 import { useChatListStore } from "../../hooks/chat-list-store";
 import ChatController from "../../controllers/chat-controller";
 import { toast } from "react-toastify";
-import { onSnapshot } from "firebase/firestore";
-import { getDocRef } from "../../models/utils/firestore-method";
-import "./chat-view.css";
 
 export default function ChatView() {
     const navigate = useNavigate();
-    const [state, setState] = useState(useLocation().state);
     
     const { currentUser, friendDatas } = useUserStore();
-    const { conversations, lastMessages, fetchLastMessages } = useChatListStore();
+    const { chatManager, conversations, lastMessages, fetchLastMessages } = useChatListStore();
     const [searchedFriend, setSearchedFriend] = useState(null);
 
-    useEffect(() => {
-        if (state?.routing && lastMessages) {
-            setState(null);
-        }
-        else {
-            const docRef = getDocRef("chatManagers", currentUser?.id);
-            const unSubscribe = onSnapshot(docRef, { includeMetadataChanges: false }, () => {
-                fetchLastMessages(currentUser?.id);
-                console.log("ChatView: useEffect() for fetchLastMessages: ", lastMessages);
-            });
+    const [newMessageAt, setNewMessageAt] = useState([]);
 
-            return () => {
-                unSubscribe();
+    useEffect(() => {
+        const docRef = getDocRef("chatManagers", currentUser?.id);
+        const unSubscribe = onSnapshot(docRef, { includeMetadataChanges: false }, async () => {
+            await fetchLastMessages(currentUser?.id);
+            if (chatManager) {
+                Object.keys(chatManager.conversationStates).forEach(key => {
+                    const state = chatManager.conversationStates[key];
+                    if (state > 0) {
+                        setNewMessageAt(prev => [...prev, key]);
+                    }
+                })
             }
+            console.log("ChatView: useEffect() for fetchLastMessages");
+        });
+
+        return () => {
+            unSubscribe();
         }
     }, [currentUser, fetchLastMessages]);
+    console.log("newMessageAt: ", newMessageAt);
 
     const handleNavigate = async (friendId) => {
         let conversationId = await ChatController.getConversationIdWithFriend(currentUser.id, friendId);
         if (!conversationId) {
             conversationId = await ChatController.createConversation([currentUser.id, friendId]);
         }
-        navigate(`/conversation/${conversationId}`, { state: { routing: true } });
+        if (newMessageAt.includes(conversationId)) {
+            navigate(`/conversation/${conversationId}`, { state: { routing: true, newMessage: true } });
+        }
+        else {
+            navigate(`/conversation/${conversationId}`, { state: { routing: true } });
+        }
     }
 
     const handleSearchFriend = (event) => {

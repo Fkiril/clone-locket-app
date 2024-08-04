@@ -19,8 +19,8 @@ export const useUserStore = create((set, get) => ({
     });
 
     try {
-      console.log(`fetching user's info with id: ${id}`);
       get().isFetching = true;
+      console.log(`fetching user's info with id: ${id}`);
 
       const userData = await getDocDataById("users", id);
       const fDatas = [];
@@ -83,7 +83,7 @@ export const useUserStore = create((set, get) => ({
           );
         }
 
-        const picIds = userData.picturesCanSee;
+        const picIds = userData.picturesCanSee?.slice().reverse();
         if (picIds && picIds.length > 0) {
           await Promise.all(
             picIds.map(async (picId) => {
