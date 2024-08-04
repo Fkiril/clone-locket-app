@@ -1,8 +1,6 @@
 import './App.css';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { auth } from '../models/services/firebase';
-import { useUserStore } from '../hooks/user-store';
 
 import Notification from '../controllers/notification';
 import AuthenticationView from '../views/authentication/authentication-view';
@@ -13,22 +11,6 @@ import ChatView from '../views/chat/chat-view';
 import ConversationView from '../views/chat/conversation-view';
 
 function App() {
-  const { currentUser, fetchUserInfo, isLoading } = useUserStore();
-
-  useEffect(() => {
-    const unSubscribe = auth.onAuthStateChanged((user) => {
-      console.log("App.js: useEffect() for fetchUserInfo:", currentUser);
-      fetchUserInfo(user?.uid);
-    });
-    return () => {
-      unSubscribe();
-    }
-  }, [fetchUserInfo, auth]);
-
-  if(isLoading) return <div>Loading...</div>;
-
-  // console.log("User's data: ", currentUser);
-
   return (
     <HashRouter>
       <Routes>
@@ -43,6 +25,8 @@ function App() {
         <Route path="/chat" element={<ChatView />} />
 
         <Route path="/conversation/:conversationId" element={<ConversationView />} />
+
+        <Route path="*" element={<div>Not Found</div>} />
       </Routes>
       <Notification />
     </HashRouter>

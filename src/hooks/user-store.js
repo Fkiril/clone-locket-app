@@ -1,59 +1,134 @@
-import { doc, getDoc } from "firebase/firestore";
 import { create } from "zustand";
-import { fs_db, auth } from "../models/services/firebase";
+import { getDocDataById } from "../models/utils/firestore-method";
 
-export const useUserStore = create((set) => ({
-  // store all the current user data from firebase
+export const useUserStore = create((set, get) => ({
   currentUser: null,
-  // store user's friend list with id and avatar's url
-  currentAuth: auth,
   friendDatas: [],
   requestDatas: [],
-  isLoading: false,
+  blockedDatas: [],
+  pictureDatas: [],
+  isFetching: false,
   fetchUserInfo: async (id) => {
-    if (!id) return set({ currentUser: null, currentAuth: null, friendDatas: [], requestDatas: [], isLoading: false });
+    if (!id) return set({
+      currentUser: null,
+      friendDatas: [],
+      requestData: [],
+      blockedDatas: [],
+      pictureDatas: [],
+      isFetching: false
+    });
 
     try {
-      const docRef = doc(fs_db, "users", id);
-      const docSnap = await getDoc(docRef);
+      console.log(`fetching user's info with id: ${id}`);
+      get().isFetching = true;
 
-      if (docSnap.exists()) {
-        const userData = docSnap.data();
+      const userData = await getDocDataById("users", id);
+      const fDatas = [];
+      const rDatas = [];
+      const bDatas = [];
+      const picDatas = [];
 
-        const fsId = userData.friends;
-        const fsData = await Promise.all(
-          fsId.map(async (fId) => {
-            const fDocRef = doc(fs_db, "users", fId);
-            const fDocSnap = await getDoc(fDocRef);
-            return fDocSnap.exists() ? {
-              id: fDocSnap.data().id,
-              name: fDocSnap.data().userName,
-              avatar: fDocSnap.data().avatar
-            } : null;
-          })
-        )
+      if (userData) {
 
-        const rsId = userData.friendRequests;
-        const rsData = await Promise.all(
-          rsId.map(async (rsId) => {
-            const rDocRef = doc(fs_db, "users", rsId);
-            const rDocSnap = await getDoc(rDocRef);
-            return rDocSnap.exists() ? {
-              id: rDocSnap.data().id,
-              name: rDocSnap.data().userName,
-              email: rDocSnap.data().email,
-              avatar: rDocSnap.data().avatar
-            } : null;
-          })
-        )
+        const fIds = userData.friends;
+        if (fIds && fIds.length > 0) {
+          await Promise.all(
+            fIds.map(async (fId) => {
+              const fData = await getDocDataById("users", fId);
+              if (fData) {
+                fDatas.push({
+                  id: fData.id,
+                  name: fData.userName,
+                  email: fData.email,
+                  avatar: fData.avatar
+                });
+              }
+            })
+          );
+        }
+        
 
-        set({ currentUser: docSnap.data(), currentAuth: auth, friendDatas: fsData, requestDatas: rsData, isLoading: false });
+        const rIds = userData.friendRequests;
+        if (rIds && rIds.length > 0) {
+          await Promise.all(
+            rIds.map(async (rId) => {
+              const rData = await getDocDataById("users", rId);
+              if (rData) {
+                rDatas.push({
+                  id: rData.id,
+                  name: rData.userName,
+                  email: rData.email,
+                  avatar: rData.avatar
+                });
+              }
+            })
+          );
+        }
+        
+
+        const bIds = userData.blockeds;
+        if (bIds && bIds.length > 0) {
+          await Promise.all(
+            bIds.map(async (bId) => {
+              const bData = await getDocDataById("users", bId);
+              if (bData) {
+                bDatas.push({
+                  id: bData.id,
+                  name: bData.userName,
+                  email: bData.email,
+                  avatar: bData.avatar
+                });
+              }
+            })
+          );
+        }
+
+        const picIds = userData.picturesCanSee;
+        if (picIds && picIds.length > 0) {
+          await Promise.all(
+            picIds.map(async (picId) => {
+              const picData = await getDocDataById("pictures", picId);
+              if (picData) {
+                picDatas.push({
+                  id: picData.id,
+                  ownerId: picData.ownerId,
+                  url: picData.url,
+                  text: picData.text,
+                  uploadTime: picData.uploadTime
+                });
+              }
+            })
+          );
+        }
+
+        set({ 
+          currentUser: userData,
+          friendDatas: fDatas,
+          requestDatas: rDatas, 
+          blockedDatas: bDatas, 
+          pictureDatas: picDatas,
+          isFetching: false 
+        });
       } else {
-        set({ currentUser: null, currentAuth: null, friendDatas: [], requestDatas: [], isLoading: false });
+          return set({
+            currentUser: null,
+            friendDatas: [],
+            requestData: [],
+            blockedDatas: [],
+            pictureDatas: [],
+            isFetching: false
+          });
       }
     } catch (err) {
       console.log(err);
-      return set({ currentUser: null, currentAuth: null, friendDatas: [], requestDatas: [], isLoading: false });
+      return set({
+          currentUser: null,
+          friendDatas: [],
+          requestData: [],
+          blockedDatas: [],
+          pictureDatas: [],
+          isFetching: false
+      });
     }
   },
 }));

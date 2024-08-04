@@ -1,132 +1,143 @@
-import "./conversation-view.css";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useUserStore } from "../../hooks/user-store";
 import { useMessageStore } from "../../hooks/message-store";
-import { useNavigate, Link, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ChatController from "../../controllers/chat-controller";
 import { getDocRef } from "../../models/utils/firestore-method";
 import { onSnapshot } from "firebase/firestore";
 import { dateToString } from "../../models/utils/date-method";
+import "./conversation-view.css";
+import { toast } from "react-toastify";
 
 export default function ConversationView() {
-    const { conversationId } = useParams();
+    const navigate = useNavigate();
+    const [state, setState] = useState(useLocation().state);
 
+    const { conversationId } = useParams();
     const { currentUser, friendDatas } = useUserStore();
     const { messages, fetchMessages } = useMessageStore();
-
     const endRef = useRef(null);
 
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+    }, [messages[conversationId]]);
 
     useEffect(() => {
-        const conversationRef = getDocRef("conversations", conversationId);
-
-        const unSubscribe = onSnapshot(conversationRef, { includeMetadataChanges: false }, () => {
-            fetchMessages(conversationId);
-            console.log("conversation-view.js: useEffect() for onSnapshot: ", messages);
-        });
-  
-        return () => unSubscribe();
+        if (state?.routing && messages[conversationId]) {
+            setState(null);
+        }
+        else {
+            const conversationRef = getDocRef("conversations", conversationId);
+            const unSubscribe = onSnapshot(conversationRef, { includeMetadataChanges: false }, () => {
+                fetchMessages(conversationId);
+                console.log("ConversationView: useEffect() for fetchMessages: ", messages);
+            });
+            
+            return () => unSubscribe();
+        }
     }, [onSnapshot]);
 
     const handleGetAvatar = (senderId) => {
         if (senderId === currentUser.id) {
-            return currentUser.avatar? currentUser.avatar : "./default_avatar.jpg";
+            return currentUser.avatar || "./default_avatar.jpg";
         }
-        
         const friend = friendDatas.find((friend) => friend.id === senderId);
-        if (friend) {
-            return friend.avatar? friend.avatar : "./default_avatar.jpg";
-        } else {
-            return "./default_avatar.jpg";
-        }
+        return friend?.avatar || "./default_avatar.jpg";
     };
 
     const handleSendMessage = async (event) => {
         event.preventDefault();
         const formData = new FormData(event.target);
         const text = formData.get("text");
+        
+        if (text.trim() === "") return;
         const message = {
-            text: text,
+            text,
             senderId: currentUser.id,
             createdTime: dateToString(new Date())
-        }
-        await ChatController.sendMessage(conversationId, message);
-        await ChatController.signalMessage(conversationId, currentUser.id);
+        };
+
+        await ChatController.sendMessage(conversationId, message).then( async () => {
+            await ChatController.signalNewMessage(conversationId, currentUser.id).catch((error) => {
+                toast.error("Failed to send message, please try again!");
+            });
+        }).catch((error) => {
+            toast.error("Failed to send message, please try again!");
+        });
 
         event.target.reset();
     };
 
     const handleFormFocus = async () => {
-        const messagesId = messages.filter(
-            (message) => (message.senderId !== currentUser.id && message.isSeen === false)
+        const messagesArray = Array.isArray(messages[conversationId]) ? messages[conversationId] : [];
+        const messagesId = messagesArray.filter(
+            (message) => (message.senderId !== currentUser.id && !message.isSeen)
         ).map((message) => message.id);
 
         await ChatController.setIsSeenToMessages(currentUser.id, conversationId, messagesId);
     };
 
+    const friendInfo = friendDatas.find((friend) =>
+        Array.isArray(messages[conversationId]) && messages[conversationId].some((message) => message.senderId === friend.id && message.senderId !== currentUser.id)
+    );
+
+    const handleRouting = (path) => {
+        navigate(path, { state: { routing: true } });
+    }
+
     return (
         <div className="box-chat" key={conversationId}>
             <div className="header">
-                <p>Box Chat</p>
-                <button>
-                    <Link to="/chat">Back</Link>
-                </button>
-                <button>
-                    <Link to="/home">Home</Link>
-                </button>
+                <h2>Box Chat</h2>
+                <div className="header-buttons">
+                    <button onClick={() => handleRouting("/chat")}>
+                        Back
+                    </button>
+                    <button onClick={() => handleRouting("/home")}>
+                        Home
+                    </button>
+                </div>
             </div>
+            {friendInfo && (
+                <div className="detail">
+                    <img src={handleGetAvatar(friendInfo.id)} alt="avatar" className="friend-avatar" />
+                    <p className="friend-username">{friendInfo.name}</p>
+                </div>
+            )}
             <div className="body">
                 <div className="conversation">
                     <div className="messages">
-                        {messages?.map((message) => (
-                            <>
-                                { message?.senderId === currentUser.id ? (
-                                    <div className="message right" key={message?.id}>
-                                        <div className="infor">
-                                            <p className="text">{message?.text}</p>
-                                            <div className="time">{message?.createTime}</div>
-                                            <div className="state">
-                                                {message?.isSeen ? <p>Seen</p> : <p>Sended</p>}
-                                            </div>
-                                        </div>
-                                        <img src={handleGetAvatar(message?.senderId)} alt="" />
-                                    </div>
-                                ) : (
-                                    <div className="message left" key={message?.id}>
-                                        <img src={handleGetAvatar(message?.senderId)} alt="" />
-                                        <div className="infor">
-                                            <p className="text">{message?.text}</p>
-                                            <span>{message?.createTime}</span>
-                                        </div>
-                                    </div>
-                                )}
-                            </>
+                        {Array.isArray(messages[conversationId]) && messages[conversationId].map((message) => (
+                            <div
+                                className={`message ${message?.senderId === currentUser.id ? "right" : "left"}`}
+                                key={message?.id}
+                            >
+                                <div className="avatar-container">
+                                    <img src={handleGetAvatar(message?.senderId)} alt="avatar" />
+                                </div>
+                                <div className="message-content">
+                                    <p className="text">{message?.text}</p>
+                                    <span className="time">{message?.createdTime}</span>
+                                </div>
+                            </div>
                         ))}
                         <div ref={endRef} />
                     </div>
-                    <div className="input">
-                        <form onSubmit={handleSendMessage} className="new-message" onFocus={() => handleFormFocus()}>
+                    <div className="input-section">
+                        <form onSubmit={handleSendMessage} className="new-message" onFocus={handleFormFocus}>
                             <input
                                 type="text"
                                 name="text"
                                 id="text"
                                 placeholder="Enter message"
                                 defaultValue={""}
+                                className="message-send"
                             />
-                            <button type="submit">Send</button>
+                            <button type="submit" className="button-send">Gửi</button>
                         </form>
                     </div>
-                </div>
-                <div className="detail">
-                    <p>Detail</p>
-                    <p>Detail</p>
-                    <p>Detail</p>
-                    <p>Detail</p>
                 </div>
             </div>
         </div>
     );
-};
+}

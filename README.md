@@ -1,3 +1,8 @@
+How to run:
+-Open terminal at root file
+-Run npm install 
+-npm install react-icons --save
+-Npm run start
 A real-time chat and sharing pictures, base on Locket.
 
 Using Electron, ReactJS and Firebase.
@@ -51,5 +56,5 @@ Base on MVC architecture:
         - scope:
             + private
             + public
-            + specify
+            + specifyate "willSee" list (a list of user's id that can see this picture, if scope is specify we will use specifyList), concurrently upload this picture to storage and add this picture's id to "picturesCanBeSeen" list of all user that appear in "willSee"
         - canSee: a list of user's id that can see this picture

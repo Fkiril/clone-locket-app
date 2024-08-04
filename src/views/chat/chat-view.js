@@ -1,140 +1,134 @@
-import "./chat-view.css";
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
 import { useChatListStore } from "../../hooks/chat-list-store";
 import ChatController from "../../controllers/chat-controller";
 import { toast } from "react-toastify";
 import { onSnapshot } from "firebase/firestore";
 import { getDocRef } from "../../models/utils/firestore-method";
+import "./chat-view.css";
 
 export default function ChatView() {
     const navigate = useNavigate();
-
+    const [state, setState] = useState(useLocation().state);
+    
     const { currentUser, friendDatas } = useUserStore();
     const { conversations, lastMessages, fetchLastMessages } = useChatListStore();
-
-    const [ searchedFriend, setSearchedFriend ] = useState(null);
+    const [searchedFriend, setSearchedFriend] = useState(null);
 
     useEffect(() => {
-        if (currentUser) {
-            const docRef = getDocRef("chatMangers", currentUser.id);
+        if (state?.routing && lastMessages) {
+            setState(null);
+        }
+        else {
+            const docRef = getDocRef("chatManagers", currentUser?.id);
             const unSubscribe = onSnapshot(docRef, { includeMetadataChanges: false }, () => {
-                fetchLastMessages(currentUser.id);
-                console.log("chat-view.js: useEffect() for onSnapshot()");
-                console.log("Conversations: ", conversations);
-                console.log("LastMessages: ", lastMessages);
+                fetchLastMessages(currentUser?.id);
+                console.log("ChatView: useEffect() for fetchLastMessages: ", lastMessages);
             });
-            
+
             return () => {
                 unSubscribe();
             }
         }
-    }, [onSnapshot]);
+    }, [currentUser, fetchLastMessages]);
 
-    const handleNagigate = async (friendId) => {
+    const handleNavigate = async (friendId) => {
         let conversationId = await ChatController.getConversationIdWithFriend(currentUser.id, friendId);
         if (!conversationId) {
             conversationId = await ChatController.createConversation([currentUser.id, friendId]);
         }
-        navigate(`/conversation/${conversationId}`);
+        navigate(`/conversation/${conversationId}`, { state: { routing: true } });
     }
 
     const handleSearchFriend = (event) => {
         event.preventDefault();
         const formData = new FormData(event.target);
         const searchInput = formData.get("search-input");
-        console.log("searchInput",searchInput);
-
         if (!searchInput) {
-            toast.warning("Please enter a search input");
-        }
-        else {
+            setSearchedFriend(null);
+        } else {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (emailRegex.test(searchInput)) {
-                // searchInput is an email
-                console.log("searchInput is an email");
-                const friend = friendDatas.find((friend) => friend.email === searchInput);
-                if (friend) {
-                    console.log("friend", friend);
-                    setSearchedFriend(friend);
-                }
+            const friend = friendDatas.find((friend) => 
+                emailRegex.test(searchInput) ? friend.email === searchInput : friend.name.toLowerCase() === searchInput.toLowerCase()
+            );
+            if (friend) {
+                setSearchedFriend(friend);
             } else {
-                // searchInput is not an email
-                console.log("searchInput is not an email");
-                const friend = friendDatas.find((friend) => friend.name === searchInput);
-                if (friend) {
-                    console.log("friend", friend);
-                    setSearchedFriend(friend);
-                }
+                toast.info("No friend found with this email or name.");
+                setSearchedFriend(null);
             }
         }
         event.target.reset();
     }
 
+    const formatTime = (date) => {
+        const options = { hour: '2-digit', minute: '2-digit', hour12: true };
+        return new Date(date).toLocaleTimeString([], options);
+    };
+
+    const filteredFriends = searchedFriend ? [searchedFriend] : friendDatas;
+
+    const friendsWithConversations = filteredFriends.map(friend => {
+        const conversation = conversations?.find(conv => 
+            conv.participants.includes(currentUser.id) && 
+            conv.participants.includes(friend.id)
+        );
+        const lastMessage = lastMessages?.find(m => m?.id === conversation?.lastMessage);
+        const unreadCount = lastMessages?.filter(m => 
+            m?.senderId === friend.id && 
+            !m?.readBy?.includes(currentUser.id)
+        ).length;
+
+        return {
+            ...friend,
+            conversation,
+            lastMessage,
+            unreadCount
+        };
+    }).filter(friend => friend.conversation);
+
+    const handleRouting = (path) => {
+        navigate(path, { state: { routing: true } });
+    }
+
     return (
-        <div className="chat-view">
+        <div className="chat-view-container">
             <div className="header">
-                <h2>Chat list view</h2>
-                <button>
-                    <Link to="/home" >Home</Link>
+                <h2>Chat List</h2>
+                <button onClick={() => handleRouting("/home")}>
+                    Home
                 </button>
             </div>
-            <div className="body">
-                <div className="conversations">
-                    {conversations?.map((conversation) => {
-                        if (conversation.participants.length === 2) {
-                            const friendId = conversation.participants.find((participant) => participant !== currentUser.id);
-                            const friend = friendDatas.find((friend) => friend.id === friendId);
-                            const lastMessage = lastMessages.find((m) => m?.id === conversation.lastMessage);
-                            return (
-                                <div className="friend" key={conversation.id}
-                                    onClick={() => handleNagigate(friendId)}
-                                >
-                                    <div className="friend-info">
-                                        <img src={friend?.avatar? friend.avatar : "./default_avatar.jpg"} alt="avatar" />
-                                        <p>{friend?.name}</p>
-                                    </div>
-                                    {(lastMessage)? (
-                                        <div className="last-message">
-                                            <p>{lastMessage.text}</p>
-                                            <p>{lastMessage.createdTime}</p>
-                                        </div>
-                                    ) : null}
-                                </div>
-                            );
-                        }
-                        else {
-                            return (
-                                <div className="group" key={conversation.id}>
-                                </div>
-                            )
-                        }
-                    })}
-                </div>
+            <div className="chat-view">
                 <div className="search-bar">
-                    <form
-                        className="search-form"
-                        onSubmit={handleSearchFriend}
-                    >
-                        <input
-                            type="text"
-                            name="search-input"
-                            placeholder="Find a friend..."
-                        />
+                    <form className="search-form" onSubmit={handleSearchFriend}>
+                        <input type="text" name="search-input" placeholder="Find a friend..." />
                         <button type="submit">Search</button>
                     </form>
                 </div>
-                <div className="search-result">
-                    {searchedFriend? (
-                        <div className="friend-info">
-                            <img src={searchedFriend?.avatar? searchedFriend.avatar : "./default_avatar.jpg"} alt="avatar" />
-                            <p>{searchedFriend?.name}</p>
-                        </div>
-                    ) : null}
+                <div className="conversations">
+                    {friendsWithConversations
+                        .sort((a, b) => new Date(b.lastMessage?.createdTime) - new Date(a.lastMessage?.createdTime))
+                        .map(friend => (
+                            <div className="friend" key={friend.id} onClick={() => handleNavigate(friend.id)}>
+                                <div className="friend-info">
+                                    <img src={friend.avatar || "./default_avatar.jpg"} alt="avatar" />
+                                    <div className="friend-details">
+                                        <p className="friend-name">{friend.name}</p>
+                                        <p className="last-message">
+                                            <span className="message-text">{friend.lastMessage?.text}</span>
+                                            <span className="message-time">{formatTime(friend.lastMessage?.createdTime)}</span>
+                                        </p>
+                                        {friend.unreadCount > 0 && (
+                                            <span className="unread-count">{friend.unreadCount}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )) || null}
                 </div>
-            </div>  
-                
+            </div>
         </div>
     );
-};
+}

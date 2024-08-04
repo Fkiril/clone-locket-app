@@ -1,14 +1,18 @@
 export default class User {
-    constructor( id, userName, email, avatar, picturesCanSee, friends, friendRequests, boxChats, setting ) {
-        this.id = id;
-        this.userName = userName;
-        this.email = email;
-        this.avatar = avatar;
-        this.picturesCanSee = picturesCanSee;
-        this.friends = friends;
-        this.friendRequests = friendRequests;
-        this.boxChats = boxChats;
-        this.setting = setting;
+    constructor(props) {
+        this.id = props.id? props.id : "";
+        this.userName = props.userName? props.userName : "";
+        this.email = props.email? props.email : "";
+        this.avatar = props.avatar? props.avatar : "";
+        this.picturesCanSee = props.picturesCanSee? props.picturesCanSee : [];
+        this.friends = props.friends? props.friends : [];
+        this.friendRequests = props.friendRequests? props.friendRequests : [];
+        this.blockeds = props.blockeds? props.blockeds : [];
+        this.setting = props.setting? props.setting : {
+            systemTheme: "light",
+            language: "en",
+            notificationSetting: "all"
+        };
     };
 
     toJSON() {
@@ -17,10 +21,10 @@ export default class User {
             userName: this.userName,
             email: this.email,
             avatar: this.avatar,
-            picturesCanSee: this.picturesCanSee?.map(value => value),
-            friends: this.friends?.map(value => value),
-            friendRequests: this.friendRequests?.map(value => value),
-            boxChats: this.boxChats?.map(value => value),
+            picturesCanSee: this.picturesCanSee.map(value => value),
+            friends: this.friends.map(value => value),
+            friendRequests: this.friendRequests.map(value => value),
+            blockeds: this.blockeds.map(value => value),
             setting: {
                 systemTheme: this.setting.systemTheme,
                 language: this.setting.language,

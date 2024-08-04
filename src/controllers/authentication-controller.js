@@ -1,70 +1,70 @@
 import { auth } from "../models/services/firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { writeDoc, exitDocWithValue } from "../models/utils/firestore-method";
+import { exitDocWithValue, createBatchedWrites, getDocRef } from "../models/utils/firestore-method";
 import { toast } from "react-toastify";
 import User from "../models/entities/user";
+import ChatManager from "../models/entities/chat-manager";
 
 export default class AuthenticationController {
     
     static async logIn(email, password) {
         try {
             await signInWithEmailAndPassword(auth, email, password);
-
-            toast.success("Login success!");
-        } catch (err) {
-            toast.error("Invalid email or password!");
-            console.log(err);
+        } catch (error) {
+            console.log("Error logging in: ", error);
+            throw error;
         }
     };
 
     static async logOut() {
         try {
             await signOut(auth);
-
-            toast.success("Logout success!");
         } catch (error) {
-            toast.error("Failed to log out. Please try again!");
-            console.error(error);
+            console.error("Error logging out: ", error);
+            throw error;
         }
     }
 
     static async createAccount(userName, email, password, comfirmPassword) {
-        // VALIDATE INPUTS
-        if (!userName || !email || !password || !comfirmPassword)
-            return toast.warn("Please enter inputs!");
-  
-        if (password !== comfirmPassword)
-            return toast.warn("Passwords do not match!");
-    
         // VALIDATE UNIQUE USERNAME
         if (await exitDocWithValue("users", "userName", userName)){
             return toast.warn("Username already exists!");
         }
 
-        try {
-            const res = await createUserWithEmailAndPassword(auth, email, password);
+        if (await exitDocWithValue("users", "email", email)) {
+            return toast.warn("Email already exists!");
+        }
 
-            const newUser = new User(
-                res.user.uid,
-                userName,
-                email,
-                "",
-                [],
-                [],
-                [],
-                [],
+        try {
+            const result = await createUserWithEmailAndPassword(auth, email, password);
+
+            const newUser = new User({
+                id: result.user.uid,
+                userName: userName,
+                email: email
+            })
+
+            const newChatManager = new ChatManager({
+                userId: newUser.id
+            })
+
+            const writes = [
                 {
-                    systemTheme: "light",
-                    language: "vn",
-                    notificationSetting: "all"
+                    work: "set",
+                    docRef: getDocRef("users", newUser.id),
+                    data: newUser.toJSON()
+                },
+                {
+                    work: "set",
+                    docRef: getDocRef("chatManagers", newUser.id),
+                    data: newChatManager.toJSON()
                 }
-            )
-            await writeDoc("users", newUser.id, false, newUser.toJSON())
-      
-            toast.success("Account created! You can login now!");
-          } catch (err) {
-            toast.error("Failed to create account. Please try again!");
-            console.log(err);
+            ]
+
+            await createBatchedWrites(writes);
+          } catch (error) {
+            console.log("Error creating account: ", error);
+            throw error;
           }
     }
 }

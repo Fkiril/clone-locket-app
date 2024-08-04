@@ -1,40 +1,44 @@
-import { writeCol, writeDoc, updateArrayField } from "../models/utils/firestore-method";
+import { createBatchedWrites, getDocRef, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
 import { uploadToFolder } from "../models/utils/storage-method";
-import { toast } from "react-toastify";
 
 export default class PictureController {
     static async uploadPicture(picInstance, file) {
         try {
             const { fileUrl, uploadTime } = await uploadToFolder(file, "pictures");
+
             picInstance.url = fileUrl;
             picInstance.uploadTime = uploadTime;
-            const docRefId = await writeCol("pictures", picInstance.toJSON());
+            const docRefId = await writeIntoCol("pictures", picInstance.toJSON());
             
             picInstance.id = docRefId;
             
-            await writeDoc("pictures", docRefId, true, {
+            await writeIntoDoc("pictures", docRefId, true, {
                 id: docRefId
             });
 
-            await this.signalPicture(picInstance.id, picInstance.canSee);
-
-            toast.success("Successfully uploaded a picture!");
+            await this.signalNewPicture(picInstance.id, picInstance.canSee);
         } catch (error) {
-            if (error.code === "STORAGE/UPLOAD_BYTES_RESUMABLE_ERROR") {
-                toast.error("Failed to upload picture. Please try again!");
-            }
-            else {
-                toast.error("Failed to write data!");
-            }
+            console.log("Error uploading picture: ", error);
+            throw error;
         } 
     }
-    static async signalPicture(picId, canSeeList) {
+    static async signalNewPicture(picId, canSeeList) {
         try {
-            canSeeList.map(async (userId) => {
-                await updateArrayField("users", userId, "picturesCanSee", true, picId);
-            });
+            const writes = [];
+            for (const userId of canSeeList) {
+                writes.push({
+                    work: "update-array",
+                    docRef: getDocRef("users", userId),
+                    field: "picturesCanSee",
+                    data: picId
+                });
+            }
+
+            console.log("SignalPicture's writes: ", writes);
+            await createBatchedWrites(writes);
         } catch (error) {
-            console.log("Failed to signal to friends", error);
+            console.log("Error signal picture: ", error);
+            throw error;
         }
     }
 

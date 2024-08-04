@@ -1,95 +1,154 @@
 import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
-import { writeDoc, updateArrayField, exitDoc, getDocIdByValue, getDocDataByValue, getDocDataById } from "../models/utils/firestore-method";
+import { updateArrayField, getDocIdByValue, getDocDataByValue, getDocDataById, getDocRef, createBatchedWrites, writeIntoDoc } from "../models/utils/firestore-method";
 import { changePassword } from "../models/utils/authetication-method";
-import { toast } from "react-toastify";
 
 export default class UserController {
     constructor(user) {
         this.user = user;
     }
 
+    static async getUserInfo(userId) {
+        try {
+            const user = await getDocDataById("users", userId);
+
+            return user;
+        } catch (error) {
+            console.log("Error getting basic user info:", error);
+            throw error;
+        }
+    }
+
+    static async getFriendDatas(friendIds) {
+        try {
+            const friendDatas = await Promise.all(friendIds.map(async (id) => {
+                const friendData = await getDocDataById("users", id);
+                return friendData;
+            }));
+
+            return friendDatas;
+        } catch(error) {
+            console.log("Error getting friend datas: ", error);
+            throw error;
+        }
+    }
+
+    static async getRequestDatas(requestIds) {
+        try {
+            const requestDatas = await Promise.all(requestIds.map(async (id) => {
+                const requestData = await getDocDataById("users", id);
+                return requestData;
+            }));
+
+            return requestDatas;
+        } catch(error) {
+            console.log("Error getting request datas: ", error);
+            throw error;
+        }
+    }
+
+    static async getBlockedDatas(blockedIds) {
+        try {
+            const blockedDatas = await Promise.all(blockedIds.map(async (id) => {
+                const blockedData = await getDocDataById("users", id);
+                return blockedData;
+            }));
+
+            return blockedDatas;
+        } catch(error) {
+            console.log("Error getting blocked datas: ", error);
+            throw error;
+        }
+    }
+
+    static async getPictureDatas(pictureIds) {
+        try {
+            const pictureDatas = await Promise.all(pictureIds.map(async (id) => {
+                const pictureData = await getDocDataById("pictures", id);
+                return pictureData;
+            }));
+
+            return pictureDatas;
+        } catch(error) {
+            console.log("Error getting picture datas: ", error);
+            throw error;
+        }
+    }
+
     async changePassword(user, newPassword) {
         try {
             await changePassword(user, newPassword);
-
-            toast.success("Changed your password!");
         } catch(error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.log("Error changing password: ", error);
+            throw error;
         }
     };
 
     async changeAvatar(newAvatar) {
         try {
+            const { fileUrl } = await uploadToFolder(newAvatar, "avatars");
+            
             if (this.user.avatar !== "") {
                 await deleteFile(this.user.avatar);
             }
-    
-            const { fileUrl } = await uploadToFolder(newAvatar, "avatars");
-            await writeDoc("users", this.user.id, true, {
+
+            await writeIntoDoc("users", this.user.id, true, {
                 avatar: fileUrl
             });
+            
             this.user.avatar = fileUrl;
-
-            toast.success("Changed your avatar!");
             return fileUrl;
         } catch(error) {
-            if (error.code === "STORAGE/DELETE_OBJECT_ERROR") {
-                toast.error("Failed to delete avatar. Please try again!");
-            }
-            else if (error.code === "STORAGE/UPLOAD_BYTES_RESUMABLE_ERROR") {
-                toast.error("Failed to upload avatar. Please try again!");
-            }
-            else {
-                toast.error("Something went wrong. Please try again!");
-            }
             console.log("Error changing avatar: ", error);
+            throw error;
         }
     };
 
     async deleteAvatar() {
         try {
             await deleteFile(this.user.avatar);
-            await writeDoc("users", this.user.id, true, {
+
+            await writeIntoDoc("users", this.user.id, true, {
                 avatar: ""
             });
-
-            toast.success("Deleted your avatar!");
         } catch(error) {
-            if (error.code === "STORAGE/DELETE_OBJECT_ERROR") {
-                toast.error("Failed to delete avatar. Please try again!");
-            }
-            else {
-                toast.error("Something went wrong. Please try again!");
-            }
             console.log("Error deleting avatar: ", error);
+            throw error;
         }
     }
 
     async changeUserName(newUserName) {
         try {
-            await writeDoc("users", this.user.id, true, {
+            await writeIntoDoc("users", this.user.id, true, {
                 userName: newUserName
             });
-
-            toast.success("Changed your user's name!")
         } catch(error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.log("Error changing user's name: ", error);
+            throw error;
         }
     };
 
     async unfriendById(friendId) {
         try {
-            await updateArrayField("users", this.user.id, "friends", false, friendId);
-
-            toast.success("Unfriended a user!")
+            const writes = [
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", this.user.id),
+                    field: "friends",
+                    isRemovement: true,
+                    data: friendId
+                },
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", friendId),
+                    field: "friends",
+                    isRemovement: true,
+                    data: this.user.id
+                }
+            ];
+            await createBatchedWrites(writes);
         } catch(error) {
-            toast.error("Something went wrong. Please try again!");
-            
             console.log("Error unfriending user: ", error);
+            throw error;
         }
     }
 
@@ -99,34 +158,20 @@ export default class UserController {
             if (result) {
                 return result;
             } else {
-                toast.warning("Invalid email!");
                 return null;
             }
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.log("Error getting friend:", error);
-            return null;
+            throw error;
         }
     }
 
     async sendFriendRequestById(receiverId) {
         try {
-            if (await exitDoc("users", receiverId)) {
-                await updateArrayField("users", receiverId, "friendRequests", true, this.user.id);
-
-                toast.success("Sended a friend request!")
-                return true;
-            }
-            else {
-                toast.warning("Invalid ID!");
-                return false;
-            }
+            await updateArrayField("users", receiverId, "friendRequests", true, this.user.id);
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.error("Error sending friend request:", error);
-            return false;
+            throw error;
         }
     }
 
@@ -135,88 +180,100 @@ export default class UserController {
             const receiverId = await getDocIdByValue("users", "email", receiverEmail);
             if (receiverId) {
                 await updateArrayField("users", receiverId, "friendRequests", true, this.user.id);
-
-                toast.success("Sended a friend request!")
-                return true;
-            } else {
-                toast.warning("Invalid email!");
-                return false;
             }
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.error("Error sending friend request:", error);
-            return false;
+            throw error;
         }
     }
 
     async cancelFriendRequest(receiverId) {
         try {
             await updateArrayField("users", receiverId, "friendRequests", false, this.user.id);
-
-            toast.success("Canceled a friend request!")
-            return true;
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.error("Error canceling friend request:", error);
-            return false;
+            throw error;
         }
     }
 
     async acceptFriendRequest(senderId) {
         try {
-            if (await exitDoc("users", senderId)) {
-                await updateArrayField("users", this.user.id, "friends", true, senderId);
-                await updateArrayField("users", senderId, "friends", true, this.user.id);
-                await updateArrayField("users", this.user.id, "friendRequests", false, senderId);
+            const writes = [
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", this.user.id),
+                    field: "friends",
+                    data: senderId
+                },
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", senderId),
+                    field: "friends",
+                    data: this.user.id
+                },
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", this.user.id),
+                    field: "friendRequests",
+                    isRemovement: true,
+                    data: senderId
+                }
+            ];
 
-                toast.success("Accepted a friend request!");
-                return true;
-            }
-            else {
-                toast.warning("Invalid ID!");
-                return false;
-            }
+            await createBatchedWrites(writes);
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.error("Error accepting friend request:", error);
-            return false;
+            throw error;
         }
     }
 
     async declineFriendRequest(senderId) {
         try {
-            if (await exitDoc("users", senderId)) {
-                await updateArrayField("users", this.user.id, "friendRequests", false, senderId);
-
-                toast.success("Declined a friend request!")
-                return true;
-            }
-            else {
-                toast.warning("Invalid ID!");
-                return false;
-            }
+            await updateArrayField("users", this.user.id, "friendRequests", false, senderId);
         } catch (error) {
-            toast.error("Something went wrong. Please try again!");
-
             console.error("Error declining friend request:", error);
-            return false;
+            throw error;
         }
     }
 
     async getUserInfo(userId) {
         try {
-            const result = await getDocDataById("users", userId);
-            if (result) {
-                return result;
-            } else {
-                return null;
-            }
+            return await getDocDataById("users", userId);
         } catch (error) {
             console.log("Error getting basic user info:", error);
-            return null;
+            throw error;
+        }
+    }
+
+    async getUsersInfoByIds(userIds) {
+        try {
+            const usersInfo = await Promise.all(userIds.map(async (id) => {
+                const userInfo = await getDocDataById("users", id);
+                return userInfo;
+            }));
+            return usersInfo;
+        } catch (error) {
+            console.log("Error getting users info:", error);
+            throw error;
+        }
+    }
+
+    // New methods for blocking and unblocking users
+    async blockUser(blockedUserId) {
+        try {
+            await updateArrayField("users", this.user.id, "blockedUsers", true, blockedUserId);
+        } catch (error) {
+            console.error("Error blocking user:", error);
+            throw error;
+        }
+    }
+
+    async unblockUser(unblockedUserId) {
+        try {
+            await updateArrayField("users", this.user.id, "blockedUsers", false, unblockedUserId);
+        } catch (error) {
+            console.error("Error unblocking user:", error);
+            throw error;
         }
     }
 }
