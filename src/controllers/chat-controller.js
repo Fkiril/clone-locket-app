@@ -1,5 +1,4 @@
 import { createBatchedWrites, exitDoc, getDocDataById, getDocRef, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
-import { toast } from "react-toastify";
 import Message from "../models/entities/message";
 import Conversation from "../models/entities/conversation";
 import ChatManager from "../models/entities/chat-manager";
@@ -142,7 +141,7 @@ export default class ChatController {
             const conversationData = await getDocDataById("conversations", conversationId);
             if (conversationData) {
                 const writes = [];
-                conversationData.participants.map((participant) => {
+                for (const participant of conversationData.participants) {
                     if (participant !== senderId) {
                         writes.push({
                             work: "update-map",
@@ -153,7 +152,7 @@ export default class ChatController {
                             data: 1
                         });
                     }
-                });
+                };
                 await createBatchedWrites(writes);
             }
         } catch (error) {

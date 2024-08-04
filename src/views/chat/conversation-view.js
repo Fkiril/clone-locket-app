@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useUserStore } from "../../hooks/user-store";
 import { useMessageStore } from "../../hooks/message-store";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ChatController from "../../controllers/chat-controller";
 import { getDocRef } from "../../models/utils/firestore-method";
 import { onSnapshot } from "firebase/firestore";
 import { dateToString } from "../../models/utils/date-method";
 import "./conversation-view.css";
+import { toast } from "react-toastify";
 
 export default function ConversationView() {
     const navigate = useNavigate();
@@ -48,14 +49,22 @@ export default function ConversationView() {
         event.preventDefault();
         const formData = new FormData(event.target);
         const text = formData.get("text");
+        
         if (text.trim() === "") return;
         const message = {
             text,
             senderId: currentUser.id,
             createdTime: dateToString(new Date())
         };
-        await ChatController.sendMessage(conversationId, message);
-        await ChatController.signalNewMessage(conversationId, currentUser.id);
+
+        await ChatController.sendMessage(conversationId, message).then( async () => {
+            await ChatController.signalNewMessage(conversationId, currentUser.id).catch((error) => {
+                toast.error("Failed to send message, please try again!");
+            });
+        }).catch((error) => {
+            toast.error("Failed to send message, please try again!");
+        });
+
         event.target.reset();
     };
 
@@ -64,6 +73,7 @@ export default function ConversationView() {
         const messagesId = messagesArray.filter(
             (message) => (message.senderId !== currentUser.id && !message.isSeen)
         ).map((message) => message.id);
+
         await ChatController.setIsSeenToMessages(currentUser.id, conversationId, messagesId);
     };
 
@@ -80,12 +90,6 @@ export default function ConversationView() {
             <div className="header">
                 <h2>Box Chat</h2>
                 <div className="header-buttons">
-                    {/* <button>
-                        <Link to="/chat">Trở về</Link>
-                    </button> */}
-                    {/* <button>
-                        <Link to="/home">Trang chủ</Link>
-                    </button> */}
                     <button onClick={() => handleRouting("/chat")}>
                         Back
                     </button>

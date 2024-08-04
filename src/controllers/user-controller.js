@@ -1,5 +1,5 @@
 import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
-import { writeDoc, updateArrayField, getDocIdByValue, getDocDataByValue, getDocDataById, getDocRef, createBatchedWrites } from "../models/utils/firestore-method";
+import { updateArrayField, getDocIdByValue, getDocDataByValue, getDocDataById, getDocRef, createBatchedWrites, writeIntoDoc } from "../models/utils/firestore-method";
 import { changePassword } from "../models/utils/authetication-method";
 
 export default class UserController {
@@ -91,7 +91,7 @@ export default class UserController {
                 await deleteFile(this.user.avatar);
             }
 
-            await writeDoc("users", this.user.id, true, {
+            await writeIntoDoc("users", this.user.id, true, {
                 avatar: fileUrl
             });
             
@@ -107,7 +107,7 @@ export default class UserController {
         try {
             await deleteFile(this.user.avatar);
 
-            await writeDoc("users", this.user.id, true, {
+            await writeIntoDoc("users", this.user.id, true, {
                 avatar: ""
             });
         } catch(error) {
@@ -118,7 +118,7 @@ export default class UserController {
 
     async changeUserName(newUserName) {
         try {
-            await writeDoc("users", this.user.id, true, {
+            await writeIntoDoc("users", this.user.id, true, {
                 userName: newUserName
             });
         } catch(error) {

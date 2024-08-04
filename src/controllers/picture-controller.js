@@ -1,4 +1,4 @@
-import { createBatchedWrites, getDocRef, writeIntoCol } from "../models/utils/firestore-method";
+import { createBatchedWrites, getDocRef, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
 import { uploadToFolder } from "../models/utils/storage-method";
 
 export default class PictureController {
@@ -12,7 +12,7 @@ export default class PictureController {
             
             picInstance.id = docRefId;
             
-            await writeDoc("pictures", docRefId, true, {
+            await writeIntoDoc("pictures", docRefId, true, {
                 id: docRefId
             });
 
