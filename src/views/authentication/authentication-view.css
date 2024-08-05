@@ -42,3 +42,8 @@
 .app-subtitle {
   @apply text-lg text-gray-700;
 }
+.flex.justify-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
