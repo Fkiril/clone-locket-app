@@ -163,7 +163,7 @@ export default class ChatController {
 
     static async setIsSeenToMessages(userId, conversationId, messageIds) {
         try {
-            if (!messageIds || messageIds.length === 0) return;
+            if (!messageIds || messageIds.length === 0 || !conversationId || !userId) return;
 
             const writes = messageIds.map((messageId) => {
                 return {

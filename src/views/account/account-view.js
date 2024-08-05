@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { onSnapshot } from "firebase/firestore";
 import { getDocRef } from "../../models/utils/firestore-method";
 import { auth } from "../../models/services/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, updatePassword } from "firebase/auth";
 
 import UserController from "../../controllers/user-controller";
 import AuthenticationController from "../../controllers/authentication-controller";
@@ -236,14 +236,25 @@ export default function AccountView() {
             const formData = new FormData(event.target);
             const newPassword = formData.get("new-password");
             const confirmPassword = formData.get("confirm-password");
+            if (!newPassword || !confirmPassword) {
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                toast.warning("Password must be at least 6 characters!");
+                return;
+            }
+
             if (newPassword !== confirmPassword) {
                 toast.warning("Password does not match!");
                 return;
             }
 
-            await userController.changePassword(auth.currentUser, newPassword).then(() => {
+            await updatePassword(auth.currentUser, newPassword).then(() => {
                 toast.success("Change password successfull!");
                 setIsChangingPassword(false);
+                event.target.reset();
+
             }).catch((error) => {
                 toast.error("Failed to change password. Please try again.");
             });

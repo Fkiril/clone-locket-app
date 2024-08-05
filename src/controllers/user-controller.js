@@ -1,6 +1,5 @@
 import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
 import { updateArrayField, getDocIdByValue, getDocDataByValue, getDocDataById, getDocRef, createBatchedWrites, writeIntoDoc } from "../models/utils/firestore-method";
-import { changePassword } from "../models/utils/authetication-method";
 
 export default class UserController {
     constructor(user) {
@@ -73,15 +72,6 @@ export default class UserController {
             throw error;
         }
     }
-
-    async changePassword(user, newPassword) {
-        try {
-            await changePassword(user, newPassword);
-        } catch(error) {
-            console.log("Error changing password: ", error);
-            throw error;
-        }
-    };
 
     async changeAvatar(newAvatar) {
         try {

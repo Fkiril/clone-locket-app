@@ -58,11 +58,23 @@ export default function ChatView() {
             setSearchedFriend(null);
         } else {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            const friend = friendDatas.find((friend) => 
-                emailRegex.test(searchInput) ? friend.email === searchInput : friend.name.toLowerCase() === searchInput.toLowerCase()
-            );
-            if (friend) {
-                setSearchedFriend([friend]);
+            // const friends = friendDatas.filter((friend) => 
+            //     emailRegex.test(searchInput)? friend.email.toLowerCase().includes(searchInput.toLowerCase()) : friend.name.toLowerCase().includes(searchInput.toLowerCase()));
+            const friends = [];
+            for (const friend of friendDatas) {
+                if (emailRegex.test(searchInput)) {
+                    if (friend.email === searchInput) {
+                        friends.push(friend);
+                    }
+                } else {
+                    if (friend.name.toLowerCase().includes(searchInput.toLowerCase())) {
+                        friends.push(friend);
+                    }
+                }
+            }
+            if (friends.length > 0) {   
+                setSearchedFriend(friends);
+                console.log("searchedFriend: ", searchedFriend);
             } else {
                 toast.warning("No friend found with this email or name.");
                 setSearchedFriend(null);
@@ -71,23 +83,23 @@ export default function ChatView() {
         event.target.reset();
     }
 
+    const handleClearSearch = (event) => {
+        event.preventDefault();
+        setSearchedFriend(null);
+    }
+
     const formatTime = (date) => {
         const options = { hour: '2-digit', minute: '2-digit', hour12: true };
         return new Date(date).toLocaleTimeString([], options);
     };
 
-    const filteredFriends = searchedFriend ? [searchedFriend] : friendDatas;
-
-    const friendsWithConversations = filteredFriends.map(friend => {
+    const friendAndConversations = friendDatas.map(friend => {
         const conversation = conversations?.find(conv => 
             conv.participants.includes(currentUser.id) && 
             conv.participants.includes(friend.id)
         );
         const lastMessage = lastMessages?.find(m => m?.id === conversation?.lastMessage);
-        const unreadCount = lastMessages?.filter(m => 
-            m?.senderId === friend.id && 
-            !m?.readBy?.includes(currentUser.id)
-        ).length;
+        const unreadCount = chatManager?.conversationStates?.[conversation?.id] || 0;
 
         return {
             ...friend,
@@ -95,8 +107,14 @@ export default function ChatView() {
             lastMessage,
             unreadCount
         };
-    }).filter(friend => friend.conversation);
-    console.log("friendsWithConversations: ", friendsWithConversations);
+    });
+    const filtered = friendAndConversations.filter(friend => {
+        if (searchedFriend) {
+            return searchedFriend.find(f => f.id === friend.id);
+        }
+        else return friend.conversation !== undefined;
+    })
+    console.log("filtered: ", filtered);
     
     const handleRouting = (path) => {
         navigate(path, { state: { routing: true } });
@@ -112,13 +130,13 @@ export default function ChatView() {
             </div>
             <div className="chat-view">
                 <div className="search-bar">
-                    <form className="search-form" onSubmit={handleSearchFriend}>
+                    <form className="search-form" onSubmit={searchedFriend? handleClearSearch : handleSearchFriend}>
                         <input type="text" name="search-input" placeholder="Find a friend..." />
-                        <button type="submit">Search</button>
+                        <button type="submit">{searchedFriend? "Clear" : "Search"}</button>
                     </form>
                 </div>
                 <div className="conversations">
-                    {friendsWithConversations
+                    {filtered
                         .sort((a, b) => new Date(b.lastMessage?.createdTime) - new Date(a.lastMessage?.createdTime))
                         .map(friend => (
                             <div className="friend" key={friend.id} onClick={() => handleNavigate(friend.id)}>
@@ -128,7 +146,7 @@ export default function ChatView() {
                                         <p className="friend-name">{friend.name}</p>
                                         <p className="last-message">
                                             <span className="message-text">{friend.lastMessage?.text}</span>
-                                            <span className="message-time">{formatTime(friend.lastMessage?.createdTime)}</span>
+                                            <span className="message-time">{friend.lastMessage? formatTime(friend.lastMessage?.createdTime) : null}</span>
                                         </p>
                                         {friend.unreadCount > 0 && (
                                             <span className="unread-count">{friend.unreadCount}</span>
