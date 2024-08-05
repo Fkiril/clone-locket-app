@@ -1,37 +1,92 @@
 import { fs_db } from "../services/firebase";
-import { arrayUnion, addDoc, doc, setDoc, getDoc, collection, getDocs, where, query, updateDoc, arrayRemove } from "firebase/firestore";
+import { writeBatch } from "firebase/firestore";
+import { addDoc, doc, setDoc, getDoc, collection, getDocs, where, query, updateDoc, arrayRemove, arrayUnion, increment } from "firebase/firestore";
 
-const writeCol = async (colName, data) => {
+const createBatchedWrites = async (writes) => {
     try {
-        const docRef = await addDoc(collection(fs_db, colName), data);
-        console.log(`writeCol successfully at "${colName}" with data:`, data, "and docRef: ", docRef.id);
+        const batch = writeBatch(fs_db);
+
+        for (const write of writes) {
+            if(write) {
+                if (write.work === "set") {
+                    batch.set(write.docRef, write.data);
+                }
+                if (write.work === "update") {
+                    batch.update(write.docRef, {
+                        [write.field]: write.data
+                    });
+                }
+                if (write.work === "update-array") {
+                    if (write.isRemovement) {
+                        batch.update(write.docRef, {
+                            [write.field]: arrayRemove(write.data)
+                        });
+                    }
+                    else {
+                        batch.update(write.docRef, {
+                            [write.field]: arrayUnion(write.data)
+                        });
+                    }
+                }
+                if (write.work === "update-map") {
+                    const str = write.field + "." + write.key;
+                    if (write.isIncrement) {
+                        batch.update(write.docRef, {
+                            [str]: increment(write.data)
+                        });
+                    }
+                    else {
+                        batch.update(write.docRef, {
+                            [str]: write.data
+                        });
+                    }
+                }
+                if (write.work === "delete") {
+                    batch.delete(write.docRef);
+                }
+            }
+        };
+        await batch.commit();
+        console.log("createBatchedWrites's writes: ", writes);
+    } catch (error) {
+        const newError = new Error("createBatchedWrites's error: " + error);
+        newError.code = "FIRESTORE/CREATE_BATCHED_WRITES_ERROR";
+        throw newError;
+    }
+}
+
+const writeIntoCol = async (path, data) => {
+    try {
+        const docRef = await addDoc(collection(fs_db, path), data);
+        console.log(`writeInCol successfully at "${path}" with data:`, data);
         return docRef.id;
     } catch (error) {
-        const newError = new Error("writeCol's error: " + error);
-        newError.code = "FIRESTORE/WRITE_COL_ERROR";
+        const newError = new Error("writeInCol's error: " + error);
+        newError.code = "FIRESTORE/WRITE_INCOL_ERROR";
         throw newError;
     }
-};
+}
 
-const writeDoc = async (colName, docName, updateFlag, data) => {
+const writeIntoDoc = async (path, docName, isUpdate, data) => {
     try {
-        if (updateFlag) {
-            await updateDoc(doc(fs_db, colName, docName), data);
+        const docRef = doc(fs_db, path, docName);
+        if (isUpdate) {
+            await updateDoc(docRef, data);
         } else {
-            await setDoc(doc(fs_db, colName, docName), data);
+            await setDoc(docRef, data);
         }
-        console.log(`writeDoc successfully at "${colName}/${docName}" with data:`, data);
+        console.log(`writeInDoc successfully at "${path}/${docName}" with data:`, data);
     } catch (error) {
-        const newError = new Error("writeDoc's error: " + error);
-        newError.code = "FIRESTORE/WRITE_DOC_ERROR";
+        const newError = new Error("writeInDoc's error: " + error);
+        newError.code = "FIRESTORE/WRITE_INDOC_ERROR";
         throw newError;
     }
-};
+}
 
-const updateArrayField = async (colName, docName, fieldName, updateFlag, data) => {
+const updateArrayField = async (path, docName, fieldName, isUpdate, data) => {
     try {
-        const docRef = doc(fs_db, colName, docName);
-        if (updateFlag) {
+        const docRef = doc(fs_db, path, docName);
+        if (isUpdate) {
             await updateDoc(docRef, {
                 [fieldName]: arrayUnion(data)
             });
@@ -41,7 +96,7 @@ const updateArrayField = async (colName, docName, fieldName, updateFlag, data) =
                 [fieldName]: arrayRemove(data)
             });
         }
-        console.log(`updateArrayField successfully at "${colName}/${docName}/${fieldName}" with data: `, data);
+        console.log(`updateArrayField successfully at "${path}/${docName}/${fieldName}" with data: `, data);
     } catch (error) {
         const newError = new Error("updateArrayField's error: " + error);
         newError.code = "FIRESTORE/UPDATE_ARRAY_FIELD_ERROR";
@@ -49,8 +104,8 @@ const updateArrayField = async (colName, docName, fieldName, updateFlag, data) =
     }
 }
 
-const exitDocWithValue = async (collectionName, fieldName, data) => {
-    const usersRef = collection(fs_db, collectionName);
+const exitDocWithValue = async (path, fieldName, data) => {
+    const usersRef = collection(fs_db, path);
     const q = query(usersRef, where(fieldName, "==", data));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
@@ -59,8 +114,8 @@ const exitDocWithValue = async (collectionName, fieldName, data) => {
     return false;
 }
 
-const exitDoc = async (collectionName, docName) => {
-    const docRef = doc(fs_db, collectionName, docName);
+const exitDoc = async (path, docName) => {
+    const docRef = doc(fs_db, path, docName);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       return true;
@@ -68,8 +123,8 @@ const exitDoc = async (collectionName, docName) => {
     return false;
 }
 
-const getDocIdByValue = async (collectionName, fieldName, data) => {
-    const usersRef = collection(fs_db, collectionName);
+const getDocIdByValue = async (path, fieldName, data) => {
+    const usersRef = collection(fs_db, path);
     const q = query(usersRef, where(fieldName, "==", data));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
@@ -78,8 +133,8 @@ const getDocIdByValue = async (collectionName, fieldName, data) => {
     return null;
 }
 
-const getDocByValue = async (collectionName, fieldName, data) => {
-    const usersRef = collection(fs_db, collectionName);
+const getDocDataByValue = async (path, fieldName, data) => {
+    const usersRef = collection(fs_db, path);
     const q = query(usersRef, where(fieldName, "==", data));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
@@ -88,8 +143,8 @@ const getDocByValue = async (collectionName, fieldName, data) => {
     return null;
 }
 
-const getDocById = async (collectionName, docId) => {
-    const docRef = doc(fs_db, collectionName, docId);
+const getDocDataById = async (path, docId) => {
+    const docRef = doc(fs_db, path, docId);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
         return docSnap.data();
@@ -97,4 +152,16 @@ const getDocById = async (collectionName, docId) => {
     return null;
 }
 
-export { writeCol, writeDoc, exitDocWithValue, exitDoc, updateArrayField, getDocIdByValue, getDocByValue, getDocById };
+const getDocRef = (path, docId) => {
+    return doc(fs_db, path, docId);
+}
+
+const getColRef = (path) => {
+    return collection(fs_db, path);
+}
+
+const getDocsCol = async (path) => {
+    return await getDocs(collection(fs_db, path));
+}
+
+export { createBatchedWrites, writeIntoCol, writeIntoDoc, exitDocWithValue, exitDoc, updateArrayField, getDocIdByValue, getDocDataByValue, getDocDataById, getDocRef, getColRef, getDocsCol };

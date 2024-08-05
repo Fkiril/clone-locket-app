@@ -1,179 +1,284 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useUserStore } from "../../hooks/user-store";
 import { toast } from "react-toastify";
 import PictureController from "../../controllers/picture-controller";
 import Picture, { ScopeEnum } from "../../models/entities/picture";
-import { useUserStore } from "../../hooks/user-store";
+// import { FaCamera } from "react-icons/fa";
 
 export default function UploadPictureView() {
-    const { currentUser, friendsData } = useUserStore();
-    const currentPicture = new Picture("", currentUser.id);
+  const navigate = useNavigate();
 
-    const [optionFile, setOptionFile] = useState(null);
-    const [optionFileUrl, setOptionFileUrl] = useState("");
-    const [text, setText] = useState("");
-    const [scope, setScope] = useState(ScopeEnum.PUBLIC);
-    const [showScopeOption, setShowScopeOption] = useState(false);
-    const [selectedFriends, setSelectedFriends] = useState([]);
+  const { currentUser, friendDatas } = useUserStore();
 
-    const handlePicture = (event) => {
-        if (event.target.files[0]) {
-            setOptionFile(event.target.files[0]);
-            setOptionFileUrl(URL.createObjectURL(event.target.files[0]));
-        }
-    };
+  const [picture, setPicture] = useState({
+    file: null,
+    url: "",
+  });
 
-    const submitOption = async () => {
-        currentPicture.text = text;
-        currentPicture.scope = scope;
+  const [text, setText] = useState("");
+  const [scope, setScope] = useState(ScopeEnum.PUBLIC);
+  const [showScopeOption, setShowScopeOption] = useState(false);
+  const [selectedFriends, setSelectedFriends] = useState([]);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
-        currentPicture.canSee = [currentUser.id];
-        if (scope === "specify") {
-            currentPicture.canSee.push(...selectedFriends);
-        } else if (scope === "public") {
-            currentPicture.canSee.push(...currentUser.friends);
-        }
+  const [uploaded, setUploaded] = useState(false);
 
-        await PictureController.uploadPicture(currentPicture, optionFile);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
-        setOptionFile(null);
-        setOptionFileUrl("");
-    };
+  const handlePicture = (event) => {
+    if (event.target.files[0]) {
+      setPicture({
+        file: event.target.files[0],
+        url: URL.createObjectURL(event.target.files[0]),
+      })
+    }
+  };
 
-    const cancelOption = () => {
-        const fileInput = document.getElementById("file");
-        fileInput.value = "";
+  const handleSubmitPicture = async () => {
+    const picInstance = new Picture({
+      ownerId: currentUser.id,
+      text: text,
+      scope: scope,
+      canSee: [currentUser.id],
+    })
 
-        setOptionFile(null);
-        setOptionFileUrl("");
-    };
+    if (scope === ScopeEnum.SPECIFY) {
+      picInstance.canSee.push(...selectedFriends);
+    } else if (scope === ScopeEnum.PUBLIC) {
+      picInstance.canSee.push(...currentUser.friends);
+    }
 
-    const handleText = (event) => {
-        setText(event.target.value);
-    };
+    await PictureController.uploadPicture(picInstance, picture.file).then(() => {
+      toast.success("Picture uploaded successfully!");
+      handleCancelOption();
+      setUploaded(true);
+    }).catch((error) => {
+      toast.error("Failed to upload picture. Please try again!");
+    });
+  };
 
-    const checkTextInputLength = () => {
-        const textInput = document.getElementById("text-input");
-        if (textInput.value.length >= 35) {
-            toast.warning("Text input can be up to 35 characters!");
-        }
-    };
+  const handleCancelOption = () => {
+    const fileInput = document.getElementById("file");
+    fileInput.value = "";
+    setPicture({
+      file: null,
+      url: "",
+    })
+  };
 
-    const handleShowScopeOption = () => {
-        setShowScopeOption(!showScopeOption);
-    };
+  const handleText = (event) => {
+    setText(event.target.value);
+  };
 
-    const handleFriendCheckboxChange = (friendId) => {
-        setSelectedFriends((prevSelected) => {
-            if (prevSelected.includes(friendId)) {
-                return prevSelected.filter((id) => id !== friendId);
-            } else {
-                return [...prevSelected, friendId];
-            }
+  const handleCheckTextInput = () => {
+    const textInput = document.getElementById("text-input");
+    if (textInput.value.length >= 35) {
+      toast.warning("Text input can be up to 35 characters!");
+    }
+  };
+
+  const handleShowScopeOption = () => {
+    setShowScopeOption(!showScopeOption);
+  };
+
+  const handleFriendCheckboxChange = (friendId) => {
+    setSelectedFriends((prevSelected) => {
+      if (prevSelected.includes(friendId)) {
+        return prevSelected.filter((id) => id !== friendId);
+      } else {
+        return [...prevSelected, friendId];
+      }
+    });
+  };
+
+  const handleOpenCamera = () => {
+    if (picture.file) handleCancelOption();
+
+    setIsCameraOpen(true);
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          const video = videoRef.current;
+          video.srcObject = stream;
+          video.play();
+        })
+        .catch((error) => {
+          toast.error("Cannot access camera. Please grant permission!");
+          console.error("Error accessing camera:", error);
         });
-    };
+    }
+  };
 
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
-            <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-8">
-                <div className="mb-6">
-                    <Link to="/home" className="text-blue-500 hover:underline">
-                        &larr; Back to Home
-                    </Link>
-                </div>
+  const handleCloseCamera = () => {
+    setIsCameraOpen(false);
+    const video = videoRef.current;
+    const stream = video.srcObject;
+    const tracks = stream.getTracks();
+    tracks.forEach((track) => {
+      track.stop();
+    });
+  };
 
-                <div className="mb-6">
-                    <button
-                        type="button"
-                        onClick={() => document.getElementById("file").click()}
-                        className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        Choose Picture
-                        <input
-                            type="file"
-                            id="file"
-                            className="hidden"
-                            onChange={handlePicture}
-                        />
-                    </button>
-                </div>
+  const handleTakePicture = async () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
 
-                {optionFileUrl && (
-                    <div>
-                        <div className="mb-4">
-                            <button
-                                type="button"
-                                onClick={handleShowScopeOption}
-                                className="bg-gray-200 py-2 px-4 rounded-md shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                            >
-                                Select Scope
-                            </button>
-                            {showScopeOption && (
-                                <div className="mt-2 p-4 bg-gray-100 rounded-md shadow-md">
-                                    <select
-                                        onChange={(event) => setScope(event.target.value)}
-                                        value={scope}
-                                        className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value={ScopeEnum.PUBLIC}>Public</option>
-                                        <option value={ScopeEnum.PRIVATE}>Private</option>
-                                        <option value={ScopeEnum.SPECIFY}>Specify</option>
-                                    </select>
-                                    {scope === ScopeEnum.SPECIFY && (
-                                        <div className="mt-2">
-                                            {friendsData.map((friend) => (
-                                                <label key={friend.id} className="block text-gray-700">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedFriends.includes(friend.id)}
-                                                        onChange={() => handleFriendCheckboxChange(friend.id)}
-                                                        className="mr-2"
-                                                    />
-                                                    {friend.name}
-                                                </label>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    context.save();
+    context.scale(-1, 1);
+    context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+    
+    context.restore();
+    const blob = await new Promise((resolve) => {
+      canvas.toBlob(resolve, "image/png");
+    });
 
-                        <div className="mb-4">
-                            <img src={optionFileUrl} alt="Selected" className="w-full h-auto rounded-md shadow-md" />
-                        </div>
+    setPicture({
+      file: blob,
+      url: canvas.toDataURL("image/png"),
+    })
+    handleCloseCamera();
+  };
 
-                        <div className="mb-4">
-                            <input
-                                id="text-input"
-                                type="text"
-                                maxLength="35"
-                                placeholder="Enter text"
-                                value={text}
-                                onChange={handleText}
-                                onInput={checkTextInputLength}
-                                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
+  const handleBackToHome = () => {
+    if (isCameraOpen) {
+      handleCloseCamera();
+    }
+    navigate("/home", { state: { routing: uploaded? false : true } });
+  };
 
-                        <div className="flex justify-between">
-                            <button
-                                type="button"
-                                onClick={submitOption}
-                                className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                Submit
-                            </button>
-                            <button
-                                type="button"
-                                onClick={cancelOption}
-                                className="bg-red-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <div className="bg-white p-10 rounded-lg shadow-md w-full max-w-2xl flex flex-col items-center relative">
+        <button
+          onClick={handleBackToHome}
+          className="absolute top-4 right-4 px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+        >
+          Back to Home
+        </button>
+        {/* <FaCamera className="text-9xl text-gray-500 mb-8" /> */}
+        <div className="flex gap-4 mb-8">
+          <button
+            type="button"
+            onClick={() => {
+              document.getElementById("file").click();
+              if (isCameraOpen) handleCloseCamera();
+            }}
+            className="px-8 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-xl"
+          >
+            Choose Picture
+            <input
+              type="file"
+              id="file"
+              style={{ display: "none" }}
+              onChange={handlePicture}
+            />
+          </button>
+          <button
+            type="button"
+            className="px-8 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-xl"
+            onClick={isCameraOpen ? handleCloseCamera : handleOpenCamera}
+          >
+            {isCameraOpen ? "Close Camera" : "Open Camera"}
+          </button>
         </div>
-    );
+        {isCameraOpen && (
+          <div className="camera mb-8">
+            <video
+              autoPlay
+              playsInline
+              muted
+              ref={videoRef}
+              style={{ transform: "scaleX(-1)" }}
+            ></video>
+            <canvas ref={canvasRef} aria-disabled className="hidden"></canvas>
+            <button
+              type="button"
+              onClick={handleTakePicture}
+              className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-4"
+            >
+              Take Picture
+            </button>
+          </div>
+        )}
+        
+        {picture.url && (
+          <div className="w-full">
+            <div className="scope-select mb-4">
+              <button
+                onClick={handleShowScopeOption}
+                className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400"
+              >
+                Select Scope
+              </button>
+              {showScopeOption && (
+                <div className="mt-2">
+                  <select
+                    onChange={(event) => setScope(event.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value={ScopeEnum.PUBLIC}>Public</option>
+                    <option value={ScopeEnum.PRIVATE}>Private</option>
+                    <option value={ScopeEnum.SPECIFY}>Specify</option>
+                  </select>
+                  {scope === ScopeEnum.SPECIFY && (
+                    <div className="mt-2">
+                      {friendDatas.map((friend) => (
+                        <label key={friend.name} className="block">
+                          <input
+                            type="checkbox"
+                            checked={selectedFriends.includes(friend.id)}
+                            onChange={() =>
+                              handleFriendCheckboxChange(friend.id)
+                            }
+                            className="mr-2"
+                          />
+                          {friend.name}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="picture mb-4">
+              <img src={picture.url} alt="" className="w-full rounded-lg" />
+              <input
+                id="text-input"
+                type="text"
+                maxLength="35"
+                placeholder="Enter text"
+                value={text}
+                onChange={handleText}
+                onInput={handleCheckTextInput}
+                className="w-full mt-2 p-2 border border-gray-300 rounded-md"
+              />
+            </div>
+            <div className="buttons flex justify-between">
+              <button
+                type="button"
+                onClick={handleSubmitPicture}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              >
+                Submit
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelOption}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
