@@ -13,6 +13,8 @@ export default function AuthenticationView() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [formStep, setFormStep] = useState(1); // 1: Email, 2: Enter Code, 3: Reset Password
 
   useEffect(() => {
     const unSubscribe = auth.onAuthStateChanged(async () => {
@@ -95,7 +97,7 @@ export default function AuthenticationView() {
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
-    
+
     try {
       await AuthenticationController.loginWithGoogle();
       toast.success("Login with Google successful!");
@@ -105,16 +107,45 @@ export default function AuthenticationView() {
     }
   };
 
-  const handleForgotPassword = async () => {
-    const email = prompt("Please enter your email:");
-    if (email) {
-      try {
-        await AuthenticationController.resetPassword(email);
-        toast.success("Password reset email sent!");
-      } catch (error) {
-        toast.error("Failed to send password reset email. Please try again.");
+  const handleForgotPassword = () => {
+    setShowForgotPassword(true);
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const formData = new FormData(e.target);
+    const { email, code, newPassword, confirmPassword } = Object.fromEntries(formData);
+
+    if (formStep === 1) {
+      
+        setFormStep(2);
+        setIsLoading(false);
       }
+     else if (formStep === 2) {
+     
+        setFormStep(3);
+   setIsLoading(false);
+      }
+     else if (formStep === 3) {
+      if (newPassword !== confirmPassword) {
+        toast.warning("Passwords do not match!");
+        setIsLoading(false);
+        return;
+      }
+      
+     
+       
+        toast.success("Password has been reset!");
+        setShowForgotPassword(false);
+        setShowLogin(true);
+        setFormStep(1);
+    
+        setIsLoading(false);
+      
     }
+
   };
 
   return (
@@ -126,20 +157,62 @@ export default function AuthenticationView() {
       <div className="flex flex-col items-center">
         <div className="flex justify-center mb-5">
           <button
-            onClick={() => setShowLogin(true)}
-            className={`px-4 py-2 mx-2 ${showLogin ? "font-bold" : ""}`}
+            onClick={() => {
+              setShowLogin(true);
+              setShowForgotPassword(false);
+              setFormStep(1);
+            }}
+            className={`px-4 py-2 mx-2 ${showLogin && !showForgotPassword ? "font-bold" : ""}`}
           >
             Login
           </button>
           <button
-            onClick={() => setShowLogin(false)}
-            className={`px-4 py-2 mx-2 ${!showLogin ? "font-bold" : ""}`}
+            onClick={() => {
+              setShowLogin(false);
+              setShowForgotPassword(false);
+            }}
+            className={`px-4 py-2 mx-2 ${!showLogin && !showForgotPassword ? "font-bold" : ""}`}
           >
             Sign up
           </button>
         </div>
 
-        {showLogin ? (
+        {showForgotPassword ? (
+          <div className="w-96 mb-5">
+            <form onSubmit={handleResetPassword} className="flex flex-col">
+              {formStep === 1 && (
+                <>
+                  <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded" />
+                  <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                    {isLoading ? "Loading" : "Get the code"}
+                  </button>
+                </>
+              )}
+              {formStep === 2 && (
+                <>
+                  <input type="text" placeholder="Enter the code" name="code" required className="mb-3 p-2 border rounded" />
+                  <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                    {isLoading ? "Loading" : "Continue"}
+                  </button>
+                </>
+              )}
+              {formStep === 3 && (
+                <>
+                  <input type="password" placeholder="New Password" name="newPassword" required className="mb-3 p-2 border rounded" />
+                  <input type="password" placeholder="Confirm New Password" name="confirmPassword" required className="mb-3 p-2 border rounded" />
+                  <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                    {isLoading ? "Loading" : "Reset Password"}
+                  </button>
+                </>
+              )}
+            </form>
+            <div className="flex justify-between mt-4 w-full">
+              <button onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
+                Login with Google or Facebook
+              </button>
+            </div>
+          </div>
+        ) : showLogin ? (
           <div className="w-96 mb-5">
             <form onSubmit={handleLogIn} className="flex flex-col">
               <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded" />
@@ -149,11 +222,12 @@ export default function AuthenticationView() {
               </button>
             </form>
             <div className="flex justify-between mt-4 w-full">
-              <button onClick={handleForgotPassword} className="text-blue-500 hover:underline">
-                Forgot Password?
-              </button>
+            
               <button onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
                 Login with Google or Facebook
+              </button>
+              <button onClick={handleForgotPassword} className="text-blue-500 hover:underline">
+                Forgot Password?
               </button>
             </div>
           </div>
