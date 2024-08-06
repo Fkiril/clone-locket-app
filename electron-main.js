@@ -8,10 +8,13 @@ function createWindow() {
     height: 600,
     webPreferences: {
       nodeIntegration: true,
+      plugins: true,
+      allowRunningInsecureContent: true,
     },
   });
 
-  const filePath = `file://${path.join(__dirname, "build", "index.html")}`;
+  // const filePath = `file://${path.join(__dirname, "build", "index.html")}`;
+  const filePath = 'http://localhost:3000';
   console.log(filePath);
   win.loadURL(filePath);
 }

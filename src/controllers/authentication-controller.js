@@ -1,5 +1,5 @@
-import { auth } from "../models/services/firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth, facebookProvider, googleProvider } from "../models/services/firebase";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } from "firebase/auth";
 import { exitDocWithValue, createBatchedWrites, getDocRef } from "../models/utils/firestore-method";
 import { toast } from "react-toastify";
 import User from "../models/entities/user";
@@ -25,7 +25,7 @@ export default class AuthenticationController {
         }
     }
 
-    static async createAccount(userName, email, password, comfirmPassword) {
+    static async createAccountWithEmailAndPassword(userName, email, password) {
         // VALIDATE UNIQUE USERNAME
         if (await exitDocWithValue("users", "userName", userName)){
             return toast.warn("Username already exists!");
@@ -66,5 +66,80 @@ export default class AuthenticationController {
             console.log("Error creating account: ", error);
             throw error;
           }
+    }
+
+    static async createAccount(props) {
+        if (!props || !props.id || !props.name || !props.email || !props.avatar) {
+            return;
+        }
+        try {
+            const newUser = new User({
+                id: props.id,
+                userName: props.name,
+                email: props.email,
+                avatar: props.avatar
+            })
+
+            const newChatManager = new ChatManager({
+                userId: props.id
+            })
+
+            const writes = [
+                {
+                    work: "set",
+                    docRef: getDocRef("users", props.id),
+                    data: newUser.toJSON()
+                },
+                {
+                    work: "set",
+                    docRef: getDocRef("chatManagers", props.id),
+                    data: newChatManager.toJSON()
+                }
+            ];
+
+            await createBatchedWrites(writes);
+        } catch (error) {
+            console.log("Error creating account: ", error);
+            throw error;
+        }
+    }
+
+    static async signInWithGoogle () {
+        try {
+            googleProvider.setCustomParameters({ prompt: 'select_account' });
+            const result = await signInWithPopup(auth, googleProvider);
+            const credential = GoogleAuthProvider.credentialFromResult(result);
+            const token = credential.accessToken;
+            const user = result.user;
+            return {
+                user: user,
+                token: token,
+                credential: credential
+            }
+        } catch (error) {
+            console.log("Error signing in with Google: ", error);
+            throw error;
+        }
+    }
+
+    static async signInWithFacebook () {
+        try {
+            facebookProvider.setCustomParameters({
+                prompt: 'select_account',
+                display: 'popup'
+            });
+            const result = await signInWithPopup(auth, facebookProvider);
+            const credential = FacebookAuthProvider.credentialFromResult(result);
+            const token = credential.accessToken;
+            const user = result.user;
+            return {
+                user: user,
+                token: token,
+                credential: credential
+            }
+        } catch (error) {
+            console.log("Error signing in with Facebook: ", error);
+            throw error;
+        }
     }
 }

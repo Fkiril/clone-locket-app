@@ -108,8 +108,8 @@ const exitDocWithValue = async (path, fieldName, data) => {
     const usersRef = collection(fs_db, path);
     const q = query(usersRef, where(fieldName, "==", data));
     const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      return true;
+    if (querySnapshot.docs.empty) {
+        return true;
     }
     return false;
 }
@@ -117,7 +117,7 @@ const exitDocWithValue = async (path, fieldName, data) => {
 const exitDoc = async (path, docName) => {
     const docRef = doc(fs_db, path, docName);
     const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
+    if (docSnap._document) {
       return true;
     }
     return false;

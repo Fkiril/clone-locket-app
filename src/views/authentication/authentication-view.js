@@ -5,6 +5,7 @@ import AuthenticationController from "../../controllers/authentication-controlle
 import { useUserStore } from "../../hooks/user-store";
 import { auth } from "../../models/services/firebase";
 import "./authentication-view.css";
+import { exitDoc } from "../../models/utils/firestore-method";
 
 export default function AuthenticationView() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export default function AuthenticationView() {
 
   useEffect(() => {
     const unSubscribe = auth.onAuthStateChanged(async () => {
-      await fetchUserInfo(auth?.currentUser?.uid, {});
+      await fetchUserInfo(auth?.currentUser?.uid);
       console.log("authentication-view.js: useEffect() for onAuthStateChanged");
     });
     return () => {
@@ -82,7 +83,7 @@ export default function AuthenticationView() {
       return;
     }
 
-    await AuthenticationController.createAccount(userName, email, password, confirmPassword)
+    await AuthenticationController.createAccountWithEmailAndPassword(userName, email, password)
       .then(() => {
         toast.success("Create account successful!");
         event.target.reset();
@@ -95,16 +96,72 @@ export default function AuthenticationView() {
     setIsLoading(false);
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = async (event) => {
+    event.preventDefault();
     setIsLoading(true);
 
-    try {
-      await AuthenticationController.loginWithGoogle();
-      toast.success("Login with Google successful!");
-    } catch (error) {
+    await AuthenticationController.signInWithGoogle().then(async (result) => {
+      console.log("result", result);
+      if (result) {
+        if (!(await exitDoc("users", result.user.uid))) {
+          console.log("Create account: ", result.user.displayName, result.user.uid, result.user.email, result.user.photoURL);
+          await AuthenticationController.createAccount({
+            id: result.user.uid,
+            name: result.user.displayName,
+            email: result.user.email,
+            avatar: result.user.photoURL
+          }).then(async () => {
+            await fetchUserInfo(result.user.uid);
+          }).catch((error) => {
+            console.log(error);
+            toast.error("Failed to create account. Please try again.");
+          });
+        }
+        else {
+          console.log("User already exists");
+        }
+        toast.success("Login with Google successful!");
+      }
+    }).catch((error) => {
+      console.log(error);
       toast.error("Failed to login with Google. Please try again.");
+    }).finally(() => {
       setIsLoading(false);
-    }
+    });
+  };
+
+  const handleFacebookLogin = async (event) => {
+    event.preventDefault();
+    setIsLoading(true);
+
+    await AuthenticationController.signInWithFacebook().then(async (result) => {
+      console.log(result);
+      if (result) {
+        if (!exitDoc("users", result.user.uid)) {
+          console.log("Create account: ", result.user.displayName, result.user.uid, result.user.email, result.user.photoURL);
+          await AuthenticationController.createAccount({
+            id: result.user.uid,
+            name: result.user.displayName,
+            email: result.user.email,
+            avatar: result.user.photoURL
+          }).then(async () => {
+            await fetchUserInfo(result.user.uid);
+          }).catch((error) => {
+            console.log(error);
+            toast.error("Failed to create account. Please try again.");
+          });
+        }
+        else {
+          console.log("User already exists");
+        }
+      }
+      toast.success("Login with Facebook successful!");
+      setIsLoading(false);
+    }).catch((error) => {
+      console.log(error);
+      toast.error("Failed to login with Facebook. Please try again.");
+      setIsLoading(false);
+    });
   };
 
   const handleForgotPassword = () => {
@@ -119,33 +176,27 @@ export default function AuthenticationView() {
     const { email, code, newPassword, confirmPassword } = Object.fromEntries(formData);
 
     if (formStep === 1) {
-      
-        setFormStep(2);
-        setIsLoading(false);
-      }
-     else if (formStep === 2) {
-     
-        setFormStep(3);
-   setIsLoading(false);
-      }
-     else if (formStep === 3) {
+      setFormStep(2);
+      setIsLoading(false);
+    }
+    else if (formStep === 2) {
+      setFormStep(3);
+      setIsLoading(false);
+    }
+    else if (formStep === 3) {
       if (newPassword !== confirmPassword) {
         toast.warning("Passwords do not match!");
         setIsLoading(false);
         return;
       }
-      
-     
        
-        toast.success("Password has been reset!");
-        setShowForgotPassword(false);
-        setShowLogin(true);
-        setFormStep(1);
-    
-        setIsLoading(false);
-      
+      toast.success("Password has been reset!");
+      setShowForgotPassword(false);
+      setShowLogin(true);
+      setFormStep(1);
+  
+      setIsLoading(false);
     }
-
   };
 
   return (
@@ -224,10 +275,16 @@ export default function AuthenticationView() {
             <div className="flex justify-between mt-4 w-full">
             
               <button onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
-                Login with Google or Facebook
+                Login with Google
+              </button>
+              <button onClick={handleFacebookLogin} className="text-blue-500 hover:underline">
+                Login with Facebook
               </button>
               <button onClick={handleForgotPassword} className="text-blue-500 hover:underline">
                 Forgot Password?
+              </button>
+              <button onClick={() => AuthenticationController.logOut()} className="text-blue-500 hover:underline">
+                Logout
               </button>
             </div>
           </div>
