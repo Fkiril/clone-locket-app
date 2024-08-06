@@ -1,170 +1,201 @@
-.box-chat {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+/* Tổng quan cho toàn bộ view */
+.conversation-container {
+    position: absolute;
+    width: 800px;
+    height: 600px;
+    background: #F2F2F7;
+    border-radius: 16px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+  }
+  
+  .header {
+    position: relative;
     width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    overflow: hidden;
-    background-color: #fff;
-}
-
-.header {
+    height: 85px;
+    background: rgba(217, 217, 217, 0.3);
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 16px 16px 0 0;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 15px;
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #ddd;
-}
-
-.header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: #333;
-}
-
-.header button {
-    background-color: #007bff;
+    padding: 0 20px;
+    justify-content: space-between;
+  }
+  
+  .header h2 {
+    font-family: 'Inter';
+    font-weight: 700;
+    font-size: 30px;
+    color: #000000;
+    flex: 1;
+    text-align: center;
+  }
+  
+  .header .back-button, .header .info-button {
+    background: none;
     border: none;
-    color: white;
-    padding: 8px 15px;
-    border-radius: 5px;
     cursor: pointer;
-}
-
-.header button:hover {
-    background-color: #0056b3;
-}
-
-.body {
+    outline: none;
+  }
+  
+  .back-button {
+    position: absolute;
+    left: 20px;
+    width: 32px;
+    height: 32px;
+  }
+  
+  .back-button .icon {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .info-button {
+    position: absolute;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+  }
+  
+  .info-button .icon {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .detail {
+    display: none; /* Sẽ hiển thị khi nhấn vào icon thông tin */
+    position: absolute;
+    top: 100px;
+    right: 20px;
+    background: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    padding: 20px;
+    text-align: center;
+    z-index: 10;
+  }
+  
+  .detail img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+  }
+  
+  .detail .friend-username {
+    font-family: 'Inter';
+    font-weight: 500;
+    font-size: 20px;
+    color: #000000;
+    margin-top: 10px;
+  }
+  
+  .body {
+    position: absolute;
+    top: 85px;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    overflow-y: auto;
+  }
+  
+  .conversation {
+    position: relative;
+    width: 100%;
+    padding: 20px;
+  }
+  
+  .messages {
     display: flex;
     flex-direction: column;
-    height: calc(100% - 60px);
-    overflow: hidden;
-}
-
-.detail {
-    padding: 15px;
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #ddd;
+  }
+  
+  .message {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.detail img {
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  
+  .message.right {
+    justify-content: flex-end;
+  }
+  
+  .message.left {
+    justify-content: flex-start;
+  }
+  
+  .avatar-container {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-}
-
-.detail .friend-username {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #333;
-}
-
-.conversation {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 15px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #ccc #f9f9f9;
-}
-
-.conversation::-webkit-scrollbar {
-    width: 8px;
-}
-
-.conversation::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 4px;
-}
-
-.messages {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.message {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
-
-.message img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-}
-
-.message-content {
-    max-width: 60%;
-    padding: 10px;
-    border-radius: 10px;
-    position: relative;
-    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.message.right .message-content {
-    background: linear-gradient(45deg, #007bff, #0056b3);
-    color: white;
-    align-self: flex-end;
-    border-radius: 10px 10px 0 10px;
-}
-
-.message.right {
-    flex-direction: row-reverse;
-}
-
-.message.left .message-content {
-    background: linear-gradient(45deg, #f7f7f7, #ddd);
-    color: black;
-    align-self: flex-start;
-    border-radius: 10px 10px 10px 0;
-}
-
-.message .time {
-    display: block;
-    font-size: 0.8rem;
-    color: #666;
+    overflow: hidden;
+  }
+  
+  .avatar-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .message-content {
+    max-width: 70%;
+    padding: 10px 20px;
+    border-radius: 20px;
+    background: #FFFFFF;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+  
+  .message.right .message-content {
+    background: #E0E0E0;
+  }
+  
+  .message .text {
+    font-family: 'Inter';
+    font-weight: 400;
+    font-size: 18px;
+    color: #000000;
+  }
+  
+  .message .time {
+    font-family: 'Inter';
+    font-weight: 200;
+    font-size: 14px;
+    color: #888888;
     margin-top: 5px;
-}
-
-.input-section {
+  }
+  
+  .input-section {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: #FFFFFF;
+    padding: 10px 20px;
+    box-shadow: 0px -2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 16px 16px;
+  }
+  
+  .input-section .new-message {
     display: flex;
     align-items: center;
-    padding: 10px;
-    background-color: #f7f7f7;
-    border-top: 1px solid #ddd;
-}
-
-.input-section .message-send {
+  }
+  
+  .new-message input {
     flex: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    margin-right: 10px;
-    font-size: 1rem;
-}
-
-.input-section .button-send {
-    padding: 10px 20px;
-    background-color: #007bff;
     border: none;
+    outline: none;
+    padding: 10px;
     border-radius: 20px;
-    color: white;
+    background: #F2F2F7;
+  }
+  
+  .new-message button {
+    background: none;
+    border: none;
     cursor: pointer;
-    font-size: 1rem;
-}
-
-.input-section .button-send:hover {
-    background-color: #0056b3;
-}
+    outline: none;
+    margin-left: 10px;
+  }
+  

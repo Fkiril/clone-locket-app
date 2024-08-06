@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 export default function ConversationView() {
     const navigate = useNavigate();
     const [state, setState] = useState(useLocation().state);
+    const [showDetail, setShowDetail] = useState(false);
 
     const { conversationId } = useParams();
     const { currentUser, friendDatas } = useUserStore();
@@ -85,22 +86,22 @@ export default function ConversationView() {
         navigate(path, { state: { routing: true } });
     }
 
+    const toggleDetail = () => setShowDetail(!showDetail);
+
     return (
-        <div className="box-chat" key={conversationId}>
+        <div className="conversation-container" key={conversationId}>
             <div className="header">
+                <button className="back-button" onClick={() => handleRouting("/chat")}>
+                    <img src="/back-icon.svg" alt="Back" className="icon" />
+                </button>
                 <h2>Box Chat</h2>
-                <div className="header-buttons">
-                    <button onClick={() => handleRouting("/chat")}>
-                        Back
-                    </button>
-                    <button onClick={() => handleRouting("/home")}>
-                        Home
-                    </button>
-                </div>
+                <button className="info-button" onClick={toggleDetail}>
+                    <img src="/info-icon.svg" alt="Info" className="icon" />
+                </button>
             </div>
-            {friendInfo && (
+            {friendInfo && showDetail && (
                 <div className="detail">
-                    <img src={handleGetAvatar(friendInfo.id)} alt="avatar" className="friend-avatar" />
+                    <img src={handleGetAvatar(friendInfo.id)} alt="avatar" />
                     <p className="friend-username">{friendInfo.name}</p>
                 </div>
             )}
@@ -123,20 +124,22 @@ export default function ConversationView() {
                         ))}
                         <div ref={endRef} />
                     </div>
-                    <div className="input-section">
-                        <form onSubmit={handleSendMessage} className="new-message" onFocus={handleFormFocus}>
-                            <input
-                                type="text"
-                                name="text"
-                                id="text"
-                                placeholder="Enter message"
-                                defaultValue={""}
-                                className="message-send"
-                            />
-                            <button type="submit" className="button-send">Gửi</button>
-                        </form>
-                    </div>
                 </div>
+            </div>
+            <div className="input-section">
+                <form onSubmit={handleSendMessage} className="new-message" onFocus={handleFormFocus}>
+                    <input
+                        type="text"
+                        name="text"
+                        id="text"
+                        placeholder="Enter message"
+                        defaultValue={""}
+                        className="message-send"
+                    />
+                    <button type="submit" className="button-send">
+                        <img src="/send-icon.svg" alt="Info" className="icon" />
+                    </button>
+                </form>
             </div>
         </div>
     );
