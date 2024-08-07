@@ -1,11 +1,10 @@
+import "./authentication-view.css";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import AuthenticationController from "../../controllers/authentication-controller";
 import { useUserStore } from "../../hooks/user-store";
 import { auth } from "../../models/services/firebase";
-import "./authentication-view.css";
-import { exitDoc } from "../../models/utils/firestore-method";
 
 export default function AuthenticationView() {
   const navigate = useNavigate();
@@ -101,29 +100,11 @@ export default function AuthenticationView() {
     setIsLoading(true);
 
     await AuthenticationController.signInWithGoogle().then(async (result) => {
-      console.log("result", result);
-      if (result) {
-        if (!(await exitDoc("users", result.user.uid))) {
-          console.log("Create account: ", result.user.displayName, result.user.uid, result.user.email, result.user.photoURL);
-          await AuthenticationController.createAccount({
-            id: result.user.uid,
-            name: result.user.displayName,
-            email: result.user.email,
-            avatar: result.user.photoURL
-          }).then(async () => {
-            await fetchUserInfo(result.user.uid);
-          }).catch((error) => {
-            console.log(error);
-            toast.error("Failed to create account. Please try again.");
-          });
-        }
-        else {
-          console.log("User already exists");
-        }
-        toast.success("Login with Google successful!");
+      if (result.isNewUser) {
+        await fetchUserInfo(result.user.uid);
       }
+      toast.success("Login with Google successful!");
     }).catch((error) => {
-      console.log(error);
       toast.error("Failed to login with Google. Please try again.");
     }).finally(() => {
       setIsLoading(false);
@@ -135,31 +116,13 @@ export default function AuthenticationView() {
     setIsLoading(true);
 
     await AuthenticationController.signInWithFacebook().then(async (result) => {
-      console.log(result);
-      if (result) {
-        if (!exitDoc("users", result.user.uid)) {
-          console.log("Create account: ", result.user.displayName, result.user.uid, result.user.email, result.user.photoURL);
-          await AuthenticationController.createAccount({
-            id: result.user.uid,
-            name: result.user.displayName,
-            email: result.user.email,
-            avatar: result.user.photoURL
-          }).then(async () => {
-            await fetchUserInfo(result.user.uid);
-          }).catch((error) => {
-            console.log(error);
-            toast.error("Failed to create account. Please try again.");
-          });
-        }
-        else {
-          console.log("User already exists");
-        }
+      if (result.isNewUser) {
+        await fetchUserInfo(result.user.uid);
       }
       toast.success("Login with Facebook successful!");
-      setIsLoading(false);
     }).catch((error) => {
-      console.log(error);
       toast.error("Failed to login with Facebook. Please try again.");
+    }).finally(() => {
       setIsLoading(false);
     });
   };
@@ -234,7 +197,9 @@ export default function AuthenticationView() {
               {formStep === 1 && (
                 <>
                   <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded" />
-                  <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                  <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+                    onClick={() => AuthenticationController.sendPasswordResetEmail()}  
+                  >
                     {isLoading ? "Loading" : "Get the code"}
                   </button>
                 </>
@@ -242,7 +207,9 @@ export default function AuthenticationView() {
               {formStep === 2 && (
                 <>
                   <input type="text" placeholder="Enter the code" name="code" required className="mb-3 p-2 border rounded" />
-                  <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                  <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+                    onClick={() => AuthenticationController.confirmPasswordReset()}
+                  >
                     {isLoading ? "Loading" : "Continue"}
                   </button>
                 </>

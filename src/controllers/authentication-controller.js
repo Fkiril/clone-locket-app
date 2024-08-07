@@ -1,6 +1,6 @@
 import { auth, facebookProvider, googleProvider } from "../models/services/firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } from "firebase/auth";
-import { exitDocWithValue, createBatchedWrites, getDocRef } from "../models/utils/firestore-method";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, confirmPasswordReset } from "firebase/auth";
+import { exitDocWithValue, createBatchedWrites, getDocRef, exitDoc } from "../models/utils/firestore-method";
 import { toast } from "react-toastify";
 import User from "../models/entities/user";
 import ChatManager from "../models/entities/chat-manager";
@@ -104,13 +104,31 @@ export default class AuthenticationController {
         }
     }
 
-    static async signInWithGoogle () {
+    static async signInWithGoogle() {
         try {
             googleProvider.setCustomParameters({ prompt: 'select_account' });
             const result = await signInWithPopup(auth, googleProvider);
             const credential = GoogleAuthProvider.credentialFromResult(result);
             const token = credential.accessToken;
             const user = result.user;
+
+            if (!(await exitDoc("users", user.uid))) {
+                console.log("Create account: ", user.displayName, user.uid, user.email, user.photoURL);
+                await AuthenticationController.createAccount({
+                    id: user.uid,
+                    name: user.displayName,
+                    email: user.email,
+                    avatar: user.photoURL
+                });
+
+                return {
+                    user: user,
+                    token: token,
+                    credential: credential,
+                    isNewUser: true
+                }
+            }
+
             return {
                 user: user,
                 token: token,
@@ -122,7 +140,7 @@ export default class AuthenticationController {
         }
     }
 
-    static async signInWithFacebook () {
+    static async signInWithFacebook() {
         try {
             facebookProvider.setCustomParameters({
                 prompt: 'select_account',
@@ -132,6 +150,24 @@ export default class AuthenticationController {
             const credential = FacebookAuthProvider.credentialFromResult(result);
             const token = credential.accessToken;
             const user = result.user;
+
+            if (!(await exitDoc("users", user.uid))) {
+                console.log("Create account: ", user.displayName, user.uid, user.email, user.photoURL);
+                await AuthenticationController.createAccount({
+                    id: user.uid,
+                    name: user.displayName,
+                    email: user.email,
+                    avatar: user.photoURL
+                });
+
+                return {
+                    user: user,
+                    token: token,
+                    credential: credential,
+                    isNewUser: true
+                }
+            }
+
             return {
                 user: user,
                 token: token,
@@ -139,6 +175,33 @@ export default class AuthenticationController {
             }
         } catch (error) {
             console.log("Error signing in with Facebook: ", error);
+            throw error;
+        }
+    }
+
+    static async sendEmailVerification(user) {
+        try {
+            await sendEmailVerification(user);
+        } catch (error) {
+            console.log("Error sending email verification: ", error);
+            throw error;
+        }
+    }
+
+    static async sendPasswordResetEmail (email) {
+        try {
+            await sendPasswordResetEmail(auth, email);
+        } catch (error) {
+            console.log("Error sending password reset email: ", error);
+            throw error;
+        }
+    }
+
+    static async confirmPasswordReset(code, password) {
+        try {
+            await confirmPasswordReset(auth, code, password);
+        } catch (error) {
+            console.log("Error confirming password reset: ", error);
             throw error;
         }
     }

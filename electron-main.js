@@ -10,6 +10,7 @@ function createWindow() {
       nodeIntegration: true,
       plugins: true,
       allowRunningInsecureContent: true,
+      contextIsolation: true
     },
   });
 
