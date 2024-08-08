@@ -49,7 +49,7 @@ export default function ChatView() {
         } else {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             const friend = friendDatas.find((friend) =>
-                emailRegex.test(searchInput) ? friend.email === searchInput : friend.name.toLowerCase() === searchInput.toLowerCase()
+                emailRegex.test(searchInput) ? friend.email === searchInput : friend.name.toLowerCase().includes(searchInput.toLowerCase())
             );
             if (friend) {
                 setSearchedFriend(friend);

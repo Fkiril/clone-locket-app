@@ -8,7 +8,7 @@ export const useChatListStore = create((set) => ({
     fetchLastMessages: async (userId) => {
         try {
             const chatManagerData = await getDocDataById("chatManagers", userId);
-            if (chatManagerData) {
+            if (chatManagerData && chatManagerData.conversationStates && Object.keys(chatManagerData.conversationStates).length > 0) {
                 const conversationIds = Object.keys(chatManagerData.conversationStates);
                 const conversationDatas = await Promise.all(conversationIds.map(async (conversationId) => {
                     const conversationData = await getDocDataById("conversations", conversationId);
@@ -24,7 +24,7 @@ export const useChatListStore = create((set) => ({
                 }));
 
                 const lastMessageDatas = await Promise.all(conversationDatas.map(async (conversationData) => {
-                    if (conversationData.lastMessage) {
+                    if (conversationData && conversationData.lastMessage) {
                         const lastMessageData = await getDocDataById("conversations/" + conversationData.id + "/messages", conversationData.lastMessage);
                         if (lastMessageData) {
                             return {

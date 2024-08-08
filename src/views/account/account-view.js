@@ -4,7 +4,6 @@ import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
 import { toast } from "react-toastify";
-import { useUserStore } from "../../hooks/user-store";
 import { auth } from "../../models/services/firebase";
 import { getDocRef } from "../../models/utils/firestore-method";
 import "./account-view.css";
@@ -23,7 +22,7 @@ export default function AccountView() {
     const navigate = useNavigate();
     const [state, setState] = useState(useLocation().state);
     
-    const { currentUser, friendDatas, fetchUserInfo } = useUserStore();
+    const { currentUser, fetchUserInfo } = useUserStore();
 
     const [userController, setUserController] = useState(
         currentUser? new UserController(currentUser) : null
@@ -288,9 +287,6 @@ export default function AccountView() {
         <div className="card gradient-overlay">
             <div className="account-header">
                 <h2>Account</h2>
-                {/* <Link to="/home" className="back-button">
-                    Back to Home
-                </Link> */}
               <button onClick={handleBackToHome} className="home-icon-button">
           <div className="home-icon"></div>
         </button>

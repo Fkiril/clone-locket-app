@@ -104,7 +104,9 @@ export default function AuthenticationView() {
       }
       toast.success("Login with Google successful!");
     }).catch((error) => {
-      toast.error("Failed to login with Google. Please try again.");
+      if (error.code !== "auth/popup-closed-by-user") {
+        toast.error("Failed to login with Google. Please try again.");
+      }
     }).finally(() => {
       setIsLoading(false);
     });
