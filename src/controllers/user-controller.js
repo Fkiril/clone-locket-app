@@ -1,5 +1,5 @@
 import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
-import { updateArrayField, getDocIdByValue, getDocDataByValue, getDocDataById, getDocRef, createBatchedWrites, writeIntoDoc } from "../models/utils/firestore-method";
+import { updateArrayField, getDocIdByValue, getDocDatasByValue, getDocDataById, getDocRef, createBatchedWrites, writeIntoDoc } from "../models/utils/firestore-method";
 import { changePassword } from "../models/utils/authetication-method";
 
 export default class UserController {
@@ -154,7 +154,7 @@ export default class UserController {
 
     async getFriendByEmail(friendEmail) {
         try {
-            const result = await getDocDataByValue("users", "email", friendEmail);
+            const result = await getDocDatasByValue("users", "email", friendEmail, true);
             if (result) {
                 return result;
             } else {

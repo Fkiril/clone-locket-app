@@ -1,10 +1,11 @@
+import "./authentication-view.css";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import AuthenticationController from "../../controllers/authentication-controller";
 import { useUserStore } from "../../hooks/user-store";
 import { auth } from "../../models/services/firebase";
-import "./authentication-view.css";
+import { checkPassword } from "../../models/utils/check-password";
 
 export default function AuthenticationView() {
   const navigate = useNavigate();
@@ -14,11 +15,10 @@ export default function AuthenticationView() {
   const [isLoading, setIsLoading] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [formStep, setFormStep] = useState(1); // 1: Email, 2: Enter Code, 3: Reset Password
 
   useEffect(() => {
     const unSubscribe = auth.onAuthStateChanged(async () => {
-      await fetchUserInfo(auth?.currentUser?.uid, {});
+      await fetchUserInfo(auth?.currentUser?.uid);
       console.log("authentication-view.js: useEffect() for onAuthStateChanged");
     });
     return () => {
@@ -70,8 +70,7 @@ export default function AuthenticationView() {
       return;
     }
 
-    if (password.length < 6) {
-      toast.warning("Password must be at least 6 characters!");
+    if (checkPassword(password) === false) {
       setIsLoading(false);
       return;
     }
@@ -82,7 +81,7 @@ export default function AuthenticationView() {
       return;
     }
 
-    await AuthenticationController.createAccount(userName, email, password, confirmPassword)
+    await AuthenticationController.createAccountWithEmailAndPassword(userName, email, password)
       .then(() => {
         toast.success("Create account successful!");
         event.target.reset();
@@ -95,57 +94,69 @@ export default function AuthenticationView() {
     setIsLoading(false);
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = async (event) => {
+    event.preventDefault();
     setIsLoading(true);
 
-    try {
-      await AuthenticationController.loginWithGoogle();
+    await AuthenticationController.signInWithGoogle().then(async (result) => {
+      if (result.isNewUser) {
+        await fetchUserInfo(result.user.uid);
+      }
       toast.success("Login with Google successful!");
-    } catch (error) {
+    }).catch((error) => {
       toast.error("Failed to login with Google. Please try again.");
+    }).finally(() => {
       setIsLoading(false);
-    }
+    });
+  };
+
+  const handleFacebookLogin = async (event) => {
+    event.preventDefault();
+    setIsLoading(true);
+
+    await AuthenticationController.signInWithFacebook().then(async (result) => {
+      if (result.isNewUser) {
+        await fetchUserInfo(result.user.uid);
+      }
+      toast.success("Login with Facebook successful!");
+    }).catch((error) => {
+      toast.error("Failed to login with Facebook. Please try again.");
+    }).finally(() => {
+      setIsLoading(false);
+    });
   };
 
   const handleForgotPassword = () => {
     setShowForgotPassword(true);
   };
 
-  const handleResetPassword = async (e) => {
+  const handleSendResetPasswordEmail = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const formData = new FormData(e.target);
-    const { email, code, newPassword, confirmPassword } = Object.fromEntries(formData);
+    const email = document.getElementsByName("reset-password-email")[0].value;
 
-    if (formStep === 1) {
-      
-        setFormStep(2);
-        setIsLoading(false);
-      }
-     else if (formStep === 2) {
-     
-        setFormStep(3);
-   setIsLoading(false);
-      }
-     else if (formStep === 3) {
-      if (newPassword !== confirmPassword) {
-        toast.warning("Passwords do not match!");
-        setIsLoading(false);
-        return;
-      }
-      
-     
-       
-        toast.success("Password has been reset!");
-        setShowForgotPassword(false);
-        setShowLogin(true);
-        setFormStep(1);
-    
-        setIsLoading(false);
-      
+    if (!email) {
+      setIsLoading(false);
+      return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.(com|edu\.vn)$/;
+    if (emailRegex.test(email) === false) {
+      toast.warning("Invalid email address!");
+      setIsLoading(false);
+      return;
+    }
+
+    await AuthenticationController.sendPasswordResetEmail(email).then((result) => {
+      if (!result) return;
+      toast.success("Reset password email sent. Please check your email!");
+      setShowForgotPassword(false);
+    }).catch((error) => {
+      toast.error("Failed to send reset password email. Please try again.");
+    }).finally(() => {
+      setIsLoading(false);
+    });
   };
 
   return (
@@ -160,7 +171,6 @@ export default function AuthenticationView() {
             onClick={() => {
               setShowLogin(true);
               setShowForgotPassword(false);
-              setFormStep(1);
             }}
             className={`px-4 py-2 mx-2 ${showLogin && !showForgotPassword ? "font-bold" : ""}`}
           >
@@ -179,36 +189,18 @@ export default function AuthenticationView() {
 
         {showForgotPassword ? (
           <div className="w-96 mb-5">
-            <form onSubmit={handleResetPassword} className="flex flex-col">
-              {formStep === 1 && (
-                <>
-                  <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded" />
-                  <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                    {isLoading ? "Loading" : "Get the code"}
-                  </button>
-                </>
-              )}
-              {formStep === 2 && (
-                <>
-                  <input type="text" placeholder="Enter the code" name="code" required className="mb-3 p-2 border rounded" />
-                  <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                    {isLoading ? "Loading" : "Continue"}
-                  </button>
-                </>
-              )}
-              {formStep === 3 && (
-                <>
-                  <input type="password" placeholder="New Password" name="newPassword" required className="mb-3 p-2 border rounded" />
-                  <input type="password" placeholder="Confirm New Password" name="confirmPassword" required className="mb-3 p-2 border rounded" />
-                  <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                    {isLoading ? "Loading" : "Reset Password"}
-                  </button>
-                </>
-              )}
+            <form className="flex flex-col">
+              <p>Enter your email and we will send you a password reset link!</p>
+              <input type="text" placeholder="Email" name="reset-password-email" required className="mb-3 p-2 border rounded" />
+              <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+                onClick={handleSendResetPasswordEmail}  
+              >
+                {isLoading ? "Loading" : "Send"}
+              </button>
             </form>
             <div className="flex justify-between mt-4 w-full">
               <button onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
-                Login with Google or Facebook
+                Login with Google
               </button>
             </div>
           </div>
@@ -224,7 +216,10 @@ export default function AuthenticationView() {
             <div className="flex justify-between mt-4 w-full">
             
               <button onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
-                Login with Google or Facebook
+                Login with Google
+              </button>
+              <button onClick={handleFacebookLogin} className="text-blue-500 hover:underline">
+                Login with Facebook
               </button>
               <button onClick={handleForgotPassword} className="text-blue-500 hover:underline">
                 Forgot Password?
