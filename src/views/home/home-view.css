@@ -1,137 +1,168 @@
-/* .home {
-    @apply min-h-screen flex flex-col items-center bg-gray-100;
-}
-
-.header-container {
-    @apply text-center mb-6;
-}
-
-.app-title {
-    @apply text-5xl font-bold text-blue-700 mb-2;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.app-subtitle {
-    @apply text-lg text-gray-700;
-}
-
-.body {
-    @apply flex flex-col items-center gap-4;
-}
-
-.nav-buttons {
-    @apply flex gap-4 mt-8; 
-}
-
-.nav-button {
-    @apply w-40 h-12 border-2 border-gray-300 rounded-lg bg-blue-500 text-white cursor-pointer flex items-center justify-center font-medium hover:bg-blue-600;
-    text-decoration: none;
-    display: flex; 
-}
-
-.nav-button a {
-    @apply w-full h-full flex items-center justify-center text-white;
-    text-decoration: none; 
-} */
-.nav-buttons-container {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    height:52px;
-}
-
-.nav-buttons, .avatar-frame {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%; /* Adjust width as needed */
-    background-color: #4A90E2; /* Same background color as buttons */
-    color: white;
-    text-decoration: none;
-    border-radius: 8px; /* Same border radius as buttons */
-    transition: background-color 0.3s;
-    font-size: 17px;
-    text-align: center;
-    padding: 2px 10px 2px 10px;
-}
-
-.nav-buttons:hover, .avatar-container:hover {
-    background-color: #357ABD; /* Hover effect */
-}
-
-.avatar-frame {
-    width: 30px; /* Set width equal to height to make it square */
-    height: 30px; /* Ensure the avatar frame is square */
-    overflow: hidden; /* Hide overflow to maintain square shape */
-}
-
-.user-avatar {
-    width: 52px;
-    height: 52px;
-    object-fit: cover;
-    border-radius: 8px; /* Ensure the avatar image fits within the container */
-}
-.nav-buttons-container {
-    display: flex;
-    gap: 10px; /* Adjust gap as needed */
-}
-
-.friend-picture-container {
-    display: flex;
-    flex-direction: column; /* Adjust margin as needed */
-    gap: 20px;
-}
-
-.friend-picture-frame {
+/* Tổng quan cho toàn bộ view */
+.home {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    background: #F2F2F7;
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 2px solid #4A90E2; /* Border color */
-    border-radius: 8px;
-    padding: 10px; /* Adjust padding as needed */
-    background-color: white;
-}
-
-.picture-header {
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+  
+  .header-container {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  
+  .app-title {
+    font-family: 'Inter';
+    font-weight: 700;
+    font-size: 4vw; /* Adjusted for responsive design */
+    line-height: 5vw; /* Adjusted for responsive design */
+    text-align: center;
+    color: #1821E7;
+  }
+  
+  .app-subtitle {
+    font-family: 'Inter';
+    font-size: 2vw; /* Adjusted for responsive design */
+    line-height: 2.5vw; /* Adjusted for responsive design */
+    color: #000000;
+  }
+  
+  .nav-buttons-container {
     display: flex;
-    justify-content: space-between;
-    width: 100%;
-    margin-bottom: 10px; /* Adjust margin as needed */
-}
-
-.owner-name {
-    font-weight: bold;
-}
-
-.send-time {
-    font-size: italic;
-    color: gray;
-}
-
-.friend-picture {
-    width: 200px;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
-}
-
-.picture-actions {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    margin-top: 10px; /* Adjust margin as needed */
-}
-
-.react-button, .message-button {
-    background-color: #4A90E2;
-    color: white;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .nav-buttons {
+    background: none;
     border: none;
-    border-radius: 8px;
-    padding: 10px;
     cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.react-button:hover, .message-button:hover {
-    background-color: #357ABD;
-}
+    margin: 0 10px;
+  }
+  
+  .nav-icon {
+    width: 3vw; /* Adjusted for responsive design */
+    height: 3vw; /* Adjusted for responsive design */
+  }
+  
+  .avatar-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .user-avatar {
+    width: 3vw; /* Adjusted for responsive design */
+    height: 3vw; /* Adjusted for responsive design */
+    border-radius: 50%;
+  }
+  
+  .friends-pictures-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 2rem;
+    width: 90vw; /* Adjusted for responsive design */
+    height: 70vh; /* Adjusted for responsive design */
+    overflow: hidden;
+  }
+  
+  .friend-picture-frame {
+    position: relative;
+    width: 100%;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .picture-header {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 1rem;
+  }
+  
+  .owner-name {
+    font-family: 'Inter';
+    font-weight: 500;
+    font-size: 2vw; /* Adjusted for responsive design */
+  }
+  
+  .send-time {
+    font-family: 'Inter';
+    font-weight: 400;
+    font-size: 1.5vw; /* Adjusted for responsive design */
+  }
+  
+  .friend-picture {
+    width: 100%;
+    max-height: 50vh; /* Adjusted for responsive design */
+    object-fit: cover;
+    margin: 1rem 0;
+  }
+  
+  .picture-actions {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .react-button, .send-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .action-icon {
+    width: 2vw; /* Adjusted for responsive design */
+    height: 2vw; /* Adjusted for responsive design */
+  }
+  
+  .message-section {
+    display: flex;
+    align-items: center;
+    width: 60%;
+  }
+  
+  .message-input {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: 1px solid #A0A0A0;
+    border-radius: 36px;
+  }
+  
+  .no-friend-pictures {
+    font-family: 'Inter';
+    font-size: 2vw; /* Adjusted for responsive design */
+    color: #000000;
+  }
+  
+  .left-arrow, .right-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+  
+  .left-arrow {
+    left: 10px;
+  }
+  
+  .right-arrow {
+    right: 10px;
+  }
+  
+  .arrow-icon {
+    width: 2vw; /* Adjusted for responsive design */
+    height: 2vw; /* Adjusted for responsive design */
+  }
+  

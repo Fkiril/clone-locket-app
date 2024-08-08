@@ -1,17 +1,18 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useUserStore } from "../../hooks/user-store";
-import { useMessageStore } from "../../hooks/message-store";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-import ChatController from "../../controllers/chat-controller";
-import { getDocRef } from "../../models/utils/firestore-method";
 import { onSnapshot } from "firebase/firestore";
-import { dateToString } from "../../models/utils/date-method";
-import "./conversation-view.css";
+import React, { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import ChatController from "../../controllers/chat-controller";
+import { useMessageStore } from "../../hooks/message-store";
+import { useUserStore } from "../../hooks/user-store";
+import { dateToString } from "../../models/utils/date-method";
+import { getDocRef } from "../../models/utils/firestore-method";
+import "./conversation-view.css";
 
 export default function ConversationView() {
     const navigate = useNavigate();
     const [state, setState] = useState(useLocation().state);
+    const [showDetail, setShowDetail] = useState(false);
 
     const { conversationId } = useParams();
     const { currentUser, friendDatas } = useUserStore();
@@ -25,8 +26,7 @@ export default function ConversationView() {
     useEffect(() => {
         if (state?.routing && messages[conversationId]) {
             setState(null);
-        }
-        else {
+        } else {
             const conversationRef = getDocRef("conversations", conversationId);
             const unSubscribe = onSnapshot(conversationRef, { includeMetadataChanges: false }, () => {
                 fetchMessages(conversationId);
@@ -38,10 +38,11 @@ export default function ConversationView() {
     }, [onSnapshot]);
 
     const handleGetAvatar = (senderId) => {
+        if (!currentUser) return "./default_avatar.jpg";
         if (senderId === currentUser.id) {
             return currentUser.avatar || "./default_avatar.jpg";
         }
-        const friend = friendDatas.find((friend) => friend.id === senderId);
+        const friend = friendDatas?.find((friend) => friend.id === senderId);
         return friend?.avatar || "./default_avatar.jpg";
     };
 
@@ -51,13 +52,18 @@ export default function ConversationView() {
         const text = formData.get("text");
         
         if (text.trim() === "") return;
+        if (!currentUser) {
+            toast.error("User not found, please try again!");
+            return;
+        }
+
         const message = {
             text,
             senderId: currentUser.id,
             createdTime: dateToString(new Date())
         };
 
-        await ChatController.sendMessage(conversationId, message).then( async () => {
+        await ChatController.sendMessage(conversationId, message).then(async () => {
             await ChatController.signalNewMessage(conversationId, currentUser.id).catch((error) => {
                 toast.error("Failed to send message, please try again!");
             });
@@ -69,6 +75,7 @@ export default function ConversationView() {
     };
 
     const handleFormFocus = async () => {
+        if (!currentUser) return;
         const messagesArray = Array.isArray(messages[conversationId]) ? messages[conversationId] : [];
         const messagesId = messagesArray.filter(
             (message) => (message.senderId !== currentUser.id && !message.isSeen)
@@ -77,7 +84,7 @@ export default function ConversationView() {
         await ChatController.setIsSeenToMessages(currentUser.id, conversationId, messagesId);
     };
 
-    const friendInfo = friendDatas.find((friend) =>
+    const friendInfo = friendDatas?.find((friend) =>
         Array.isArray(messages[conversationId]) && messages[conversationId].some((message) => message.senderId === friend.id && message.senderId !== currentUser.id)
     );
 
@@ -85,22 +92,22 @@ export default function ConversationView() {
         navigate(path, { state: { routing: true } });
     }
 
+    const toggleDetail = () => setShowDetail(!showDetail);
+
     return (
-        <div className="box-chat" key={conversationId}>
+        <div className="conversation-container" key={conversationId}>
             <div className="header">
+                <button className="back-button" onClick={() => handleRouting("/chat")}>
+                    <img src="/back-icon.svg" alt="Back" className="icon" />
+                </button>
                 <h2>Box Chat</h2>
-                <div className="header-buttons">
-                    <button onClick={() => handleRouting("/chat")}>
-                        Back
-                    </button>
-                    <button onClick={() => handleRouting("/home")}>
-                        Home
-                    </button>
-                </div>
+                <button className="info-button" onClick={toggleDetail}>
+                    <img src="/info-icon.svg" alt="Info" className="icon" />
+                </button>
             </div>
-            {friendInfo && (
+            {friendInfo && showDetail && (
                 <div className="detail">
-                    <img src={handleGetAvatar(friendInfo.id)} alt="avatar" className="friend-avatar" />
+                    <img src={handleGetAvatar(friendInfo.id)} alt="avatar" />
                     <p className="friend-username">{friendInfo.name}</p>
                 </div>
             )}
@@ -109,7 +116,7 @@ export default function ConversationView() {
                     <div className="messages">
                         {Array.isArray(messages[conversationId]) && messages[conversationId].map((message) => (
                             <div
-                                className={`message ${message?.senderId === currentUser.id ? "right" : "left"}`}
+                                className={`message ${message?.senderId === currentUser?.id ? "right" : "left"}`}
                                 key={message?.id}
                             >
                                 <div className="avatar-container">
@@ -123,20 +130,22 @@ export default function ConversationView() {
                         ))}
                         <div ref={endRef} />
                     </div>
-                    <div className="input-section">
-                        <form onSubmit={handleSendMessage} className="new-message" onFocus={handleFormFocus}>
-                            <input
-                                type="text"
-                                name="text"
-                                id="text"
-                                placeholder="Enter message"
-                                defaultValue={""}
-                                className="message-send"
-                            />
-                            <button type="submit" className="button-send">Gửi</button>
-                        </form>
-                    </div>
                 </div>
+            </div>
+            <div className="input-section">
+                <form onSubmit={handleSendMessage} className="new-message" onFocus={handleFormFocus}>
+                    <input
+                        type="text"
+                        name="text"
+                        id="text"
+                        placeholder="Enter message"
+                        defaultValue={""}
+                        className="message-send"
+                    />
+                    <button type="submit" className="button-send">
+                        <img src="/send-icon.svg" alt="Send" className="icon" />
+                    </button>
+                </form>
             </div>
         </div>
     );

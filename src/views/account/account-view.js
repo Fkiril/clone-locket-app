@@ -1,22 +1,23 @@
-import "./account-view.css";
+import { onSnapshot } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
 import { toast } from "react-toastify";
-import { onSnapshot } from "firebase/firestore";
-import { getDocRef } from "../../models/utils/firestore-method";
+import { useUserStore } from "../../hooks/user-store";
 import { auth } from "../../models/services/firebase";
+import { getDocRef } from "../../models/utils/firestore-method";
+import "./account-view.css";
 
-import UserController from "../../controllers/user-controller";
 import AuthenticationController from "../../controllers/authentication-controller";
+import UserController from "../../controllers/user-controller";
 
-import RequestsListPortal from "./RequestsListPortal";
-import FriendsListPortal from "./FriendsListPortal";
-import BlockedListPortal from "./BlockedListPortal";
-import PicturesListPortal from "./PicturesListPortal";
-import SearchBar from "./SearchBar"; // Import the new SearchBar component
 import { onAuthStateChanged } from "firebase/auth";
+import BlockedListPortal from "./BlockedListPortal";
+import FriendsListPortal from "./FriendsListPortal";
+import PicturesListPortal from "./PicturesListPortal";
+import RequestsListPortal from "./RequestsListPortal";
+import SearchBar from "./SearchBar"; // Import the new SearchBar component
 
 export default function AccountView() {
     const navigate = useNavigate();
@@ -290,9 +291,9 @@ export default function AccountView() {
                 {/* <Link to="/home" className="back-button">
                     Back to Home
                 </Link> */}
-                <button className="back-button" onClick={handleBackToHome}>
-                    Back to Home
-                </button>
+              <button onClick={handleBackToHome} className="home-icon-button">
+          <div className="home-icon"></div>
+        </button>
             </div>
             <div className="image">
                 <img 
