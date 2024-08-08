@@ -1,18 +1,34 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+.home {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; 
+}
+
 .upload-picture {
   display: flex;
-  width: 100%;
-  height: 100%;
   flex-direction: column;
+  width: 100%;
+  height: 100%; 
+  justify-content: center; 
+  align-items: center; 
+  background-color: #fff; 
 }
 
 .upload-picture .body {
   display: flex;
   flex-direction: column;
+  width: 100%; 
+  justify-content: center; 
 }
 
 .upload-picture .option-picture {
-  width: 50%;
-  height: 50%;
+  width: 100%;
+  max-width: 500px; 
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -20,23 +36,40 @@
 
 .upload-picture .option-picture .button-container {
   display: flex;
-  justify-content: center; 
-  gap: 1rem; 
+  justify-content: center;
+  gap: 2rem; 
   width: 100%;
   max-width: 500px; 
   margin-bottom: 1rem;
 }
 
+.upload-picture .option-picture .button-container .icon-button {
+  width: 80px; 
+  height: 80px; 
+  object-fit: contain; 
+}
+
+.upload-picture .option-picture .button-container .flex-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.upload-picture .option-picture .button-container p {
+  margin-top: 0.5rem; 
+}
+
 .upload-picture .option-picture .picture {
   position: relative;
-  display: flex;
-  width: 70%;
-  height: 50%;
+  width: 100%;
+  max-width: 400px; 
+  height: auto;
 }
 
 .upload-picture .option-picture .picture img {
-  width: 400px;
-  height: 400px;
+  width: 100%;
+  height: auto;
   border-radius: 5%;
   border: 2px solid whitesmoke;
   object-fit: cover;
@@ -68,23 +101,4 @@
   height: 40px;
   background: url('../chat/home-icon.svg') no-repeat center center;
   background-size: contain;
-}
-
-
-.upload-picture .option-picture .button-container .icon-button {
-  width: 80px; 
-  height: 80px; 
-  object-fit: contain; 
-  margin-top: 150px; 
-}
-
-.upload-picture .option-picture .button-container .flex-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.upload-picture .option-picture .button-container p {
-  margin-top: 0.5rem; 
 }
