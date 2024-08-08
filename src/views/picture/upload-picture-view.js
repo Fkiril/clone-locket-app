@@ -305,7 +305,7 @@ export default function UploadPictureView() {
                   </div>
                 </div>
               )}
-            </>
+            </div>
           )}
      
       </div>
