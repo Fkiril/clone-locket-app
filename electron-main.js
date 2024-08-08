@@ -11,7 +11,7 @@ function createWindow() {
     },
   });
 
-  const filePath = `file://${path.join(__dirname, "build", "index.html")}`;
+  const filePath = 'http://localhost:3000';
   console.log(filePath);
   win.loadURL(filePath);
 }
