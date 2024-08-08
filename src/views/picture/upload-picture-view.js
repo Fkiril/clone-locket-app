@@ -27,7 +27,7 @@ export default function UploadPictureView() {
   const [selectedFriends, setSelectedFriends] = useState([]);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [uploaded, setUploaded] = useState(false);
-  const [viewState, setViewState] = useState(ICON_STATE); // New state for view
+  const [viewState, setViewState] = useState(ICON_STATE); 
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -38,7 +38,7 @@ export default function UploadPictureView() {
         file: event.target.files[0],
         url: URL.createObjectURL(event.target.files[0]),
       });
-      setViewState(UPLOAD_STATE); // Switch to upload picture state
+      setViewState(UPLOAD_STATE); 
     }
   };
 
@@ -77,7 +77,7 @@ export default function UploadPictureView() {
     setShowScopeOption(false);
     setSelectedFriends([]);
     setIsCameraOpen(false);
-    setViewState(ICON_STATE); // Switch back to icon state
+    setViewState(ICON_STATE); 
   };
 
   const handleText = (event) => {
@@ -109,7 +109,7 @@ export default function UploadPictureView() {
     if (picture.file) handleCancelOption();
 
     setIsCameraOpen(true);
-    setViewState(UPLOAD_STATE); // Ensure state is set to upload picture
+    setViewState(UPLOAD_STATE); 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices
         .getUserMedia({ video: true })
@@ -127,7 +127,7 @@ export default function UploadPictureView() {
 
   const handleCloseCamera = () => {
     setIsCameraOpen(false);
-    setViewState(UPLOAD_STATE); // Ensure state is set to upload picture
+    setViewState(UPLOAD_STATE); 
     const video = videoRef.current;
     const stream = video.srcObject;
     const tracks = stream.getTracks();
@@ -216,7 +216,7 @@ export default function UploadPictureView() {
           )}
   
           {viewState === UPLOAD_STATE && (
-            <div>
+            <>
               {isCameraOpen && (
                 <div className="camera mb-8">
                   <video
@@ -236,42 +236,7 @@ export default function UploadPictureView() {
                   </button>
                 </div>
               )}
-    {optionFileUrl && (
-          <div>
-            <div className="scope-select mb-4">
-              <button
-                onClick={handleShowScopeOption}
-                className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400"
-              >
-                Select Scope
-              </button>
-              {showScopeOption && (
-                <div className="mt-2">
-                  <select
-                    onChange={(event) => setScope(event.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                  >
-                    <option value={ScopeEnum.PUBLIC}>Public</option>
-                    <option value={ScopeEnum.PRIVATE}>Private</option>
-                    <option value={ScopeEnum.SPECIFY}>Specify</option>
-                  </select>
-                  {scope === ScopeEnum.SPECIFY && (
-                    <div className="mt-2">
-                      {friendsData.map((friend) => (
-                        <label key={friend.name} className="block">
-                          <input
-                            type="checkbox"
-                            checked={selectedFriends.includes(friend.id)}
-                            onChange={() => handleFriendCheckboxChange(friend.id)}
-                            className="mr-2"
-                          />
-                          {friend.name}
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+  
               {picture.url && (
                 <div className="w-full">
                   <div className="picture mb-4">
@@ -287,28 +252,88 @@ export default function UploadPictureView() {
                     onBlur={handleCheckTextInput}
                     className="w-full mb-4 p-2 border border-gray-300 rounded-md"
                   />
-                  <div className="button-container flex justify-between">
+
+                 
+                  <div className="scope-selector mb-4">
                     <button
-                      type="button"
-                      onClick={handleSubmitPicture}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                      onClick={handleShowScopeOption}
+                      className="bg-gray-200 px-4 py-2 rounded-md"
                     >
-                      Submit
+                      {scope === ScopeEnum.PUBLIC
+                        ? "Public"
+                        : scope === ScopeEnum.FRIENDS
+                        ? "Friends"
+                        : "Specify"}
                     </button>
-                    <button
-                      type="button"
-                      onClick={handleCancelOption}
-                      className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                    >
-                      Cancel
-                    </button>
+                    {showScopeOption && (
+                      <div className="scope-options mt-2 p-2 bg-gray-100 rounded-md shadow-lg">
+                        <button
+                          onClick={() => setScope(ScopeEnum.PUBLIC)}
+                          className={`w-full text-left px-4 py-2 ${
+                            scope === ScopeEnum.PUBLIC ? "bg-blue-100" : ""
+                          }`}
+                        >
+                          Public
+                        </button>
+                        <button
+                          onClick={() => setScope(ScopeEnum.FRIENDS)}
+                          className={`w-full text-left px-4 py-2 ${
+                            scope === ScopeEnum.FRIENDS ? "bg-blue-100" : ""
+                          }`}
+                        >
+                          Friends
+                        </button>
+                        <button
+                          onClick={() => setScope(ScopeEnum.SPECIFY)}
+                          className={`w-full text-left px-4 py-2 ${
+                            scope === ScopeEnum.SPECIFY ? "bg-blue-100" : ""
+                          }`}
+                        >
+                          Specify
+                        </button>
+                      </div>
+                    )}
                   </div>
+
+             
+                  {scope === ScopeEnum.SPECIFY && (
+                    <div className="friend-selector mb-4">
+                      <div className="bg-gray-200 p-4 rounded-md">
+                        <p>Select friends to share with:</p>
+                        {friendDatas.map((friend) => (
+                          <div key={friend.id} className="flex items-center mt-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedFriends.includes(friend.id)}
+                              onChange={() => handleFriendCheckboxChange(friend.id)}
+                              className="mr-2"
+                            />
+                            <p>{friend.name}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+  
+                  <button
+                    type="button"
+                    onClick={handleSubmitPicture}
+                    className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full mb-2"
+                  >
+                    Submit Picture
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelOption}
+                    className="bg-red-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 w-full"
+                  >
+                    Cancel
+                  </button>
                 </div>
               )}
-            </div>
+            </>
           )}
-     
       </div>
     </div>
   );
-}  
+}
