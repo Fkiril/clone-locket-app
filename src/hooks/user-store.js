@@ -21,13 +21,13 @@ export const useUserStore = create((set, get) => ({
     try {
       get().isFetching = true;
       console.log(`fetching user's info with id: ${id}`);
-
+      
       const userData = await getDocDataById("users", id);
       const fDatas = [];
       const rDatas = [];
       const bDatas = [];
       const picDatas = [];
-
+      
       if (userData) {
 
         const fIds = userData.friends;

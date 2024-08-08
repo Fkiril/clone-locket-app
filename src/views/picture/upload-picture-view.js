@@ -1,13 +1,22 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useUserStore } from "../../hooks/user-store";
 import { toast } from "react-toastify";
+
 import PictureController from "../../controllers/picture-controller";
+import { useUserStore } from "../../hooks/user-store";
 import Picture, { ScopeEnum } from "../../models/entities/picture";
+
 import { onSnapshot } from "firebase/firestore";
 import { getDocRef } from "../../models/utils/firestore-method";
 import { auth } from "../../models/services/firebase";
+
 // import { FaCamera } from "react-icons/fa";
+import cameraIcon from './camera.jpg';
+import folderIcon from './folder.jpg';
+import "./upload-picture-view.css";
+
+const ICON_STATE = 'icon_state';
+const UPLOAD_STATE = 'upload_state';
 
 export default function UploadPictureView() {
   const navigate = useNavigate();
@@ -25,8 +34,8 @@ export default function UploadPictureView() {
   const [showScopeOption, setShowScopeOption] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState([]);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-
   const [uploaded, setUploaded] = useState(false);
+  const [viewState, setViewState] = useState(ICON_STATE); // New state for view
 
   useEffect(() => {
     if (state?.routing && currentUser) {
@@ -59,7 +68,8 @@ export default function UploadPictureView() {
       setPicture({
         file: event.target.files[0],
         url: URL.createObjectURL(event.target.files[0]),
-      })
+      });
+      setViewState(UPLOAD_STATE); // Switch to upload picture state
     }
   };
 
@@ -69,7 +79,7 @@ export default function UploadPictureView() {
       text: text,
       scope: scope,
       canSee: [currentUser.id],
-    })
+    });
 
     if (scope === ScopeEnum.SPECIFY) {
       picInstance.canSee.push(...selectedFriends);
@@ -77,22 +87,28 @@ export default function UploadPictureView() {
       picInstance.canSee.push(...currentUser.friends);
     }
 
-    await PictureController.uploadPicture(picInstance, picture.file).then(() => {
-      toast.success("Picture uploaded successfully!");
-      handleCancelOption();
-      setUploaded(true);
-    }).catch((error) => {
-      toast.error("Failed to upload picture. Please try again!");
-    });
+    await PictureController.uploadPicture(picInstance, picture.file)
+      .then(() => {
+        toast.success("Picture uploaded successfully!");
+        handleCancelOption();
+        setUploaded(true);
+      })
+      .catch((error) => {
+        toast.error("Failed to upload picture. Please try again!");
+      });
   };
 
   const handleCancelOption = () => {
-    const fileInput = document.getElementById("file");
-    fileInput.value = "";
     setPicture({
       file: null,
       url: "",
-    })
+    });
+    setText("");
+    setScope(ScopeEnum.PUBLIC);
+    setShowScopeOption(false);
+    setSelectedFriends([]);
+    setIsCameraOpen(false);
+    setViewState(ICON_STATE); // Switch back to icon state
   };
 
   const handleText = (event) => {
@@ -127,6 +143,8 @@ export default function UploadPictureView() {
     setIsCameraOpen(true);
     if (picture.file) handleCancelOption();
 
+    setIsCameraOpen(true);
+    setViewState(UPLOAD_STATE); // Ensure state is set to upload picture
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices
       .getUserMedia({ video: true })
@@ -151,6 +169,7 @@ export default function UploadPictureView() {
 
   const handleCloseCamera = () => {
     setIsCameraOpen(false);
+    setViewState(UPLOAD_STATE); // Ensure state is set to upload picture
     const video = videoRef.current;
     const stream = video.srcObject;
     const tracks = stream.getTracks();
@@ -166,11 +185,11 @@ export default function UploadPictureView() {
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    
+
     context.save();
     context.scale(-1, 1);
     context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-    
+
     context.restore();
     const blob = await new Promise((resolve) => {
       canvas.toBlob(resolve, "image/png");
@@ -179,7 +198,7 @@ export default function UploadPictureView() {
     setPicture({
       file: blob,
       url: canvas.toDataURL("image/png"),
-    })
+    });
     handleCloseCamera();
   };
 
@@ -187,136 +206,116 @@ export default function UploadPictureView() {
     if (isCameraOpen) {
       handleCloseCamera();
     }
-    navigate("/home", { state: { routing: uploaded? false : true } });
+    navigate("/home", { state: { routing: uploaded ? false : true } });
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white p-10 rounded-lg shadow-md w-full max-w-2xl flex flex-col items-center relative">
-        <button
-          onClick={handleBackToHome}
-          className="absolute top-4 right-4 px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
-        >
-          Back to Home
+    <div className="home min-h-screen flex flex-col items-center bg-white-100">
+      <div className="header-container">
+        <h1 className="app-title">Clone-locket</h1>
+        <button onClick={handleBackToHome} className="home-icon-button">
+          <div className="home-icon"></div>
         </button>
-        {/* <FaCamera className="text-9xl text-gray-500 mb-8" /> */}
-        <div className="flex gap-4 mb-8">
-          <button
-            type="button"
-            onClick={() => {
-              document.getElementById("file").click();
-              if (isCameraOpen) handleCloseCamera();
-            }}
-            className="px-8 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-xl"
-          >
-            Choose Picture
-            <input
-              type="file"
-              id="file"
-              style={{ display: "none" }}
-              accept="image/*"
-              onChange={handlePicture}
-            />
-          </button>
-          <button
-            type="button"
-            className="px-8 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-xl"
-            onClick={isCameraOpen ? handleCloseCamera : handleOpenCamera}
-          >
-            {isCameraOpen ? "Close Camera" : "Open Camera"}
-          </button>
-        </div>
-        {isCameraOpen && (
-          <div className="camera mb-8">
-            <video
-              autoPlay
-              playsInline
-              muted
-              ref={videoRef}
-              style={{ transform: "scaleX(-1)" }}
-            ></video>
-            <canvas ref={canvasRef} aria-disabled className="hidden"></canvas>
-            <button
-              type="button"
-              onClick={handleTakePicture}
-              className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-4"
-            >
-              Take Picture
-            </button>
-          </div>
-        )}
-        
-        {picture.url && (
-          <div className="w-full">
-            <div className="scope-select mb-4">
-              <button
-                onClick={handleShowScopeOption}
-                className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400"
-              >
-                Select Scope
-              </button>
-              {showScopeOption && (
-                <div className="mt-2">
-                  <select
-                    onChange={(event) => setScope(event.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md"
+      </div>
+      <p className="app-subtitle text-center">Share moments - Happy life</p>
+  
+      <div className="bg-white p-10 rounded-lg shadow-md w-full max-w-2xl flex flex-col items-center relative body">
+     
+          {viewState === ICON_STATE && (
+            <div className="option-picture">
+              <div className="button-container flex justify-center items-center space-x-10">
+                <div className="flex flex-col items-center">
+                  <img
+                    src={folderIcon}
+                    alt="Choose Picture"
+                    className="icon-button"
+                    onClick={() => {
+                      document.getElementById("file").click();
+                      if (isCameraOpen) handleCloseCamera();
+                    }}
+                  />
+                  <p className="text-lg text-center">Choose Picture</p>
+                  <input
+                    type="file"
+                    id="file"
+                    style={{ display: "none" }}
+                    onChange={handlePicture}
+                  />
+                </div>
+                <div className="flex flex-col items-center">
+                  <img
+                    src={cameraIcon}
+                    alt="Open Camera"
+                    className="icon-button"
+                    onClick={isCameraOpen ? handleCloseCamera : handleOpenCamera}
+                  />
+                  <p className="text-lg text-center">
+                    {isCameraOpen ? "Close Camera" : "Open Camera"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+  
+          {viewState === UPLOAD_STATE && (
+            <>
+              {isCameraOpen && (
+                <div className="camera mb-8">
+                  <video
+                    autoPlay
+                    playsInline
+                    muted
+                    ref={videoRef}
+                    style={{ transform: "scaleX(-1)" }}
+                  ></video>
+                  <canvas ref={canvasRef} aria-disabled className="hidden"></canvas>
+                  <button
+                    type="button"
+                    onClick={handleTakePicture}
+                    className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-4"
                   >
-                    <option value={ScopeEnum.PUBLIC}>Public</option>
-                    <option value={ScopeEnum.PRIVATE}>Private</option>
-                    <option value={ScopeEnum.SPECIFY}>Specify</option>
-                  </select>
-                  {scope === ScopeEnum.SPECIFY && (
-                    <div className="mt-2">
-                      {friendDatas.map((friend) => (
-                        <label key={friend.name} className="block">
-                          <input
-                            type="checkbox"
-                            checked={selectedFriends.includes(friend.id)}
-                            onChange={() =>
-                              handleFriendCheckboxChange(friend.id)
-                            }
-                            className="mr-2"
-                          />
-                          {friend.name}
-                        </label>
-                      ))}
-                    </div>
-                  )}
+                    Take Picture
+                  </button>
                 </div>
               )}
-            </div>
-            <div className="picture mb-4">
-              <img src={picture.url} alt="" className="w-full rounded-lg" />
-              <input
-                id="text-input"
-                type="text"
-                maxLength="35"
-                placeholder="Enter text"
-                value={text}
-                onChange={handleText}
-                onInput={handleCheckTextInput}
-                className="w-full mt-2 p-2 border border-gray-300 rounded-md"
-              />
-            </div>
-            <div className="buttons flex justify-between">
-              <button
-                type="button"
-                onClick={handleSubmitPicture}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-              >
-                Submit
-              </button>
-              <button
-                type="button"
-                onClick={handleCancelOption}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
+  
+              {picture.url && (
+                <div className="w-full">
+                  <div className="picture mb-4">
+                    <img src={picture.url} alt="" className="w-full rounded-lg" />
+                  </div>
+                  <input
+                    id="text-input"
+                    type="text"
+                    maxLength="35"
+                    placeholder="Enter text"
+                    value={text}
+                    onChange={handleText}
+                    onBlur={handleCheckTextInput}
+                    className="w-full mb-4 p-2 border border-gray-300 rounded-md"
+                  />
+                  <div className="button-container flex justify-between">
+                    <button
+                      type="button"
+                      onClick={handleSubmitPicture}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                    >
+                      Submit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelOption}
+                      className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+     
       </div>
     </div>
   );
-}
+}  

@@ -2,20 +2,21 @@ import "./account-view.css";
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useUserStore } from "../../hooks/user-store";
-import { toast } from "react-toastify";
-import { onSnapshot } from "firebase/firestore";
-import { getDocRef } from "../../models/utils/firestore-method";
 import { auth } from "../../models/services/firebase";
+import { onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged, updatePassword } from "firebase/auth";
+import { getDocRef } from "../../models/utils/firestore-method";
 
-import UserController from "../../controllers/user-controller";
+import { toast } from "react-toastify";
+import { useUserStore } from "../../hooks/user-store";
+
 import AuthenticationController from "../../controllers/authentication-controller";
+import UserController from "../../controllers/user-controller";
 
-import RequestsListPortal from "./RequestsListPortal";
-import FriendsListPortal from "./FriendsListPortal";
 import BlockedListPortal from "./BlockedListPortal";
+import FriendsListPortal from "./FriendsListPortal";
 import PicturesListPortal from "./PicturesListPortal";
+import RequestsListPortal from "./RequestsListPortal";
 import SearchBar from "./SearchBar"; // Import the new SearchBar component
 
 export default function AccountView() {
@@ -292,6 +293,14 @@ export default function AccountView() {
         navigate("/home", { state: { routing: true } });
     };
 
+    const handleDeteleAccount = async () => {
+        await AuthenticationController.deleteAccount({ userId: currentUser?.id, avatar: currentUser?.avatar}).then((result) => {
+            toast.success("Delete account successfull!");
+        }).catch((error) => {
+            toast.error("Failed to delete account. Please try again.");
+        });
+    };
+
     return (
         <div className="account-container">
         <div className="card gradient-overlay">
@@ -300,9 +309,9 @@ export default function AccountView() {
                 {/* <Link to="/home" className="back-button">
                     Back to Home
                 </Link> */}
-                <button className="back-button" onClick={handleBackToHome}>
-                    Back to Home
-                </button>
+              <button onClick={handleBackToHome} className="home-icon-button">
+          <div className="home-icon"></div>
+        </button>
             </div>
             <div className="image">
                 <img 
@@ -392,6 +401,11 @@ export default function AccountView() {
 
         <button className="log-out" onClick={handleLogOut}>
             Log Out
+        </button>
+
+        <button className="delete-account" 
+            onClick={handleDeteleAccount}>
+            Delete Account
         </button>
         </div>
     );

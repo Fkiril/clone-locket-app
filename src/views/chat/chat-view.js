@@ -1,8 +1,8 @@
 import "./chat-view.css";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { onSnapshot } from "firebase/firestore";
 import { getDocRef } from "../../models/utils/firestore-method";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
 import { useChatListStore } from "../../hooks/chat-list-store";
 import ChatController from "../../controllers/chat-controller";
@@ -10,12 +10,23 @@ import { toast } from "react-toastify";
 
 export default function ChatView() {
     const navigate = useNavigate();
-    
+    const [state, setState] = useState(useLocation().state);
+  
     const { currentUser, friendDatas } = useUserStore();
     const { chatManager, conversations, lastMessages, fetchLastMessages } = useChatListStore();
     const [searchedFriend, setSearchedFriend] = useState(null);
 
     const [newMessageAt, setNewMessageAt] = useState([]);
+
+    useEffect(() => {
+        if (state?.routing && lastMessages) {
+            setState(null);
+        } else {
+            const docRef = getDocRef("chatManagers", currentUser?.id);
+            const unSubscribe = onSnapshot(docRef, { includeMetadataChanges: false }, () => {
+                fetchLastMessages(currentUser?.id);
+                console.log("ChatView: useEffect() for fetchLastMessages: ", lastMessages);
+            });
 
     useEffect(() => {
         const docRef = getDocRef("chatManagers", currentUser?.id);
@@ -122,17 +133,19 @@ export default function ChatView() {
 
     return (
         <div className="chat-view-container">
-            <div className="header">
+            <div className="chat-header">
                 <h2>Chat List</h2>
                 <button onClick={() => handleRouting("/home")}>
-                    Home
+                    <div className="home-icon"></div>
                 </button>
             </div>
             <div className="chat-view">
                 <div className="search-bar">
                     <form className="search-form" onSubmit={searchedFriend? handleClearSearch : handleSearchFriend}>
                         <input type="text" name="search-input" placeholder="Find a friend..." />
-                        <button type="submit">{searchedFriend? "Clear" : "Search"}</button>
+                        <button type="submit">
+                            <div className="search-icon"></div>
+                        </button>
                     </form>
                 </div>
                 <div className="conversations">
@@ -141,7 +154,9 @@ export default function ChatView() {
                         .map(friend => (
                             <div className="friend" key={friend.id} onClick={() => handleNavigate(friend.id)}>
                                 <div className="friend-info">
-                                    <img src={friend.avatar || "./default_avatar.jpg"} alt="avatar" />
+                                    <div className="friend-avatar">
+                                        <img src={friend.avatar || "./default_avatar.jpg"} alt="avatar" />
+                                    </div>
                                     <div className="friend-details">
                                         <p className="friend-name">{friend.name}</p>
                                         <p className="last-message">
@@ -149,7 +164,9 @@ export default function ChatView() {
                                             <span className="message-time">{friend.lastMessage? formatTime(friend.lastMessage?.createdTime) : null}</span>
                                         </p>
                                         {friend.unreadCount > 0 && (
-                                            <span className="unread-count">{friend.unreadCount}</span>
+                                            <div className="unread-count">
+                                                <span>{friend.unreadCount}</span>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
