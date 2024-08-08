@@ -28,11 +28,17 @@ export default function ChatView() {
                 console.log("ChatView: useEffect() for fetchLastMessages: ", lastMessages);
             });
 
+            return () => {
+                unSubscribe();
+            }
+        }
+    }, [onSnapshot]);
+
     useEffect(() => {
         const docRef = getDocRef("chatManagers", currentUser?.id);
         const unSubscribe = onSnapshot(docRef, { includeMetadataChanges: false }, async () => {
             await fetchLastMessages(currentUser?.id);
-            if (chatManager) {
+            if (chatManager && chatManager.conversationStates && Object.keys(chatManager.conversationStates).length > 0) {
                 Object.keys(chatManager.conversationStates).forEach(key => {
                     const state = chatManager.conversationStates[key];
                     if (state > 0) {
@@ -53,6 +59,7 @@ export default function ChatView() {
         if (!conversationId) {
             conversationId = await ChatController.createConversation([currentUser.id, friendId]);
         }
+
         if (newMessageAt.includes(conversationId)) {
             navigate(`/conversation/${conversationId}`, { state: { routing: true, newMessage: true } });
         }
@@ -69,8 +76,6 @@ export default function ChatView() {
             setSearchedFriend(null);
         } else {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            // const friends = friendDatas.filter((friend) => 
-            //     emailRegex.test(searchInput)? friend.email.toLowerCase().includes(searchInput.toLowerCase()) : friend.name.toLowerCase().includes(searchInput.toLowerCase()));
             const friends = [];
             for (const friend of friendDatas) {
                 if (emailRegex.test(searchInput)) {
@@ -85,7 +90,6 @@ export default function ChatView() {
             }
             if (friends.length > 0) {   
                 setSearchedFriend(friends);
-                console.log("searchedFriend: ", searchedFriend);
             } else {
                 toast.warning("No friend found with this email or name.");
                 setSearchedFriend(null);
@@ -125,7 +129,6 @@ export default function ChatView() {
         }
         else return friend.conversation !== undefined;
     })
-    console.log("filtered: ", filtered);
     
     const handleRouting = (path) => {
         navigate(path, { state: { routing: true } });
@@ -176,4 +179,4 @@ export default function ChatView() {
             </div>
         </div>
     );
-}})}
+}
