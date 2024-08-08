@@ -168,18 +168,17 @@ export default function UploadPictureView() {
   };
 
   return (
-    <div className="home min-h-screen flex flex-col items-center bg-gray-100">
-      <div className="header-container text-center mb-1">
+    <div className="home min-h-screen flex flex-col items-center bg-white-100">
+      <div className="header-container">
         <h1 className="app-title">Clone-locket</h1>
-        <p className="app-subtitle">Share moments - Happy life</p>
+        <button onClick={handleBackToHome} className="home-icon-button">
+          <div className="home-icon"></div>
+        </button>
       </div>
-
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 upload-picture">
-        <div className="bg-white p-10 rounded-lg shadow-md w-full max-w-2xl flex flex-col items-center relative body">
-          <button onClick={handleBackToHome} className="home-icon-button">
-            <div className="home-icon"></div>
-          </button>
-
+      <p className="app-subtitle text-center">Share moments - Happy life</p>
+  
+      <div className="bg-white p-10 rounded-lg shadow-md w-full max-w-2xl flex flex-col items-center relative body">
+     
           {viewState === ICON_STATE && (
             <div className="option-picture">
               <div className="button-container flex justify-center items-center space-x-10">
@@ -215,7 +214,7 @@ export default function UploadPictureView() {
               </div>
             </div>
           )}
-
+  
           {viewState === UPLOAD_STATE && (
             <>
               {isCameraOpen && (
@@ -237,7 +236,7 @@ export default function UploadPictureView() {
                   </button>
                 </div>
               )}
-
+  
               {picture.url && (
                 <div className="w-full">
                   <div className="picture mb-4">
@@ -273,8 +272,8 @@ export default function UploadPictureView() {
               )}
             </>
           )}
-        </div>
+     
       </div>
     </div>
   );
-}
+}  
