@@ -74,15 +74,6 @@ export default class UserController {
         }
     }
 
-    async changePassword(user, newPassword) {
-        try {
-            await changePassword(user, newPassword);
-        } catch(error) {
-            console.log("Error changing password: ", error);
-            throw error;
-        }
-    };
-
     async changeAvatar(newAvatar) {
         try {
             const { fileUrl } = await uploadToFolder(newAvatar, "avatars");

@@ -3,10 +3,14 @@ import { getDocDataById } from "../models/utils/firestore-method";
 
 export const useChatListStore = create((set) => ({
     isLoading: false,
+    chatManager: null,
     conversations: null,
     lastMessages: null,
     fetchLastMessages: async (userId) => {
         try {
+            console.log("fetchLastMessages: ", userId);
+            if (!userId) set({ isLoading: false, chatManager: null, conversations: null, lastMessages: null });
+
             const chatManagerData = await getDocDataById("chatManagers", userId);
             if (chatManagerData) {
                 const conversationIds = Object.keys(chatManagerData.conversationStates);
@@ -37,12 +41,12 @@ export const useChatListStore = create((set) => ({
                     }
                 }));
 
-                set({ conversations: conversationDatas, lastMessages: lastMessageDatas, isLoading: false });
+                set({ chatManager: chatManagerData, conversations: conversationDatas, lastMessages: lastMessageDatas, isLoading: false });
             }
-            else set({ conversations: null, lastMessages: null, isLoading: false });
+            else set({ chatManager: null, conversations: null, lastMessages: null, isLoading: false });
         } catch (error) {
             console.log("Error fetching boxChats: ", error);
-            set({ conversations: null, lastMessages: null, isLoading: false });
+            set({ chatManager: null, conversations: null, lastMessages: null, isLoading: false });
         }
     },
 }));

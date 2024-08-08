@@ -1,18 +1,18 @@
-import { onSnapshot } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import "./account-view.css";
+import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useUserStore } from "../../hooks/user-store";
+import { auth } from "../../models/services/firebase";
+import { onSnapshot } from "firebase/firestore";
+import { onAuthStateChanged, updatePassword } from "firebase/auth";
+import { getDocRef } from "../../models/utils/firestore-method";
+
 import { toast } from "react-toastify";
 import { useUserStore } from "../../hooks/user-store";
-import { auth } from "../../models/services/firebase";
-import { getDocRef } from "../../models/utils/firestore-method";
-import "./account-view.css";
 
 import AuthenticationController from "../../controllers/authentication-controller";
 import UserController from "../../controllers/user-controller";
 
-import { onAuthStateChanged } from "firebase/auth";
 import BlockedListPortal from "./BlockedListPortal";
 import FriendsListPortal from "./FriendsListPortal";
 import PicturesListPortal from "./PicturesListPortal";
@@ -23,7 +23,7 @@ export default function AccountView() {
     const navigate = useNavigate();
     const [state, setState] = useState(useLocation().state);
     
-    const { currentUser, friendDatas, fetchUserInfo } = useUserStore();
+    const { currentUser, fetchUserInfo } = useUserStore();
 
     const [userController, setUserController] = useState(
         currentUser? new UserController(currentUser) : null
@@ -46,30 +46,37 @@ export default function AccountView() {
     const [isShowingBlocked, setIsShowingBlocked] = useState(false);
 
     const [isShowingPictures, setIsShowingPictures] = useState(false);
+
+    const isMounted = useRef(false);
     
     useEffect(() => {
-        if (state?.routing && currentUser) {
-            setState(null);
-        }
-        else if (auth?.currentUser?.uid) {
-            const unSubscribe = onSnapshot(getDocRef("users", auth?.currentUser.uid), { includeMetadataChanges: false }, async () => {
-                await fetchUserInfo(auth?.currentUser.uid);
-    
-                setUserController(new UserController(currentUser));
-                
-                console.log("account-view.js: useEffect() for onSnapshot");
-            });
-    
-            return () => {
-                unSubscribe();
+        if (!isMounted.current) {
+            isMounted.current = true;
+            if (state?.routing && currentUser) {
+                setState(null);
             }
-        }
-        else {
-            auth.authStateReady().then(async () => {
-                await fetchUserInfo(auth?.currentUser.uid);
-            }).catch((error) => {
-                console.log("account-view.js: auth.authStateReady() error: ", error);
-            });
+            else if (auth?.currentUser?.uid) {
+                const unSubscribe = onSnapshot(getDocRef("users", auth?.currentUser.uid), { includeMetadataChanges: false }, async () => {
+                    await fetchUserInfo(auth?.currentUser.uid);
+        
+                    setUserController(new UserController(currentUser));
+                    
+                    console.log("account-view.js: useEffect() for onSnapshot");
+                });
+        
+                return () => {
+                    unSubscribe();
+                }
+            }
+            else {
+                auth.authStateReady().then(async () => {
+                    await fetchUserInfo(auth?.currentUser.uid);
+    
+                    console.log("account-view.js: auth.authStateReady()");
+                }).catch((error) => {
+                    console.log("account-view.js: auth.authStateReady() error: ", error);
+                });
+            }
         }
     }, [onSnapshot]);
 
@@ -230,14 +237,25 @@ export default function AccountView() {
             const formData = new FormData(event.target);
             const newPassword = formData.get("new-password");
             const confirmPassword = formData.get("confirm-password");
+            if (!newPassword || !confirmPassword) {
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                toast.warning("Password must be at least 6 characters!");
+                return;
+            }
+
             if (newPassword !== confirmPassword) {
                 toast.warning("Password does not match!");
                 return;
             }
 
-            await userController.changePassword(auth.currentUser, newPassword).then(() => {
+            await updatePassword(auth.currentUser, newPassword).then(() => {
                 toast.success("Change password successfull!");
                 setIsChangingPassword(false);
+                event.target.reset();
+
             }).catch((error) => {
                 toast.error("Failed to change password. Please try again.");
             });

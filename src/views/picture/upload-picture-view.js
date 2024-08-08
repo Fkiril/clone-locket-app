@@ -1,9 +1,16 @@
-import React, { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+
 import PictureController from "../../controllers/picture-controller";
 import { useUserStore } from "../../hooks/user-store";
 import Picture, { ScopeEnum } from "../../models/entities/picture";
+
+import { onSnapshot } from "firebase/firestore";
+import { getDocRef } from "../../models/utils/firestore-method";
+import { auth } from "../../models/services/firebase";
+
+// import { FaCamera } from "react-icons/fa";
 import cameraIcon from './camera.jpg';
 import folderIcon from './folder.jpg';
 import "./upload-picture-view.css";
@@ -13,8 +20,9 @@ const UPLOAD_STATE = 'upload_state';
 
 export default function UploadPictureView() {
   const navigate = useNavigate();
+  const [state, setState] = useState(useLocation().state);
 
-  const { currentUser, friendDatas } = useUserStore();
+  const { currentUser, friendDatas, fetchUserInfo } = useUserStore();
 
   const [picture, setPicture] = useState({
     file: null,
@@ -29,8 +37,31 @@ export default function UploadPictureView() {
   const [uploaded, setUploaded] = useState(false);
   const [viewState, setViewState] = useState(ICON_STATE); // New state for view
 
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
+  useEffect(() => {
+    if (state?.routing && currentUser) {
+        setState(null);
+    }
+    else if (auth?.currentUser?.uid) {
+        const unSubscribe = onSnapshot(getDocRef("users", auth?.currentUser?.uid), async () => {
+            await fetchUserInfo(auth?.currentUser.uid);
+
+            console.log("upload-picture.js: useEffect() for onSnapshot");
+        });
+
+        return () => {
+            unSubscribe();
+        }
+    }
+    else {
+        auth.authStateReady().then(async () => {
+            await fetchUserInfo(auth?.currentUser.uid);
+
+            console.log("upload-picture.js: auth.authStateReady()");
+        }).catch((error) => {
+            console.log("upload-picture.js: auth.authStateReady() error: ", error);
+        });
+    }
+  }, [onSnapshot, auth?.currentUser?.uid]);
 
   const handlePicture = (event) => {
     if (event.target.files[0]) {
@@ -105,23 +136,34 @@ export default function UploadPictureView() {
     });
   };
 
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+
   const handleOpenCamera = () => {
+    setIsCameraOpen(true);
     if (picture.file) handleCancelOption();
 
     setIsCameraOpen(true);
     setViewState(UPLOAD_STATE); // Ensure state is set to upload picture
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices
-        .getUserMedia({ video: true })
-        .then((stream) => {
-          const video = videoRef.current;
+      .getUserMedia({ video: true })
+      .then((stream) => {
+        const video = videoRef.current;
+        if (video) {
           video.srcObject = stream;
           video.play();
-        })
-        .catch((error) => {
-          toast.error("Cannot access camera. Please grant permission!");
-          console.error("Error accessing camera:", error);
-        });
+        }
+        else {
+          toast.error("Something went wrong!");
+          setIsCameraOpen(false);
+        }
+      })
+      .catch((error) => {
+        toast.error("Can not access camera. Please gain permission!");
+        setIsCameraOpen(false);
+        console.error("Error accessing camera:", error);
+      });
     }
   };
 

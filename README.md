@@ -58,3 +58,4 @@ Base on MVC architecture:
             + public
             + specifyate "willSee" list (a list of user's id that can see this picture, if scope is specify we will use specifyList), concurrently upload this picture to storage and add this picture's id to "picturesCanBeSeen" list of all user that appear in "willSee"
         - canSee: a list of user's id that can see this picture
+        - reactions: a map with key is userId and value is type of reaction (like, love, haha, sad, angry)
