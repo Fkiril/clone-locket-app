@@ -216,7 +216,7 @@ export default function UploadPictureView() {
           )}
   
           {viewState === UPLOAD_STATE && (
-            <>
+            <div>
               {isCameraOpen && (
                 <div className="camera mb-8">
                   <video
