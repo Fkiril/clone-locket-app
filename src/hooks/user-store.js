@@ -83,7 +83,7 @@ export const useUserStore = create((set, get) => ({
           );
         }
 
-        const picIds = userData.picturesCanSee;
+        const picIds = userData.picturesCanSee?.slice().reverse();
         if (picIds && picIds.length > 0) {
           await Promise.all(
             picIds.map(async (picId) => {

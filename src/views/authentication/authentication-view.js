@@ -1,5 +1,5 @@
 import "./authentication-view.css";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import AuthenticationController from "../../controllers/authentication-controller";

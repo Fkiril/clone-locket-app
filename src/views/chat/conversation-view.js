@@ -1,13 +1,13 @@
-import { onSnapshot } from "firebase/firestore";
+import "./conversation-view.css";
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
-import ChatController from "../../controllers/chat-controller";
-import { useMessageStore } from "../../hooks/message-store";
-import { useUserStore } from "../../hooks/user-store";
-import { dateToString } from "../../models/utils/date-method";
 import { getDocRef } from "../../models/utils/firestore-method";
-import "./conversation-view.css";
+import { onSnapshot } from "firebase/firestore";
+import { useUserStore } from "../../hooks/user-store";
+import { useMessageStore } from "../../hooks/message-store";
+import ChatController from "../../controllers/chat-controller";
+import { dateToString } from "../../models/utils/date-method";
+import { toast } from "react-toastify";
 
 export default function ConversationView() {
     const navigate = useNavigate();
@@ -17,20 +17,32 @@ export default function ConversationView() {
     const { conversationId } = useParams();
     const { currentUser, friendDatas } = useUserStore();
     const { messages, fetchMessages } = useMessageStore();
-    const endRef = useRef(null);
 
+    const [finishSending, setFinishSending] = useState(false);
+
+    const endRef = useRef(null);
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages[conversationId]]);
 
     useEffect(() => {
-        if (state?.routing && messages[conversationId]) {
+        console.log("ConversationView: useEffect()");
+        if (state?.routing && messages[conversationId] && !state?.newMessage) {
             setState(null);
         } else {
             const conversationRef = getDocRef("conversations", conversationId);
-            const unSubscribe = onSnapshot(conversationRef, { includeMetadataChanges: false }, () => {
-                fetchMessages(conversationId);
-                console.log("ConversationView: useEffect() for fetchMessages: ", messages);
+            const unSubscribe = onSnapshot(conversationRef, { includeMetadataChanges: false }, async () => {
+                console.log("finishSending: ", finishSending);
+                if (finishSending) {
+                    await fetchMessages(conversationId);
+                    setFinishSending(false);
+                }
+                else {
+                    setTimeout(async () => {
+                        await fetchMessages(conversationId);
+                    }, 1000);
+                }
+                console.log("ConversationView: useEffect() for fetchMessages");
             });
             
             return () => unSubscribe();
@@ -63,8 +75,10 @@ export default function ConversationView() {
             createdTime: dateToString(new Date())
         };
 
-        await ChatController.sendMessage(conversationId, message).then(async () => {
-            await ChatController.signalNewMessage(conversationId, currentUser.id).catch((error) => {
+        await ChatController.sendMessage(conversationId, message).then( async () => {
+            await ChatController.signalNewMessage(conversationId, currentUser.id).then(() => {
+                setFinishSending(true);
+            }).catch((error) => {
                 toast.error("Failed to send message, please try again!");
             });
         }).catch((error) => {
@@ -80,13 +94,11 @@ export default function ConversationView() {
         const messagesId = messagesArray.filter(
             (message) => (message.senderId !== currentUser.id && !message.isSeen)
         ).map((message) => message.id);
-
+        if (messagesId.length === 0) return;
         await ChatController.setIsSeenToMessages(currentUser.id, conversationId, messagesId);
     };
 
-    const friendInfo = friendDatas?.find((friend) =>
-        Array.isArray(messages[conversationId]) && messages[conversationId].some((message) => message.senderId === friend.id && message.senderId !== currentUser.id)
-    );
+    const friendInfo = friendDatas.find(async (friend) => await ChatController.getFriendIdByConversationId(currentUser.id, conversationId) === friend.id);
 
     const handleRouting = (path) => {
         navigate(path, { state: { routing: true } });
