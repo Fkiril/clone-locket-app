@@ -1,7 +1,7 @@
 import "./account-view.css";
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
 import { toast } from "react-toastify";
 import { onSnapshot } from "firebase/firestore";
@@ -274,6 +274,14 @@ export default function AccountView() {
         navigate("/home", { state: { routing: true } });
     };
 
+    const handleDeteleAccount = async () => {
+        await AuthenticationController.deleteAccount({ userId: currentUser?.id, avatar: currentUser?.avatar}).then((result) => {
+            toast.success("Delete account successfull!");
+        }).catch((error) => {
+            toast.error("Failed to delete account. Please try again.");
+        });
+    };
+
     return (
         <div className="account-container">
         <div className="card gradient-overlay">
@@ -374,6 +382,11 @@ export default function AccountView() {
 
         <button className="log-out" onClick={handleLogOut}>
             Log Out
+        </button>
+
+        <button className="delete-account" 
+            onClick={handleDeteleAccount}>
+            Delete Account
         </button>
         </div>
     );

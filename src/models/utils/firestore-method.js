@@ -109,9 +109,9 @@ const exitDocWithValue = async (path, fieldName, data) => {
     const q = query(usersRef, where(fieldName, "==", data));
     const querySnapshot = await getDocs(q);
     if (querySnapshot.docs.empty) {
-        return true;
+        return false;
     }
-    return false;
+    return true;
 }
 
 const exitDoc = async (path, docName) => {
@@ -133,12 +133,15 @@ const getDocIdByValue = async (path, fieldName, data) => {
     return null;
 }
 
-const getDocDataByValue = async (path, fieldName, data) => {
+const getDocDatasByValue = async (path, fieldName, data, head) => {
     const usersRef = collection(fs_db, path);
     const q = query(usersRef, where(fieldName, "==", data));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
-        return querySnapshot.docs[0].data();
+        if (head) return querySnapshot.docs[0].data();
+        else {
+            return querySnapshot.docs.map(doc => doc.data());
+        }
     }
     return null;
 }
@@ -164,4 +167,4 @@ const getDocsCol = async (path) => {
     return await getDocs(collection(fs_db, path));
 }
 
-export { createBatchedWrites, writeIntoCol, writeIntoDoc, exitDocWithValue, exitDoc, updateArrayField, getDocIdByValue, getDocDataByValue, getDocDataById, getDocRef, getColRef, getDocsCol };
+export { createBatchedWrites, writeIntoCol, writeIntoDoc, exitDocWithValue, exitDoc, updateArrayField, getDocIdByValue, getDocDatasByValue, getDocDataById, getDocRef, getColRef, getDocsCol };

@@ -7,10 +7,7 @@ function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
-      nodeIntegration: true,
-      plugins: true,
-      allowRunningInsecureContent: true,
-      contextIsolation: true
+      nodeIntegration: true
     },
   });
 

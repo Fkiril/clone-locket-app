@@ -1,4 +1,4 @@
-import { createBatchedWrites, getDocRef, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
+import { createBatchedWrites, getDocDatasByValue, getDocRef, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
 import { uploadToFolder } from "../models/utils/storage-method";
 
 export default class PictureController {
@@ -42,5 +42,13 @@ export default class PictureController {
         }
     }
 
-    static async loadPictures() {}
+    static async getUserPictures(userId) {
+        try {
+            const userPictures = await getDocDatasByValue("pictures", "ownerId", userId, false);
+            return userPictures;
+        } catch (error) {
+            console.log("Error get user pictures: ", error);
+            throw error;
+        }
+    }
 }
