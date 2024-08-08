@@ -236,7 +236,42 @@ export default function UploadPictureView() {
                   </button>
                 </div>
               )}
-  
+    {optionFileUrl && (
+          <div>
+            <div className="scope-select mb-4">
+              <button
+                onClick={handleShowScopeOption}
+                className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400"
+              >
+                Select Scope
+              </button>
+              {showScopeOption && (
+                <div className="mt-2">
+                  <select
+                    onChange={(event) => setScope(event.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value={ScopeEnum.PUBLIC}>Public</option>
+                    <option value={ScopeEnum.PRIVATE}>Private</option>
+                    <option value={ScopeEnum.SPECIFY}>Specify</option>
+                  </select>
+                  {scope === ScopeEnum.SPECIFY && (
+                    <div className="mt-2">
+                      {friendsData.map((friend) => (
+                        <label key={friend.name} className="block">
+                          <input
+                            type="checkbox"
+                            checked={selectedFriends.includes(friend.id)}
+                            onChange={() => handleFriendCheckboxChange(friend.id)}
+                            className="mr-2"
+                          />
+                          {friend.name}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               {picture.url && (
                 <div className="w-full">
                   <div className="picture mb-4">
