@@ -1,168 +1,212 @@
-/* Tổng quan cho toàn bộ view */
 .home {
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-    background: #F2F2F7;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    overflow: hidden;
-  }
-  
-  .header-container {
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  
-  .app-title {
-    font-family: 'Inter';
-    font-weight: 700;
-    font-size: 4vw; /* Adjusted for responsive design */
-    line-height: 5vw; /* Adjusted for responsive design */
-    text-align: center;
-    color: #1821E7;
-  }
-  
-  .app-subtitle {
-    font-family: 'Inter';
-    font-size: 2vw; /* Adjusted for responsive design */
-    line-height: 2.5vw; /* Adjusted for responsive design */
-    color: #000000;
-  }
-  
-  .nav-buttons-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-  
-  .nav-buttons {
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin: 0 10px;
-  }
-  
-  .nav-icon {
-    width: 3vw; /* Adjusted for responsive design */
-    height: 3vw; /* Adjusted for responsive design */
-  }
-  
-  .avatar-container {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-  }
-  
-  .user-avatar {
-    width: 3vw; /* Adjusted for responsive design */
-    height: 3vw; /* Adjusted for responsive design */
-    border-radius: 50%;
-  }
-  
-  .friends-pictures-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 2rem;
-    width: 90vw; /* Adjusted for responsive design */
-    height: 70vh; /* Adjusted for responsive design */
-    overflow: hidden;
-  }
-  
-  .friend-picture-frame {
-    position: relative;
-    width: 100%;
-    margin-bottom: 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .picture-header {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    padding: 0 1rem;
-  }
-  
-  .owner-name {
-    font-family: 'Inter';
-    font-weight: 500;
-    font-size: 2vw; /* Adjusted for responsive design */
-  }
-  
-  .send-time {
-    font-family: 'Inter';
-    font-weight: 400;
-    font-size: 1.5vw; /* Adjusted for responsive design */
-  }
-  
-  .friend-picture {
-    width: 100%;
-    max-height: 50vh; /* Adjusted for responsive design */
-    object-fit: cover;
-    margin: 1rem 0;
-  }
-  
-  .picture-actions {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .react-button, .send-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .action-icon {
-    width: 2vw; /* Adjusted for responsive design */
-    height: 2vw; /* Adjusted for responsive design */
-  }
-  
-  .message-section {
-    display: flex;
-    align-items: center;
-    width: 60%;
-  }
-  
-  .message-input {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    border: 1px solid #A0A0A0;
-    border-radius: 36px;
-  }
-  
-  .no-friend-pictures {
-    font-family: 'Inter';
-    font-size: 2vw; /* Adjusted for responsive design */
-    color: #000000;
-  }
-  
-  .left-arrow, .right-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    background: none;
-    border: none;
-  }
-  
-  .left-arrow {
-    left: 10px;
-  }
-  
-  .right-arrow {
-    right: 10px;
-  }
-  
-  .arrow-icon {
-    width: 2vw; /* Adjusted for responsive design */
-    height: 2vw; /* Adjusted for responsive design */
-  }
-  
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #F2F2F7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  padding: 10px; /* Thu nhỏ padding để giảm khoảng cách */
+}
+
+.header-container {
+  text-align: center;
+  margin-bottom: 0.5rem; /* Giảm khoảng cách giữa các phần */
+}
+
+.app-title {
+  font-weight: 700;
+  font-size: 3vw;
+  line-height: 3.5vw;
+  text-align: center;
+  color: #1821E7;
+}
+
+.app-subtitle {
+  font-size: 1.5vw;
+  line-height: 2vw;
+  color: #000000;
+  margin-bottom: 0.5rem; /* Thu nhỏ khoảng cách */
+}
+
+/* Nav buttons container with divider */
+.nav-buttons-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem; /* Giảm khoảng cách dưới các nút điều hướng */
+  padding: 10px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.nav-buttons-container .divider {
+  height: 3vw;
+  width: 1px;
+  background: #ddd;
+  margin: 0 10px; /* Thu nhỏ khoảng cách giữa các button */
+}
+
+.nav-buttons {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin: 0 5px;
+}
+
+.nav-icon {
+  width: 3.5vw;
+  height: 3.5vw;
+}
+
+.avatar-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.user-avatar {
+  width: 3.5vw;
+  height: 3.5vw;
+  border-radius: 50%;
+}
+
+.friends-pictures-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80vw;
+  max-height: 60vh;
+  margin-top: 1rem;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  overflow: hidden;
+}
+
+.friend-picture-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 10px;
+  background: #f5f5f5;
+}
+
+.picture-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 1rem;
+  margin-bottom: 10px;
+}
+
+.owner-name {
+  font-weight: 500;
+  font-size: 1.5vw;
+}
+
+.send-time {
+  font-weight: 400;
+  font-size: 1.2vw;
+}
+
+.friend-picture {
+  width: 100%;
+  max-height: 40vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* Điều chỉnh bố cục cho phần hành động (react và nhập tin nhắn) */
+.picture-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Căn giữa */
+  width: 100%;
+  margin-top: 10px; /* Add spacing above actions */
+  margin-bottom: 0; /* Đưa phần hành động ra khỏi khung ảnh */
+}
+
+.react-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: 10px; /* Khoảng cách giữa react và thanh nhập tin nhắn */
+}
+
+.action-icon {
+  width: 2.5vw;
+  height: 2.5vw;
+}
+
+.message-section {
+  display: flex;
+  align-items: center;
+  width: 60%;
+  border: 1px solid #A0A0A0;
+  border-radius: 36px;
+  padding: 5px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message-input {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  outline: none;
+  border-radius: 36px;
+  font-size: 1.2vw;
+}
+
+.no-friend-pictures {
+  font-size: 2vw;
+  color: #000000;
+}
+
+.left-arrow, .right-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.left-arrow {
+  left: -2%;
+}
+
+.right-arrow {
+  right: -2%;
+}
+
+.arrow-icon {
+  width: 4vw;
+  height: 4vw;
+}
+
+.nav-buttons-container .divider {
+  height: 3vw; /* Điều chỉnh chiều cao của thanh ngăn cách */
+  width: 1px;
+  background: #ddd;
+  margin: 0 20px; /* Tăng khoảng cách ngang giữa các button */
+}
+
+.nav-buttons {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin: 0 10px; /* Tăng khoảng cách ngang giữa các button */
+}
+

@@ -120,17 +120,17 @@ const SearchBar = () => {
 
   return (
     <div className="search-bar">
-      <div className="input-container mb-4">
+      <div className="input-container">
         <input
           type="text"
           name="searchQuery"
           className="input"
-          placeholder="search..."
+          placeholder="Search a friend..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         <span className="icon" onClick={() => { setIsSearching(true); handleSearch(); }}>
-          <svg width="19px" height="19px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
             <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
             <g id="SVGRepo_iconCarrier">

@@ -4,7 +4,6 @@ import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
 import { toast } from "react-toastify";
-import { useUserStore } from "../../hooks/user-store";
 import { auth } from "../../models/services/firebase";
 import { getDocRef } from "../../models/utils/firestore-method";
 import "./account-view.css";
@@ -285,110 +284,46 @@ export default function AccountView() {
 
     return (
         <div className="account-container">
-        <div className="card gradient-overlay">
-            <div className="account-header">
-                <h2>Account</h2>
-                {/* <Link to="/home" className="back-button">
-                    Back to Home
-                </Link> */}
-              <button onClick={handleBackToHome} className="home-icon-button">
-          <div className="home-icon"></div>
-        </button>
+            <div className="card">
+                <div className="image">
+                    <img src={currentUser?.avatar ? currentUser.avatar : "./default_avatar.jpg"} alt="avatar" />
+                </div>
+                <div className="card-info">
+                    <span>{currentUser?.userName}</span>
+                    <p>{currentUser?.email}</p>
+                </div>
+                <button onClick={handleBackToHome} className="home-icon-button">
+                    <div className="home-icon"></div>
+                </button>
             </div>
-            <div className="image">
-                <img 
-                    src={currentUser?.avatar ? currentUser.avatar : "./default_avatar.jpg"}
-                    alt="avatar"
-                    onClick={() => setIsSettingAvatar(true)}
-                />
-            </div>
-            <div className="card-info">
-                <span>{currentUser?.userName}</span>
-                <p>{currentUser?.email}</p>
+    
+            <div className="account-body">
+                {isSettingAvatar && avatarSettingPortal()}
+                {isChangingUserName && changingUserNamePortal()}
+                {isChangingPassword && changingPasswordPortal()}
+    
+                {isShowingFriends && <FriendsListPortal setIsShowingFriends={setIsShowingFriends} />}
+                {isShowingRequests && <RequestsListPortal setIsShowingRequests={setIsShowingRequests} />}
+                {isShowingBlocked && <BlockedListPortal setIsShowingBlocked={setIsShowingBlocked} />}
+                {isShowingPictures && <PicturesListPortal setIsShowingPictures={setIsShowingPictures} />}
+    
+                <div className="friends-section">
+                    <h3>Friends</h3>
+                    {/* Thanh Search Bar thay thế nút "Find Friends" */}
+                    <SearchBar />
+                    <button onClick={() => setIsShowingFriends(true)}>Friends List</button>
+                    <button onClick={() => setIsShowingRequests(true)}>Requests</button>
+                    <button onClick={() => setIsShowingBlocked(true)}>Blocked</button>
+                </div>
+    
+                <div className="settings-section">
+                    <h3>Settings</h3>
+                    <button onClick={() => setIsChangingUserName(true)}>Change username</button>
+                    <button onClick={() => setIsChangingPassword(true)}>Change password</button>
+                    <button className="log-out" onClick={handleLogOut}>Log out</button>
+                </div>
             </div>
         </div>
-
-        <div className="account-body">
-            {isSettingAvatar && avatarSettingPortal()}
-            {isChangingUserName && changingUserNamePortal()}
-            {isChangingPassword && changingPasswordPortal()}
-
-            {isShowingFriends && <FriendsListPortal setIsShowingFriends={setIsShowingFriends} />}
-            {isShowingRequests && <RequestsListPortal setIsShowingRequests={setIsShowingRequests} />}
-            {isShowingBlocked && <BlockedListPortal setIsShowingBlocked={setIsShowingBlocked} />}
-            {isShowingPictures && <PicturesListPortal setIsShowingPictures={setIsShowingPictures} />}
-            
-            <div className="account-stat">
-            <div className="stat text-center">
-                <button
-                className="stat-button"
-                onClick={() => setIsShowingPictures(true)}>
-                Pictures
-                {currentUser?.picturesCanSee?.length > 0 && (
-                    <span className="pictures-count">
-                    {currentUser?.picturesCanSee?.length}
-                    </span>
-                )}
-                </button>
-            </div>
-            <div className="stat text-center">
-                <button
-                className="stat-button"
-                onClick={() => setIsShowingFriends(true)}>
-                Friends
-                {currentUser?.friends.length > 0 && (
-                    <span className="friends-count">
-                    {currentUser?.friends.length}
-                    </span>
-                )}
-                </button>
-            </div>
-            <div className="stat text-center">
-                <button
-                className="stat-button"
-                onClick={() => setIsShowingRequests(true)}>
-                Requests
-                {currentUser?.friendRequests?.length > 0 && (
-                    <span className="requests-count">
-                    {currentUser?.friendRequests?.length}
-                    </span>
-                )}
-                </button>
-            </div>
-            <div className="stat text-center">
-                <button
-                className="stat-button"
-                onClick={() => setIsShowingBlocked(true)}>
-                Blocked
-                {currentUser?.blockedUsers?.length > 0 && (
-                    <span className="blocked-count">
-                    {currentUser?.blockedUsers?.length}
-                    </span>
-                )}
-                </button>
-            </div>
-            </div>
-            
-            <SearchBar />
-
-            <div className="setting">
-            <button className="follow-button" type="button" onClick={() => setIsChangingUserName(true)}>
-                Change User's Name
-            </button>
-            <button className="follow-button" type="button" onClick={() => setIsChangingPassword(true)}>
-                Change Password
-            </button>
-            </div>
-        </div>
-
-        <button className="log-out" onClick={handleLogOut}>
-            Log Out
-        </button>
-
-        <button className="delete-account" 
-            onClick={handleDeteleAccount}>
-            Delete Account
-        </button>
-        </div>
-    );
+    );    
+    
 }
