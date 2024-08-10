@@ -9,12 +9,12 @@
   justify-content: flex-start;
   overflow: hidden;
   font-family: 'Helvetica Neue', Arial, sans-serif;
-  padding: 10px; /* Thu nhỏ padding để giảm khoảng cách */
+  padding: 10px;
 }
 
 .header-container {
   text-align: center;
-  margin-bottom: 0.5rem; /* Giảm khoảng cách giữa các phần */
+  margin-bottom: 0.5rem;
 }
 
 .app-title {
@@ -29,14 +29,14 @@
   font-size: 1.5vw;
   line-height: 2vw;
   color: #000000;
-  margin-bottom: 0.5rem; /* Thu nhỏ khoảng cách */
+  margin-bottom: 0.5rem;
 }
 
 /* Nav buttons container with divider */
 .nav-buttons-container {
   display: flex;
   align-items: center;
-  margin-bottom: 0.5rem; /* Giảm khoảng cách dưới các nút điều hướng */
+  margin-bottom: 0.5rem;
   padding: 10px;
   background: #fff;
   border-radius: 10px;
@@ -47,14 +47,14 @@
   height: 3vw;
   width: 1px;
   background: #ddd;
-  margin: 0 10px; /* Thu nhỏ khoảng cách giữa các button */
+  margin: 0 20px;
 }
 
 .nav-buttons {
   background: none;
   border: none;
   cursor: pointer;
-  margin: 0 5px;
+  margin: 0 10px;
 }
 
 .nav-icon {
@@ -78,8 +78,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 80vw;
-  max-height: 60vh;
+  width: 60vw;
+  max-height: 70vh;
   margin-top: 1rem;
   background: #fff;
   border-radius: 16px;
@@ -91,7 +91,6 @@
 .friend-picture-frame {
   position: relative;
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -103,11 +102,24 @@
 }
 
 .picture-header {
+  width: 100%;
   display: flex;
   justify-content: space-between;
-  width: 100%;
+  align-items: center;
   padding: 0 1rem;
   margin-bottom: 10px;
+}
+
+.owner-info {
+  display: flex;
+  align-items: center;
+}
+
+.owner-avatar {
+  width: 2.5vw;
+  height: 2.5vw;
+  border-radius: 50%;
+  margin-right: 0.5rem;
 }
 
 .owner-name {
@@ -118,6 +130,13 @@
 .send-time {
   font-weight: 400;
   font-size: 1.2vw;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
 }
 
 .friend-picture {
@@ -127,14 +146,30 @@
   border-radius: 8px;
 }
 
+/* Caption section */
+.picture-caption-container {
+  width: 100%;
+  margin-top: 10px; /* Tạo khoảng cách giữa ảnh và caption */
+  padding: 10px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.picture-caption {
+  font-size: 1.2vw;
+  color: #333;
+  text-align: center;
+}
+
 /* Điều chỉnh bố cục cho phần hành động (react và nhập tin nhắn) */
 .picture-actions {
   display: flex;
   align-items: center;
   justify-content: center; /* Căn giữa */
   width: 100%;
-  margin-top: 10px; /* Add spacing above actions */
-  margin-bottom: 0; /* Đưa phần hành động ra khỏi khung ảnh */
+  margin-top: 10px;
+  margin-bottom: 0;
 }
 
 .react-button {
@@ -184,11 +219,11 @@
 }
 
 .left-arrow {
-  left: -2%;
+  left: 100px;
 }
 
 .right-arrow {
-  right: -2%;
+  right: 100px;
 }
 
 .arrow-icon {
@@ -197,16 +232,15 @@
 }
 
 .nav-buttons-container .divider {
-  height: 3vw; /* Điều chỉnh chiều cao của thanh ngăn cách */
+  height: 3vw;
   width: 1px;
   background: #ddd;
-  margin: 0 20px; /* Tăng khoảng cách ngang giữa các button */
+  margin: 0 20px;
 }
 
 .nav-buttons {
   background: none;
   border: none;
   cursor: pointer;
-  margin: 0 10px; /* Tăng khoảng cách ngang giữa các button */
+  margin: 0 10px;
 }
-
