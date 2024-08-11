@@ -1,13 +1,18 @@
 import "./conversation-view.css";
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+
+import { auth } from "../../models/services/firebase";
 import { getDocRef } from "../../models/utils/firestore-method";
 import { onSnapshot } from "firebase/firestore";
+
 import { useUserStore } from "../../hooks/user-store";
 import { useMessageStore } from "../../hooks/message-store";
+import { useChatListStore } from "../../hooks/chat-list-store";
+
 import ChatController from "../../controllers/chat-controller";
 import { dateToString } from "../../models/utils/date-method";
-import { toast } from "react-toastify";
 
 export default function ConversationView() {
     const navigate = useNavigate();
@@ -17,8 +22,7 @@ export default function ConversationView() {
     const { conversationId } = useParams();
     const { currentUser, friendDatas } = useUserStore();
     const { messages, fetchMessages } = useMessageStore();
-
-    const [finishSending, setFinishSending] = useState(false);
+    const { chatManager } = useChatListStore();
 
     const endRef = useRef(null);
     useEffect(() => {
@@ -26,28 +30,21 @@ export default function ConversationView() {
     }, [messages[conversationId]]);
 
     useEffect(() => {
-        console.log("ConversationView: useEffect()");
-        if (state?.routing && messages[conversationId] && !state?.newMessage) {
-            setState(null);
-        } else {
-            const conversationRef = getDocRef("conversations", conversationId);
-            const unSubscribe = onSnapshot(conversationRef, { includeMetadataChanges: false }, async () => {
-                console.log("finishSending: ", finishSending);
-                if (finishSending) {
+        if (auth?.currentUser?.uid && chatManager && (!messages[conversationId] || chatManager.conversationStates[conversationId] > 0)) {
+            const unSubscribe = onSnapshot(
+                getDocRef("conversations", conversationId),
+                { includeMetadataChanges: false },
+                async () => {
+                    console.log("conversation-view.js: fetchMessages for onSnapshot");
                     await fetchMessages(conversationId);
-                    setFinishSending(false);
                 }
-                else {
-                    setTimeout(async () => {
-                        await fetchMessages(conversationId);
-                    }, 1000);
-                }
-                console.log("ConversationView: useEffect() for fetchMessages");
-            });
-            
-            return () => unSubscribe();
+            )
+
+            return () => {
+                unSubscribe()
+            }
         }
-    }, [onSnapshot]);
+    }, [onSnapshot])
 
     const handleGetAvatar = (senderId) => {
         if (!currentUser) return "./default_avatar.jpg";

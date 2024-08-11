@@ -1,5 +1,5 @@
 import "./account-view.css";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { auth } from "../../models/services/firebase";
@@ -46,50 +46,36 @@ export default function AccountView() {
     const [isShowingBlocked, setIsShowingBlocked] = useState(false);
 
     const [isShowingPictures, setIsShowingPictures] = useState(false);
-
-    const isMounted = useRef(false);
     
-    useEffect(() => {
-        if (!isMounted.current) {
-            isMounted.current = true;
-            if (state?.routing && currentUser) {
-                setState(null);
-            }
-            else if (auth?.currentUser?.uid) {
-                const unSubscribe = onSnapshot(getDocRef("users", auth?.currentUser.uid), { includeMetadataChanges: false }, async () => {
-                    await fetchUserInfo(auth?.currentUser.uid);
-        
-                    setUserController(new UserController(currentUser));
-                    
-                    console.log("account-view.js: useEffect() for onSnapshot");
-                });
-        
-                return () => {
-                    unSubscribe();
-                }
-            }
-            else {
-                auth.authStateReady().then(async () => {
-                    await fetchUserInfo(auth?.currentUser.uid);
-    
-                    console.log("account-view.js: auth.authStateReady()");
-                }).catch((error) => {
-                    console.log("account-view.js: auth.authStateReady() error: ", error);
-                });
-            }
-        }
-    }, [onSnapshot]);
+    // useEffect(() => {
+    //     if (state?.routing && currentUser) {
+    //         setState(null);
+    //     }
+    //     else if (auth?.currentUser?.uid) {
+    //         const unSubscribe = onSnapshot(getDocRef("users", auth?.currentUser.uid), { includeMetadataChanges: false }, async () => {
+    //             await fetchUserInfo(auth?.currentUser.uid);
+                
+    //             setUserController(new UserController(currentUser));
+                
+    //             console.log("account-view.js: useEffect() for onSnapshot");
+    //         });
+            
+    //         return () => {
+    //             unSubscribe();
+    //         }
+    //     }
+    // }, [onSnapshot]);
 
-    useEffect(() => {
-        const unSubscribe = auth.onAuthStateChanged(() => {
-            console.log("account-view.js: useEffect() for onAuthStateChanged");
-            if (!(auth?.currentUser) || !currentUser) navigate("/");
-        });
+    // useEffect(() => {
+    //     const unSubscribe = auth.onAuthStateChanged(() => {
+    //         console.log("account-view.js: useEffect() for onAuthStateChanged");
+    //         if (!(auth?.currentUser) || !currentUser) navigate("/");
+    //     });
 
-        return () => {
-            unSubscribe();
-        }
-    }, [auth, onAuthStateChanged]);
+    //     return () => {
+    //         unSubscribe();
+    //     }
+    // }, [auth, onAuthStateChanged]);
 
     const handleLogOut = async () => {
         await AuthenticationController.logOut().then(() => {

@@ -12,6 +12,7 @@ export const useChatListStore = create((set) => ({
             if (!userId) set({ isLoading: false, chatManager: null, conversations: null, lastMessages: null });
 
             const chatManagerData = await getDocDataById("chatManagers", userId);
+            
             if (chatManagerData && chatManagerData.conversationStates && Object.keys(chatManagerData.conversationStates).length > 0) {
                 const conversationIds = Object.keys(chatManagerData.conversationStates);
                 const conversationDatas = await Promise.all(conversationIds.map(async (conversationId) => {
