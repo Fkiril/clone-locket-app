@@ -16,44 +16,6 @@ export default function ChatView() {
     const { chatManager, conversations, lastMessages, fetchLastMessages } = useChatListStore();
     const [searchedFriend, setSearchedFriend] = useState(null);
 
-    const [newMessageAt, setNewMessageAt] = useState([]);
-
-    // useEffect(() => {
-    //     if (state?.routing && lastMessages) {
-    //         setState(null);
-    //     } else {
-    //         const docRef = getDocRef("chatManagers", currentUser?.id);
-    //         const unSubscribe = onSnapshot(docRef, { includeMetadataChanges: false }, () => {
-    //             fetchLastMessages(currentUser?.id);
-    //             console.log("ChatView: useEffect() for fetchLastMessages: ", lastMessages);
-    //         });
-
-    //         return () => {
-    //             unSubscribe();
-    //         }
-    //     }
-    // }, [onSnapshot]);
-
-    // useEffect(() => {
-    //     const docRef = getDocRef("chatManagers", currentUser?.id);
-    //     const unSubscribe = onSnapshot(docRef, { includeMetadataChanges: false }, async () => {
-    //         await fetchLastMessages(currentUser?.id);
-    //         if (chatManager && chatManager.conversationStates && Object.keys(chatManager.conversationStates).length > 0) {
-    //             Object.keys(chatManager.conversationStates).forEach(key => {
-    //                 const state = chatManager.conversationStates[key];
-    //                 if (state > 0) {
-    //                     setNewMessageAt(prev => [...prev, key]);
-    //                 }
-    //             })
-    //         }
-    //         console.log("ChatView: useEffect() for fetchLastMessages");
-    //     });
-
-    //     return () => {
-    //         unSubscribe();
-    //     }
-    // }, [currentUser, fetchLastMessages]);
-
     const handleNavigate = async (friendId) => {
         let conversationId = await ChatController.getConversationIdWithFriend(currentUser.id, friendId);
         if (!conversationId) {
@@ -131,7 +93,7 @@ export default function ChatView() {
     })
     
     const handleRouting = (path) => {
-        navigate(path, { state: { routing: true } });
+        navigate(path);
     }
 
     return (

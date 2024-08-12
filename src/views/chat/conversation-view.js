@@ -98,7 +98,7 @@ export default function ConversationView() {
     const friendInfo = friendDatas.find(async (friend) => await ChatController.getFriendIdByConversationId(currentUser.id, conversationId) === friend.id);
 
     const handleRouting = (path) => {
-        navigate(path, { state: { routing: true } });
+        navigate(path);
     }
 
     const toggleDetail = () => setShowDetail(!showDetail);

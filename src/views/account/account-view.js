@@ -46,36 +46,6 @@ export default function AccountView() {
     const [isShowingBlocked, setIsShowingBlocked] = useState(false);
 
     const [isShowingPictures, setIsShowingPictures] = useState(false);
-    
-    // useEffect(() => {
-    //     if (state?.routing && currentUser) {
-    //         setState(null);
-    //     }
-    //     else if (auth?.currentUser?.uid) {
-    //         const unSubscribe = onSnapshot(getDocRef("users", auth?.currentUser.uid), { includeMetadataChanges: false }, async () => {
-    //             await fetchUserInfo(auth?.currentUser.uid);
-                
-    //             setUserController(new UserController(currentUser));
-                
-    //             console.log("account-view.js: useEffect() for onSnapshot");
-    //         });
-            
-    //         return () => {
-    //             unSubscribe();
-    //         }
-    //     }
-    // }, [onSnapshot]);
-
-    // useEffect(() => {
-    //     const unSubscribe = auth.onAuthStateChanged(() => {
-    //         console.log("account-view.js: useEffect() for onAuthStateChanged");
-    //         if (!(auth?.currentUser) || !currentUser) navigate("/");
-    //     });
-
-    //     return () => {
-    //         unSubscribe();
-    //     }
-    // }, [auth, onAuthStateChanged]);
 
     const handleLogOut = async () => {
         await AuthenticationController.logOut().then(() => {
@@ -275,8 +245,8 @@ export default function AccountView() {
         ), document.body);
     };
 
-    const handleBackToHome = () => {
-        navigate("/home", { state: { routing: true } });
+    const handleRouting = (path) => {
+        navigate(path);
     };
 
     const handleDeteleAccount = async () => {
@@ -292,7 +262,7 @@ export default function AccountView() {
         <div className="card gradient-overlay">
             <div className="account-header">
                 <h2>Account</h2>
-              <button onClick={handleBackToHome} className="home-icon-button">
+              <button onClick={() => handleRouting("/home")} className="home-icon-button">
           <div className="home-icon"></div>
         </button>
             </div>

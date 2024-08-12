@@ -22,7 +22,7 @@ export default function UploadPictureView() {
   const navigate = useNavigate();
   const [state, setState] = useState(useLocation().state);
 
-  const { currentUser, friendDatas, fetchUserInfo } = useUserStore();
+  const { currentUser, fetchUserInfo } = useUserStore();
 
   const [picture, setPicture] = useState({
     file: null,
@@ -206,7 +206,7 @@ export default function UploadPictureView() {
     if (isCameraOpen) {
       handleCloseCamera();
     }
-    navigate("/home", { state: { routing: uploaded ? false : true } });
+    navigate("/home");
   };
 
   return (
