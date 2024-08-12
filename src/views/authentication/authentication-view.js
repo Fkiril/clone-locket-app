@@ -2,36 +2,29 @@ import "./authentication-view.css";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import AuthenticationController from "../../controllers/authentication-controller";
-import { useUserStore } from "../../hooks/user-store";
 import { auth } from "../../models/services/firebase";
+import { useUserStore } from "../../hooks/user-store";
+import { useInternetConnection } from "../../hooks/internet-connection";
 import { checkPassword } from "../../models/utils/check-password";
+import AuthenticationController from "../../controllers/authentication-controller";
+import { createPortal } from "react-dom";
 
 export default function AuthenticationView() {
   const navigate = useNavigate();
 
   const { currentUser, fetchUserInfo } = useUserStore();
+  const { connectionState } = useInternetConnection();
 
   const [isLoading, setIsLoading] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   useEffect(() => {
-    const unSubscribe = auth.onAuthStateChanged(async () => {
-      await fetchUserInfo(auth?.currentUser?.uid);
-      console.log("authentication-view.js: useEffect() for onAuthStateChanged");
-    });
-    return () => {
-      unSubscribe();
-    };
-  }, [auth]);
-
-  useEffect(() => {
     if (auth?.currentUser && currentUser) {
       setIsLoading(false);
-      navigate("/home", { state: { routing: true } });
-    } else console.log("checking ...");
-  }, [auth, currentUser]);
+      navigate("/home");
+    }
+  }, [currentUser, navigate]);
 
   const handleLogIn = async (e) => {
     e.preventDefault();
@@ -104,23 +97,9 @@ export default function AuthenticationView() {
       }
       toast.success("Login with Google successful!");
     }).catch((error) => {
-      toast.error("Failed to login with Google. Please try again.");
-    }).finally(() => {
-      setIsLoading(false);
-    });
-  };
-
-  const handleFacebookLogin = async (event) => {
-    event.preventDefault();
-    setIsLoading(true);
-
-    await AuthenticationController.signInWithFacebook().then(async (result) => {
-      if (result.isNewUser) {
-        await fetchUserInfo(result.user.uid);
+      if (error.code !== "auth/popup-closed-by-user") {
+        toast.error("Failed to login with Google. Please try again.");
       }
-      toast.success("Login with Facebook successful!");
-    }).catch((error) => {
-      toast.error("Failed to login with Facebook. Please try again.");
     }).finally(() => {
       setIsLoading(false);
     });
@@ -159,8 +138,19 @@ export default function AuthenticationView() {
     });
   };
 
+  const disconnectionPortal = () => {
+    return createPortal(
+      <div className="disconnection-portal">
+        <p className="disconnection-text">Your connection has been interrupted. Please check your connection!</p>
+        <div className="disconnection-circle"></div>
+      </div>,
+      document.body
+    )
+  }
+
   return (
     <div className="authentication min-h-screen flex items-center justify-center bg-gray-100">
+      {!connectionState && disconnectionPortal()}
       <div className="header-container text-center mb-8">
         <h1 className="app-title">Clone-locket</h1>
         <p className="app-subtitle">Clone-locket - Connect and share with your friends and family</p>
@@ -193,20 +183,20 @@ export default function AuthenticationView() {
               <p>Enter your email and we will send you a password reset link!</p>
               <input type="text" placeholder="Email" name="reset-password-email" required className="mb-3 p-2 border rounded" />
               <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700"
-                onClick={handleSendResetPasswordEmail}  
+                onClick={handleSendResetPasswordEmail}
               >
                 {isLoading ? "Loading" : "Send"}
               </button>
             </form>
             <div className="flex justify-between mt-4 w-full">
-              <button onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
+              <button disabled={isLoading} onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
                 Login with Google
               </button>
             </div>
           </div>
         ) : showLogin ? (
           <div className="w-96 mb-5">
-            <form onSubmit={handleLogIn} className="flex flex-col">
+            <form disabled={isLoading} onSubmit={handleLogIn} className="flex flex-col">
               <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded" />
               <input type="password" placeholder="Password" name="password" required className="mb-3 p-2 border rounded" />
               <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
@@ -215,20 +205,17 @@ export default function AuthenticationView() {
             </form>
             <div className="flex justify-between mt-4 w-full">
             
-              <button onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
+              <button disabled={isLoading} onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
                 Login with Google
               </button>
-              <button onClick={handleFacebookLogin} className="text-blue-500 hover:underline">
-                Login with Facebook
-              </button>
-              <button onClick={handleForgotPassword} className="text-blue-500 hover:underline">
+              <button disabled={isLoading} onClick={handleForgotPassword} className="text-blue-500 hover:underline">
                 Forgot Password?
               </button>
             </div>
           </div>
         ) : (
           <div className="w-96 mb-5">
-            <form onSubmit={handleCreateAccount} className="flex flex-col">
+            <form disabled={isLoading} onSubmit={handleCreateAccount} className="flex flex-col">
               <input type="text" placeholder="Username" name="userName" required className="mb-3 p-2 border rounded" />
               <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded" />
               <input type="password" placeholder="Password" name="password" required className="mb-3 p-2 border rounded" />

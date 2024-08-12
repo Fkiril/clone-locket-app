@@ -1,8 +1,9 @@
 import { updatePassword } from "firebase/auth";
+import { auth } from "../services/firebase";
 
-const changePassword = async (user, newPassword) => {
+const changePassword = async (newPassword) => {
     try {
-        await updatePassword(user, newPassword);
+        await updatePassword(auth.currentUser, newPassword);
         console.log("Password changed successfully!");
         return true;
     } catch (error) {

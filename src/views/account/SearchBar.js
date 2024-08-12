@@ -37,6 +37,7 @@ const SearchBar = () => {
       toast.success("Friend request sent successfully.");
       setSearchResult(null);
       setIsSearching(false);
+      setSearchQuery("");
     }).catch((error) => {
       toast.error("Failed to send friend request. Please try again.");
     });
@@ -55,6 +56,7 @@ const SearchBar = () => {
     const clickElement = event.target;
     if (!(clickElement.closest(".searching-friend .body"))) {
       setIsSearching(false);
+      setSearchQuery("");
     }
   };
 

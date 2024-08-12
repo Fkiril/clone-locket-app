@@ -1,10 +1,7 @@
 import "./home-view.css";
-import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
-import { auth } from "../../models/services/firebase";
-import { onSnapshot } from "firebase/firestore";
-import { getDocRef } from "../../models/utils/firestore-method";
 import ChatIcon from '../../assets/chat-icon.svg';
 import UploadIcon from '../../assets/upload-icon.svg';
 import ReactIcon from '../../assets/react-icon.svg';
@@ -14,34 +11,10 @@ import SendIcon from '../../assets/send-icon.svg';
 
 export default function HomeView() {
     const navigate = useNavigate();
-    const [state, setState] = useState(useLocation().state);
-    const { currentUser, pictureDatas, fetchUserInfo, isFetching } = useUserStore();
+  
+    const { currentUser, pictureDatas, isFetching } = useUserStore();
     const avatarUrl = currentUser?.avatar ? currentUser.avatar : "./default_avatar.jpg";
     const [currentPictureIndex, setCurrentPictureIndex] = useState(0);
-
-    useEffect(() => {
-        if (state?.routing && currentUser) {
-            setState(null);
-        }
-        else if (auth?.currentUser?.uid) {
-            const unSubscribe = onSnapshot(getDocRef("users", auth?.currentUser?.uid), async () => {
-                await fetchUserInfo(auth?.currentUser.uid);
-
-                console.log("home-view.js: useEffect() for onSnapshot");
-            });
-
-            return () => {
-                unSubscribe();
-            }
-        }
-        else {
-            auth.authStateReady().then(async () => {
-                await fetchUserInfo(auth?.currentUser.uid);
-            }).catch((error) => {
-                console.log("home-view.js: auth.authStateReady() error: ", error);
-            });
-        }
-    }, [onSnapshot, auth]);
 
     const handleRouting = (path) => {
         navigate(path, { state: { routing: true } });

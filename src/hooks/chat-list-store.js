@@ -3,12 +3,17 @@ import { getDocDataById } from "../models/utils/firestore-method";
 
 export const useChatListStore = create((set) => ({
     isLoading: false,
+    chatManager: null,
     conversations: null,
     lastMessages: null,
     fetchLastMessages: async (userId) => {
         try {
+            console.log("fetchLastMessages: ", userId);
+            if (!userId) set({ isLoading: false, chatManager: null, conversations: null, lastMessages: null });
+
             const chatManagerData = await getDocDataById("chatManagers", userId);
-            if (chatManagerData) {
+            
+            if (chatManagerData && chatManagerData.conversationStates && Object.keys(chatManagerData.conversationStates).length > 0) {
                 const conversationIds = Object.keys(chatManagerData.conversationStates);
                 const conversationDatas = await Promise.all(conversationIds.map(async (conversationId) => {
                     const conversationData = await getDocDataById("conversations", conversationId);
@@ -24,7 +29,7 @@ export const useChatListStore = create((set) => ({
                 }));
 
                 const lastMessageDatas = await Promise.all(conversationDatas.map(async (conversationData) => {
-                    if (conversationData.lastMessage) {
+                    if (conversationData && conversationData.lastMessage) {
                         const lastMessageData = await getDocDataById("conversations/" + conversationData.id + "/messages", conversationData.lastMessage);
                         if (lastMessageData) {
                             return {
@@ -37,12 +42,12 @@ export const useChatListStore = create((set) => ({
                     }
                 }));
 
-                set({ conversations: conversationDatas, lastMessages: lastMessageDatas, isLoading: false });
+                set({ chatManager: chatManagerData, conversations: conversationDatas, lastMessages: lastMessageDatas, isLoading: false });
             }
-            else set({ conversations: null, lastMessages: null, isLoading: false });
+            else set({ chatManager: null, conversations: null, lastMessages: null, isLoading: false });
         } catch (error) {
             console.log("Error fetching boxChats: ", error);
-            set({ conversations: null, lastMessages: null, isLoading: false });
+            set({ chatManager: null, conversations: null, lastMessages: null, isLoading: false });
         }
     },
 }));
