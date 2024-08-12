@@ -1,6 +1,5 @@
-/* Tổng quan cho toàn bộ view */
 .home {
-  position: absolute;
+  position: relative;
   width: 100vw;
   height: 100vh;
   background: #F2F2F7;
@@ -10,34 +9,34 @@
   justify-content: flex-start;
   overflow: hidden;
   font-family: 'Helvetica Neue', Arial, sans-serif;
-  padding: 20px;
+  padding: 10px;
 }
 
 .header-container {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .app-title {
   font-weight: 700;
-  font-size: 3vw; /* Adjusted for responsive design */
-  line-height: 4vw; /* Adjusted for responsive design */
+  font-size: 3vw;
+  line-height: 3.5vw;
   text-align: center;
   color: #1821E7;
 }
 
 .app-subtitle {
-  font-size: 1.5vw; /* Adjusted for responsive design */
-  line-height: 2vw; /* Adjusted for responsive design */
+  font-size: 1.5vw;
+  line-height: 2vw;
   color: #000000;
-  margin-bottom: 1rem; /* Add spacing below the subtitle */
+  margin-bottom: 0.5rem;
 }
 
 /* Nav buttons container with divider */
 .nav-buttons-container {
   display: flex;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   padding: 10px;
   background: #fff;
   border-radius: 10px;
@@ -45,10 +44,10 @@
 }
 
 .nav-buttons-container .divider {
-  height: 3vw; /* Adjusted for responsive design */
+  height: 3vw;
   width: 1px;
   background: #ddd;
-  margin: 0 15px;
+  margin: 0 20px;
 }
 
 .nav-buttons {
@@ -59,8 +58,8 @@
 }
 
 .nav-icon {
-  width: 3.5vw; /* Adjusted for responsive design */
-  height: 3.5vw; /* Adjusted for responsive design */
+  width: 3.5vw;
+  height: 3.5vw;
 }
 
 .avatar-container {
@@ -70,8 +69,8 @@
 }
 
 .user-avatar {
-  width: 3.5vw; /* Adjusted for responsive design */
-  height: 3.5vw; /* Adjusted for responsive design */
+  width: 3.5vw;
+  height: 3.5vw;
   border-radius: 50%;
 }
 
@@ -79,8 +78,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 80vw; /* Adjusted for responsive design */
-  max-height: 60vh; /* Adjusted for responsive design */
+  width: 60vw;
+  max-height: 70vh;
   margin-top: 1rem;
   background: #fff;
   border-radius: 16px;
@@ -92,7 +91,6 @@
 .friend-picture-frame {
   position: relative;
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -104,47 +102,86 @@
 }
 
 .picture-header {
+  width: 100%;
   display: flex;
   justify-content: space-between;
-  width: 100%;
+  align-items: center;
   padding: 0 1rem;
-  margin-bottom: 10px; /* Add spacing below header */
+  margin-bottom: 10px;
+}
+
+.owner-info {
+  display: flex;
+  align-items: center;
+}
+
+.owner-avatar {
+  width: 2.5vw;
+  height: 2.5vw;
+  border-radius: 50%;
+  margin-right: 0.5rem;
 }
 
 .owner-name {
   font-weight: 500;
-  font-size: 1.5vw; /* Adjusted for responsive design */
+  font-size: 1.5vw;
 }
 
 .send-time {
   font-weight: 400;
-  font-size: 1.2vw; /* Adjusted for responsive design */
+  font-size: 1.2vw;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
 }
 
 .friend-picture {
   width: 100%;
-  max-height: 50vh; /* Ensure the image scales within the frame */
+  max-height: 40vh;
   object-fit: contain;
   border-radius: 8px;
 }
 
+/* Caption section */
+.picture-caption-container {
+  width: 100%;
+  margin-top: 10px; /* Tạo khoảng cách giữa ảnh và caption */
+  padding: 10px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.picture-caption {
+  font-size: 1.2vw;
+  color: #333;
+  text-align: center;
+}
+
+/* Điều chỉnh bố cục cho phần hành động (react và nhập tin nhắn) */
 .picture-actions {
   display: flex;
   align-items: center;
+  justify-content: center; /* Căn giữa */
   width: 100%;
-  justify-content: space-between;
-  margin-top: 10px; /* Add spacing above actions */
+  margin-top: 10px;
+  margin-bottom: 0;
 }
 
-.react-button, .send-button {
+.react-button {
   background: none;
   border: none;
   cursor: pointer;
+  margin-right: 10px; /* Khoảng cách giữa react và thanh nhập tin nhắn */
 }
 
 .action-icon {
-  width: 2.5vw; /* Adjusted for responsive design */
-  height: 2.5vw; /* Adjusted for responsive design */
+  width: 2.5vw;
+  height: 2.5vw;
 }
 
 .message-section {
@@ -156,7 +193,6 @@
   padding: 5px;
   background: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-left: auto; /* Aligns the message section to the right */
 }
 
 .message-input {
@@ -165,11 +201,11 @@
   border: none;
   outline: none;
   border-radius: 36px;
-  font-size: 1.2vw; /* Adjusted for responsive design */
+  font-size: 1.2vw;
 }
 
 .no-friend-pictures {
-  font-size: 2vw; /* Adjusted for responsive design */
+  font-size: 2vw;
   color: #000000;
 }
 
@@ -183,14 +219,28 @@
 }
 
 .left-arrow {
-  left: -2%;
+  left: 100px;
 }
 
 .right-arrow {
-  right: -2%;
+  right: 100px;
 }
 
 .arrow-icon {
-  width: 4vw; /* Increased size for better visibility */
-  height: 4vw; /* Increased size for better visibility */
+  width: 4vw;
+  height: 4vw;
+}
+
+.nav-buttons-container .divider {
+  height: 3vw;
+  width: 1px;
+  background: #ddd;
+  margin: 0 20px;
+}
+
+.nav-buttons {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin: 0 10px;
 }

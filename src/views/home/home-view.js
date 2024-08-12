@@ -55,24 +55,28 @@ export default function HomeView() {
                                 <button className="left-arrow" onClick={handlePrevPicture}>
                                     <img src={LeftArrowIcon} alt="Left Arrow" className="arrow-icon"/>
                                 </button>
-                                <div className="friend-picture-frame"> 
-                                    <div className="picture-header">    
-                                        <span className="owner-name">{pictureDatas[currentPictureIndex].ownerName}</span>
-                                        <span className="send-time">{pictureDatas[currentPictureIndex].sendTime}</span>
-                                    </div>
-                                    <img src={pictureDatas[currentPictureIndex].url} alt="Friend's Picture" className="friend-picture" />
-                                    <div className="picture-actions">
-                                        <button className="react-button">
-                                            <img src={ReactIcon} alt="React Icon" className="action-icon"/>
-                                        </button>
-                                        <div className="message-section">
-                                            <input type="text" placeholder="Type a message" className="message-input"/>
-                                            <button className="send-button">
-                                                <img src={SendIcon} alt="Send Icon" className="action-icon"/>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div className="picture-header">    
+        <div className="owner-info">
+            <img src={pictureDatas[currentPictureIndex].ownerAvatar} alt="Owner Avatar" className="owner-avatar" />
+            <span className="owner-name">{pictureDatas[currentPictureIndex].ownerName}</span>
+        </div>
+        <span className="send-time">{pictureDatas[currentPictureIndex].sendTime}</span>
+    </div>
+    <img src={pictureDatas[currentPictureIndex].url} alt="Friend's Picture" className="friend-picture" />
+    <div className="picture-caption-container">
+        <p className="picture-caption">{pictureDatas[currentPictureIndex].text}</p>
+    </div>
+    <div className="picture-actions">
+        <button className="react-button">
+            <img src={ReactIcon} alt="React Icon" className="action-icon"/>
+        </button>
+        <div className="message-section">
+            <input type="text" placeholder="Type a message" className="message-input"/>
+            <button className="send-button">
+                <img src={SendIcon} alt="Send Icon" className="action-icon"/>
+            </button>
+        </div>
+    </div>
                                 <button className="right-arrow" onClick={handleNextPicture}>
                                     <img src={RightArrowIcon} alt="Right Arrow" className="arrow-icon"/>
                                 </button>
