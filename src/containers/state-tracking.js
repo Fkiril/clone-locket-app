@@ -67,9 +67,8 @@ const StateTracking = () => {
 
     useEffect(() => {
         if (auth?.currentUser?.uid && currentUser) {
-            const q = query(collection(fs_db, "conversations"), where("participants", "array-contains", auth?.currentUser?.uid));
             const unSubscribe = onSnapshot(
-                q,
+                getDocRef("chatManagers", auth?.currentUser?.uid),
                 { includeMetadataChanges: false },
                 async () => {
                     console.log("state-tracking.js: fetchLastMessage() for onSnapshot");

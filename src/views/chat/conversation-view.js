@@ -21,8 +21,7 @@ export default function ConversationView() {
     const { conversationId } = useParams();
     const { currentUser, friendDatas } = useUserStore();
     const { messages, fetchMessages, fetchAdditionalMessages, fetchedAll } = useMessageStore();
-    const { chatManager } = useChatListStore();
-
+    const { chatManager, fetchLastMessageOfConversation } = useChatListStore();
     const [hasScrolledToTop, setHasScrolledToTop] = useState(false);
     const bodyElement = document.querySelector('.body');
     let timeoutId;
@@ -96,7 +95,9 @@ export default function ConversationView() {
         };
 
         await ChatController.sendMessage(conversationId, message).then( async () => {
-            await ChatController.signalNewMessage(conversationId, currentUser.id).catch((error) => {
+            await ChatController.signalNewMessage(conversationId, currentUser.id).then(async() => {
+                await fetchLastMessageOfConversation(auth?.currentUser?.uid, conversationId);
+            }).catch((error) => {
                 toast.error("Failed to send message, please try again!");
             });
         }).catch((error) => {
