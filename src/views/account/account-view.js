@@ -8,6 +8,7 @@ import { updatePassword } from "firebase/auth";
 
 import { toast } from "react-toastify";
 import { useUserStore } from "../../hooks/user-store";
+import { useInternetConnection } from "../../hooks/internet-connection";
 
 import AuthenticationController from "../../controllers/authentication-controller";
 import UserController from "../../controllers/user-controller";
@@ -23,6 +24,9 @@ export default function AccountView() {
     const navigate = useNavigate();
     
     const { currentUser, fetchUserInfo, requestDatas } = useUserStore();
+
+    const { connectionState } = useInternetConnection();
+
 
     const userController = new UserController(currentUser);
 
@@ -46,6 +50,15 @@ export default function AccountView() {
 
     const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
+    const disconnectionPortal = () => {
+        return createPortal(
+            <div className="disconnection-portal">
+                <p className="disconnection-text">Your connection has been interrupted. Please check your connection!</p>
+                <div className="disconnection-circle"></div>
+            </div>,
+            document.body
+        );
+    };    
 
     const handleLogOut = async () => {
         await AuthenticationController.logOut().then(async () => {
@@ -330,6 +343,7 @@ export default function AccountView() {
 
     return (
         <div className="account-container">
+            {!connectionState && disconnectionPortal()}
             <div className="card">
                 <div className="image">
                     <img src={currentUser?.avatarFileUrl || "./default_avatar.jpg"} alt="avatar" onClick={() => setIsSettingAvatar(true)}/>
