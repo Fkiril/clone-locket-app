@@ -1,5 +1,5 @@
 import "./account-view.css";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 
@@ -17,6 +17,7 @@ import FriendsListPortal from "./FriendsListPortal";
 import PicturesListPortal from "./PicturesListPortal";
 import RequestsListPortal from "./RequestsListPortal";
 import SearchBar from "./SearchBar"; // Import the new SearchBar component
+import { checkPassword } from "../../models/utils/check-password";
 
 export default function AccountView() {
     const navigate = useNavigate();
@@ -154,6 +155,7 @@ export default function AccountView() {
             const newUserName = formData.get("new-username");
 
             await userController.changeUserName(newUserName).then(() => {
+                currentUser.userName = newUserName;
                 toast.success("Change username successfull!");
                 setIsChangingUserName(false);
             }).catch((error) => {
@@ -196,6 +198,9 @@ export default function AccountView() {
 
             if (newPassword.length < 6) {
                 toast.warning("Password must be at least 6 characters!");
+                return;
+            }
+            if (!checkPassword(newPassword)) {
                 return;
             }
 

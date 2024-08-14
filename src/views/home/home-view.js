@@ -50,7 +50,7 @@ export default function HomeView() {
                             <img src={UploadIcon} alt="Upload Icon" className="nav-icon"/>
                         </button>
                         <button className="avatar-container" onClick={() => handleRouting("/account")}>
-                            <img src={currentUser.avatarFileUrl || avatarUrl} alt="User Avatar" className="user-avatar" loading="eager"/>
+                            <img src={currentUser?.avatarFileUrl || avatarUrl} alt="User Avatar" className="user-avatar" loading="eager"/>
                         </button>
                     </div>
                     <div className="friends-pictures-container"> 
@@ -66,17 +66,17 @@ export default function HomeView() {
                                             alt="Owner Avatar"
                                             className="owner-avatar"
                                         />
-                                        <span className="owner-name">{getOwnerInfo(pictureDatas[currentPictureIndex].ownerId)?.name}</span>
+                                        <span className="owner-name">{getOwnerInfo(pictureDatas[currentPictureIndex]?.ownerId)?.name}</span>
                                     </div>
-                                    <span className="send-time">{pictureDatas[currentPictureIndex].uploadTime}</span>
+                                    <span className="send-time">{pictureDatas[currentPictureIndex]?.uploadTime}</span>
                                 </div>
                                 <img
-                                    src={pictureDatas[currentPictureIndex].fileUrl || "./default_avatar.jpg"}
+                                    src={pictureDatas[currentPictureIndex]?.fileUrl || "./default_avatar.jpg"}
                                     alt="Friend's Picture"
                                     className="friend-picture"
                                 />
                                 <div className="picture-caption-container">
-                                    <p className="picture-caption">{pictureDatas[currentPictureIndex].uploadTime}</p>
+                                    <p className="picture-caption">{pictureDatas[currentPictureIndex]?.uploadTime}</p>
                                 </div>
                                 <div className="picture-actions">
                                     <button className="react-button">

@@ -2,19 +2,11 @@ import React from "react";
 import { createPortal } from "react-dom";
 import UserController from "../../controllers/user-controller";
 import { useUserStore } from "../../hooks/user-store";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const RequestsListPortal = ({ setIsShowingRequests }) => {
-    const navigate = useNavigate();
-
     const { currentUser, requestDatas } = useUserStore();
     const userController = currentUser? new UserController(currentUser) : null;
-
-    if (!currentUser) {
-        toast.warning("You are not logged in. Please log in first.");
-        return navigate("/");
-    }
 
     const handleAccept = async (requestId) => {
         await userController.acceptFriendRequest(requestId).then(() => {

@@ -43,10 +43,10 @@ const FriendsListPortal = ({ setIsShowingFriends }) => {
     <div className="friends-list fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onClick={handleClickOutside}>
       <div className="body bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl">
         <h2 className="text-2xl font-bold mb-6 text-center">Friends List</h2>
-        <div className="flex flex-wrap gap-4 justify-center">
+        <div className="flex flex-wrap gap-4 justify-center"> 
           {friendDatas?.map((friend) => (
             <div key={friend?.id} className="friend-card bg-gray-100 p-4 rounded-lg flex flex-col items-center w-48 shadow-md">
-              <img src={friend?.avatar} alt="Avatar" className="w-24 h-24 rounded-full mb-2" />
+              <img src={friend?.avatarFileUrl || "./default_avatar.jpg"} alt="Avatar" className="w-24 h-24 rounded-full mb-2" />
               <span className="text-lg font-semibold text-black mb-2">{friend?.name}</span>
               <div className="flex gap-2">
                 <button

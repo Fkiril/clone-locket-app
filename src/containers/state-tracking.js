@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../models/services/firebase";
+import { auth, fs_db } from "../models/services/firebase";
 import { getDocRef } from "../models/utils/firestore-method";
-import { onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, where } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { useUserStore } from "../hooks/user-store";
 import { useChatListStore } from "../hooks/chat-list-store";
 import { useInternetConnection } from "../hooks/internet-connection";
+import { query } from "firebase/database";
 
 const StateTracking = () => {
     const navigate = useNavigate();
@@ -29,8 +30,10 @@ const StateTracking = () => {
         const unSubscribe = onAuthStateChanged(auth, async () => {
             if (auth?.currentUser?.uid) {
                 console.log("state-tracking.js: fetchUserInfo() for onAuthStateChanged");
-                await fetchUserInfo(auth?.currentUser?.uid);
-                await fetchLastMessages(auth?.currentUser?.uid);
+                await Promise.all([
+                    fetchUserInfo(auth?.currentUser?.uid),
+                    fetchLastMessages(auth?.currentUser?.uid)
+                ])
             }
         });
 
@@ -49,10 +52,13 @@ const StateTracking = () => {
     useEffect(() => {
         if (auth?.currentUser?.uid && currentUser) {
             const unSubscribe = onSnapshot(
-                getDocRef("users", auth?.currentUser?.uid), async () => {
+                getDocRef("users", auth?.currentUser?.uid),
+                { includeMetadataChanges: false},
+                async () => {
                     console.log("state-tracking.js: fetchUserInfo() for onSnapshot");
                     await fetchUserInfo(auth?.currentUser?.uid);
-            })
+                }
+            )
             
             return () => {
                 unSubscribe();
@@ -62,8 +68,11 @@ const StateTracking = () => {
 
     useEffect(() => {
         if (auth?.currentUser?.uid && currentUser) {
+            const q = query(collection(fs_db, "conversations"), where("participants", "array-contains", auth?.currentUser?.uid));
             const unSubscribe = onSnapshot(
-                getDocRef("chatManagers", auth?.currentUser?.uid), async () => {
+                q,
+                { includeMetadataChanges: false },
+                async () => {
                     console.log("state-tracking.js: fetchLastMessage() for onSnapshot");
                     await fetchLastMessages(auth?.currentUser?.uid);
                 }
@@ -75,8 +84,8 @@ const StateTracking = () => {
     }, [onSnapshot]);
 
     return (
-        <div className="">
-        </div>
+        <>
+        </>
     )
 }
 

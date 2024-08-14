@@ -2,23 +2,15 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useUserStore } from "../../hooks/user-store";
 import UserController from "../../controllers/user-controller";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const SearchBar = () => {
-  const navigate = useNavigate();
-
   const { currentUser, friendDatas } = useUserStore();
   const userController = currentUser ? new UserController(currentUser) : null;
   
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResult, setSearchResult] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
-  
-  if (!currentUser) {
-    toast.warning("You are not logged in. Please log in first.");
-    return navigate("/");
-  }
 
   const handleSearch = async () => {
     await userController.getFriendByEmail(searchQuery).then((result) => {

@@ -12,7 +12,7 @@ import { createPortal } from "react-dom";
 export default function AuthenticationView() {
   const navigate = useNavigate();
 
-  const { currentUser, fetchUserInfo } = useUserStore();
+  const { currentUser, fetchUserInfo, isFetching } = useUserStore();
   const { connectionState } = useInternetConnection();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -221,7 +221,7 @@ export default function AuthenticationView() {
               <input type="password" placeholder="Password" name="password" required className="mb-3 p-2 border rounded" />
               <input type="password" placeholder="Confirm Password" name="confirmPassword" required className="mb-3 p-2 border rounded" />
               <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                {isLoading ? "Loading" : "Sign up"}
+                {(isLoading || isFetching) ? "Loading" : "Sign up"}
               </button>
             </form>
           </div>

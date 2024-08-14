@@ -108,7 +108,7 @@ const exitDocWithValue = async (path, fieldName, data) => {
     const usersRef = collection(fs_db, path);
     const q = query(usersRef, where(fieldName, "==", data));
     const querySnapshot = await getDocs(q);
-    if (querySnapshot.docs.empty) {
+    if (querySnapshot.empty) {
         return false;
     }
     return true;
