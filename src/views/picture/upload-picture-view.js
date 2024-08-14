@@ -178,7 +178,7 @@ export default function UploadPictureView() {
       </div>
       <p className="app-subtitle text-center">Share moments - Happy life</p>
 
-      <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md flex flex-col items-center relative body">
+      <div className="upload-picture-container">
         {viewState === ICON_STATE && (
           <div className="option-picture">
             <div className="button-container flex justify-center items-center space-x-14">
