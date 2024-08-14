@@ -1,6 +1,6 @@
 import "./conversation-view.css";
 import React, { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import { auth } from "../../models/services/firebase";
@@ -12,21 +12,45 @@ import { useMessageStore } from "../../hooks/message-store";
 import { useChatListStore } from "../../hooks/chat-list-store";
 
 import ChatController from "../../controllers/chat-controller";
-import { dateToString } from "../../models/utils/date-method";
+import { timestampToString } from "../../models/utils/date-method";
 
 export default function ConversationView() {
     const navigate = useNavigate();
-    const [state, setState] = useState(useLocation().state);
     const [showDetail, setShowDetail] = useState(false);
 
     const { conversationId } = useParams();
     const { currentUser, friendDatas } = useUserStore();
-    const { messages, fetchMessages } = useMessageStore();
+    const { messages, fetchMessages, fetchAdditionalMessages, fetchedAll } = useMessageStore();
     const { chatManager } = useChatListStore();
+
+    const [hasScrolledToTop, setHasScrolledToTop] = useState(false);
+    const bodyElement = document.querySelector('.body');
+    let timeoutId;
+
+    bodyElement?.addEventListener('scroll', () => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            if (bodyElement.scrollTop === 0 && !hasScrolledToTop) {
+                setHasScrolledToTop(true);
+            }
+            else {
+                setHasScrolledToTop(false);
+            }
+        }, 1000);
+    });
+    console.log("fetchedAll: ", fetchedAll)
+    console.log("hasScrolledToTop: ", hasScrolledToTop)
+    useEffect(() => {
+        if (hasScrolledToTop && !fetchedAll) {
+            console.log("conversation-view.js: fetchAdditionalMessages");
+            fetchAdditionalMessages(conversationId);
+        }
+    }, [hasScrolledToTop, fetchedAll])
 
     const endRef = useRef(null);
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
+        console.log("conversation-view.js: scrollToBottom");
     }, [messages[conversationId]]);
 
     useEffect(() => {
@@ -49,10 +73,11 @@ export default function ConversationView() {
     const handleGetAvatar = (senderId) => {
         if (!currentUser) return "./default_avatar.jpg";
         if (senderId === currentUser.id) {
-            return currentUser.avatar || "./default_avatar.jpg";
+            return currentUser.avatarFileUrl || currentUser.avatar || "./default_avatar.jpg";
         }
         const friend = friendDatas?.find((friend) => friend.id === senderId);
-        return friend?.avatar || "./default_avatar.jpg";
+        if (!friend) return "./default_avatar.jpg";
+        return friend?.avatarFileUrl || friend?.avatar || "./default_avatar.jpg";
     };
 
     const handleSendMessage = async (event) => {
@@ -69,13 +94,11 @@ export default function ConversationView() {
         const message = {
             text,
             senderId: currentUser.id,
-            createdTime: dateToString(new Date())
+            createdTime: new Date().getTime(),
         };
 
         await ChatController.sendMessage(conversationId, message).then( async () => {
-            await ChatController.signalNewMessage(conversationId, currentUser.id).then(() => {
-                setFinishSending(true);
-            }).catch((error) => {
+            await ChatController.signalNewMessage(conversationId, currentUser.id).catch((error) => {
                 toast.error("Failed to send message, please try again!");
             });
         }).catch((error) => {
@@ -92,7 +115,12 @@ export default function ConversationView() {
             (message) => (message.senderId !== currentUser.id && !message.isSeen)
         ).map((message) => message.id);
         if (messagesId.length === 0) return;
-        await ChatController.setIsSeenToMessages(currentUser.id, conversationId, messagesId);
+        else {
+            for (const mId of messagesId) {
+                messages[conversationId].find((message) => message.id === mId).isSeen = true;
+            }
+            await ChatController.setIsSeenToMessages(currentUser.id, conversationId, messagesId);
+        }
     };
 
     const friendInfo = friendDatas.find(async (friend) => await ChatController.getFriendIdByConversationId(currentUser.id, conversationId) === friend.id);
@@ -133,7 +161,7 @@ export default function ConversationView() {
                                 </div>
                                 <div className="message-content">
                                     <p className="text">{message?.text}</p>
-                                    <span className="time">{message?.createdTime}</span>
+                                    <span className="time">{timestampToString(message?.createdTime)}</span>
                                 </div>
                             </div>
                         ))}

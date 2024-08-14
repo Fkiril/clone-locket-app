@@ -22,7 +22,24 @@ export const useUserStore = create((set, get) => ({
       get().isFetching = true;
       console.log(`fetching user's info with id: ${id}`);
       
-      const userData = await getDocDataById("users", id);
+      const userData = await getDocDataById("users", id).then(async (userData) => {
+        if (userData) {
+          const file = (userData.avatar && userData.avatar !== "" && userData.avatar.includes("firebasestorage"))?
+            await fetch(userData.avatar).then(response => response.blob())
+              .then(blob => {
+                console.log("Blob file:", blob);
+                return blob;
+              }).catch(error => {
+                console.error("Error downloading file:", error);
+              }) : null;
+
+          return {
+            ...userData,
+            avatarFile: file,
+            avatarFileUrl: file? URL.createObjectURL(file) : null
+          };
+        }
+      });
       const fDatas = [];
       const rDatas = [];
       const bDatas = [];
@@ -36,11 +53,22 @@ export const useUserStore = create((set, get) => ({
             fIds.map(async (fId) => {
               const fData = await getDocDataById("users", fId);
               if (fData) {
+                const file = (fData.avatar && fData.avatar !== "" && fData.avatar.includes("firebasestorage"))?
+                  await fetch(fData.avatar).then(response => response.blob())
+                    .then(blob => {
+                      console.log("Blob file:", blob);
+                      return blob;
+                    }).catch(error => {
+                      console.error("Error downloading file:", error);
+                    }) : null;
+
                 fDatas.push({
                   id: fData.id,
                   name: fData.userName,
                   email: fData.email,
-                  avatar: fData.avatar
+                  avatar: fData.avatar,
+                  avatarFile: file,
+                  avatarFileUrl: file? URL.createObjectURL(file) : null
                 });
               }
             })
@@ -89,10 +117,23 @@ export const useUserStore = create((set, get) => ({
             picIds.map(async (picId) => {
               const picData = await getDocDataById("pictures", picId);
               if (picData) {
+                const file = (picData.url && picData.url !== "" && picData.url.includes("firebasestorage"))? await fetch(picData.url)
+                  .then(response => response.blob())
+                  .then(blob => {
+                    // Use the blob as needed
+                    console.log("Blob file:", blob);
+                    return blob;
+                  })
+                  .catch(error => {
+                    console.error("Error downloading file:", error);
+                  }) : null;
+
                 picDatas.push({
                   id: picData.id,
                   ownerId: picData.ownerId,
                   url: picData.url,
+                  file: file,
+                  fileUrl: file? URL.createObjectURL(file) : null,
                   text: picData.text,
                   uploadTime: picData.uploadTime
                 });

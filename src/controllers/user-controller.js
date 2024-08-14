@@ -1,6 +1,5 @@
 import { uploadToFolder, deleteFile } from "../models/utils/storage-method";
 import { updateArrayField, getDocIdByValue, getDocDatasByValue, getDocDataById, getDocRef, createBatchedWrites, writeIntoDoc } from "../models/utils/firestore-method";
-import { changePassword } from "../models/utils/authetication-method";
 
 export default class UserController {
     constructor(user) {
@@ -76,6 +75,10 @@ export default class UserController {
 
     async changeAvatar(newAvatar) {
         try {
+            if (!this.user.avatar || this.user.avatar === "") {
+                console.log("No avatar to change");
+                return;
+            }
             const { fileUrl } = await uploadToFolder(newAvatar, "avatars");
             
             if (this.user.avatar !== "") {
@@ -96,6 +99,10 @@ export default class UserController {
 
     async deleteAvatar() {
         try {
+            if (!this.user.avatar || this.user.avatar === "" || !this.user.id || this.user.id === "") {
+                console.log("Null params to delete avatar");
+                return;
+            }
             await deleteFile(this.user.avatar);
 
             await writeIntoDoc("users", this.user.id, true, {
@@ -109,6 +116,10 @@ export default class UserController {
 
     async changeUserName(newUserName) {
         try {
+            if (!this.user.id || this.user.id === "") {
+                console.log("Null params to change user name");
+                return;
+            }
             await writeIntoDoc("users", this.user.id, true, {
                 userName: newUserName
             });
@@ -120,6 +131,10 @@ export default class UserController {
 
     async unfriendById(friendId) {
         try {
+            if (!this.user.id || this.user.id === "" || !friendId || friendId === "") {
+                console.log("Null params to unfriend user");
+                return;
+            }
             const writes = [
                 {
                     work: "update-array",
@@ -159,6 +174,10 @@ export default class UserController {
 
     async sendFriendRequestById(receiverId) {
         try {
+            if (!this.user.id || this.user.id === "" || !receiverId || receiverId === "") {
+                console.log("Null params to send friend request");
+                return;
+            }
             await updateArrayField("users", receiverId, "friendRequests", true, this.user.id);
         } catch (error) {
             console.error("Error sending friend request:", error);
@@ -168,6 +187,10 @@ export default class UserController {
 
     async sendFriendRequestByEmail(receiverEmail) {
         try {
+            if (!this.user.id || this.user.id === "") {
+                console.log("Null params to send friend request");
+                return;
+            }
             const receiverId = await getDocIdByValue("users", "email", receiverEmail);
             if (receiverId) {
                 await updateArrayField("users", receiverId, "friendRequests", true, this.user.id);
@@ -180,6 +203,10 @@ export default class UserController {
 
     async cancelFriendRequest(receiverId) {
         try {
+            if (!this.user.id || this.user.id === "") {
+                console.log("Null params to cancel friend request");
+                return;   
+            }
             await updateArrayField("users", receiverId, "friendRequests", false, this.user.id);
         } catch (error) {
             console.error("Error canceling friend request:", error);
@@ -189,6 +216,10 @@ export default class UserController {
 
     async acceptFriendRequest(senderId) {
         try {
+            if (!this.user.id || this.user.id === "") {
+                console.log("Null params to accept friend request");
+                return;
+            }
             const writes = [
                 {
                     work: "update-array",
@@ -220,6 +251,10 @@ export default class UserController {
 
     async declineFriendRequest(senderId) {
         try {
+            if (!this.user.id || this.user.id === "") {
+                console.log("Null params to decline friend request");
+                return;
+            }
             await updateArrayField("users", this.user.id, "friendRequests", false, senderId);
         } catch (error) {
             console.error("Error declining friend request:", error);
@@ -252,6 +287,10 @@ export default class UserController {
     // New methods for blocking and unblocking users
     async blockUser(blockedUserId) {
         try {
+            if (!this.user.id || this.user.id === "") {
+                console.log("Null params to block user");
+                return;
+            }
             await updateArrayField("users", this.user.id, "blockedUsers", true, blockedUserId);
         } catch (error) {
             console.error("Error blocking user:", error);
@@ -261,6 +300,10 @@ export default class UserController {
 
     async unblockUser(unblockedUserId) {
         try {
+            if (!this.user.id || this.user.id === "") {
+                console.log("Null params to unblock user");
+                return;
+            }
             await updateArrayField("users", this.user.id, "blockedUsers", false, unblockedUserId);
         } catch (error) {
             console.error("Error unblocking user:", error);

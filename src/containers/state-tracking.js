@@ -44,7 +44,7 @@ const StateTracking = () => {
             navigate("/");
             console.log("state-tracking.js: useEffect() for navigate to authentication page");
         }
-    }, [currentUser, auth, auth?.currentUser])
+    }, [currentUser, auth?.currentUser, navigate]);
 
     useEffect(() => {
         if (auth?.currentUser?.uid && currentUser) {

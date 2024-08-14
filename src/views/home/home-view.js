@@ -12,12 +12,12 @@ import SendIcon from '../../assets/send-icon.svg';
 export default function HomeView() {
     const navigate = useNavigate();
   
-    const { currentUser, pictureDatas, isFetching } = useUserStore();
+    const { currentUser, pictureDatas, friendDatas, isFetching } = useUserStore();
     const avatarUrl = currentUser?.avatar ? currentUser.avatar : "./default_avatar.jpg";
     const [currentPictureIndex, setCurrentPictureIndex] = useState(0);
 
     const handleRouting = (path) => {
-        navigate(path, { state: { routing: true } });
+        navigate(path);
     }
 
     const handlePrevPicture = () => {
@@ -27,6 +27,10 @@ export default function HomeView() {
     const handleNextPicture = () => {
         setCurrentPictureIndex((prevIndex) => (prevIndex === pictureDatas.length - 1 ? 0 : prevIndex + 1));
     };
+
+    const getOwnerInfo = (ownerId) => {
+        return friendDatas.find((friendData) => friendData.id === ownerId);
+    }
 
     return (
         <>
@@ -46,7 +50,7 @@ export default function HomeView() {
                             <img src={UploadIcon} alt="Upload Icon" className="nav-icon"/>
                         </button>
                         <button className="avatar-container" onClick={() => handleRouting("/account")}>
-                            <img src={avatarUrl} alt="User Avatar" className="user-avatar" loading="eager"/>
+                            <img src={currentUser.avatarFileUrl || avatarUrl} alt="User Avatar" className="user-avatar" loading="eager"/>
                         </button>
                     </div>
                     <div className="friends-pictures-container"> 
@@ -56,27 +60,35 @@ export default function HomeView() {
                                     <img src={LeftArrowIcon} alt="Left Arrow" className="arrow-icon"/>
                                 </button>
                                 <div className="picture-header">    
-        <div className="owner-info">
-            <img src={pictureDatas[currentPictureIndex].ownerAvatar} alt="Owner Avatar" className="owner-avatar" />
-            <span className="owner-name">{pictureDatas[currentPictureIndex].ownerName}</span>
-        </div>
-        <span className="send-time">{pictureDatas[currentPictureIndex].sendTime}</span>
-    </div>
-    <img src={pictureDatas[currentPictureIndex].url} alt="Friend's Picture" className="friend-picture" />
-    <div className="picture-caption-container">
-        <p className="picture-caption">{pictureDatas[currentPictureIndex].text}</p>
-    </div>
-    <div className="picture-actions">
-        <button className="react-button">
-            <img src={ReactIcon} alt="React Icon" className="action-icon"/>
-        </button>
-        <div className="message-section">
-            <input type="text" placeholder="Type a message" className="message-input"/>
-            <button className="send-button">
-                <img src={SendIcon} alt="Send Icon" className="action-icon"/>
-            </button>
-        </div>
-    </div>
+                                    <div className="owner-info">
+                                        <img
+                                            src={getOwnerInfo(pictureDatas[currentPictureIndex].ownerId)?.avatarFileUrl || "./default_avatar.jpg"}
+                                            alt="Owner Avatar"
+                                            className="owner-avatar"
+                                        />
+                                        <span className="owner-name">{getOwnerInfo(pictureDatas[currentPictureIndex].ownerId)?.name}</span>
+                                    </div>
+                                    <span className="send-time">{pictureDatas[currentPictureIndex].uploadTime}</span>
+                                </div>
+                                <img
+                                    src={pictureDatas[currentPictureIndex].fileUrl || "./default_avatar.jpg"}
+                                    alt="Friend's Picture"
+                                    className="friend-picture"
+                                />
+                                <div className="picture-caption-container">
+                                    <p className="picture-caption">{pictureDatas[currentPictureIndex].uploadTime}</p>
+                                </div>
+                                <div className="picture-actions">
+                                    <button className="react-button">
+                                        <img src={ReactIcon} alt="React Icon" className="action-icon"/>
+                                    </button>
+                                    <div className="message-section">
+                                        <input type="text" placeholder="Type a message" className="message-input"/>
+                                        <button className="send-button">
+                                            <img src={SendIcon} alt="Send Icon" className="action-icon"/>
+                                        </button>
+                                    </div>
+                                </div>
                                 <button className="right-arrow" onClick={handleNextPicture}>
                                     <img src={RightArrowIcon} alt="Right Arrow" className="arrow-icon"/>
                                 </button>

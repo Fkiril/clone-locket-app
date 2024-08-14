@@ -1,8 +1,6 @@
 import "./chat-view.css";
-import React, { useEffect, useState } from "react";
-import { onSnapshot } from "firebase/firestore";
-import { getDocRef } from "../../models/utils/firestore-method";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../../hooks/user-store";
 import { useChatListStore } from "../../hooks/chat-list-store";
 import ChatController from "../../controllers/chat-controller";
@@ -10,10 +8,9 @@ import { toast } from "react-toastify";
 
 export default function ChatView() {
     const navigate = useNavigate();
-    const [state, setState] = useState(useLocation().state);
   
     const { currentUser, friendDatas } = useUserStore();
-    const { chatManager, conversations, lastMessages, fetchLastMessages } = useChatListStore();
+    const { chatManager, conversations, lastMessages } = useChatListStore();
     const [searchedFriend, setSearchedFriend] = useState(null);
 
     const handleNavigate = async (friendId) => {
@@ -22,12 +19,7 @@ export default function ChatView() {
             conversationId = await ChatController.createConversation([currentUser.id, friendId]);
         }
 
-        if (newMessageAt.includes(conversationId)) {
-            navigate(`/conversation/${conversationId}`, { state: { routing: true, newMessage: true } });
-        }
-        else {
-            navigate(`/conversation/${conversationId}`, { state: { routing: true } });
-        }
+        navigate(`/conversation/${conversationId}`);
     }
 
     const handleSearchFriend = (event) => {

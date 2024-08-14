@@ -1,14 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import PictureController from "../../controllers/picture-controller";
 import { useUserStore } from "../../hooks/user-store";
 import Picture, { ScopeEnum } from "../../models/entities/picture";
-
-import { onSnapshot } from "firebase/firestore";
-import { getDocRef } from "../../models/utils/firestore-method";
-import { auth } from "../../models/services/firebase";
 
 // import { FaCamera } from "react-icons/fa";
 import cameraIcon from './camera.jpg';
@@ -20,9 +16,8 @@ const UPLOAD_STATE = 'upload_state';
 
 export default function UploadPictureView() {
   const navigate = useNavigate();
-  const [state, setState] = useState(useLocation().state);
 
-  const { currentUser, fetchUserInfo } = useUserStore();
+  const { currentUser, friendDatas } = useUserStore();
 
   const [picture, setPicture] = useState({
     file: null,
@@ -34,34 +29,7 @@ export default function UploadPictureView() {
   const [showScopeOption, setShowScopeOption] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState([]);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [uploaded, setUploaded] = useState(false);
   const [viewState, setViewState] = useState(ICON_STATE); 
-
-  useEffect(() => {
-    if (state?.routing && currentUser) {
-        setState(null);
-    }
-    else if (auth?.currentUser?.uid) {
-        const unSubscribe = onSnapshot(getDocRef("users", auth?.currentUser?.uid), async () => {
-            await fetchUserInfo(auth?.currentUser.uid);
-
-            console.log("upload-picture.js: useEffect() for onSnapshot");
-        });
-
-        return () => {
-            unSubscribe();
-        }
-    }
-    else {
-        auth.authStateReady().then(async () => {
-            await fetchUserInfo(auth?.currentUser.uid);
-
-            console.log("upload-picture.js: auth.authStateReady()");
-        }).catch((error) => {
-            console.log("upload-picture.js: auth.authStateReady() error: ", error);
-        });
-    }
-  }, [onSnapshot, auth?.currentUser?.uid]);
 
   const handlePicture = (event) => {
     if (event.target.files[0]) {
@@ -91,7 +59,6 @@ export default function UploadPictureView() {
       .then(() => {
         toast.success("Picture uploaded successfully!");
         handleCancelOption();
-        setUploaded(true);
       })
       .catch((error) => {
         toast.error("Failed to upload picture. Please try again!");

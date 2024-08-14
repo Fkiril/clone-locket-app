@@ -1,11 +1,10 @@
 import "./account-view.css";
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 import { auth } from "../../models/services/firebase";
-import { onSnapshot } from "firebase/firestore";
-import { onAuthStateChanged, updatePassword } from "firebase/auth";
-import { getDocRef } from "../../models/utils/firestore-method";
+import { updatePassword } from "firebase/auth";
 
 import { toast } from "react-toastify";
 import { useUserStore } from "../../hooks/user-store";
@@ -21,13 +20,10 @@ import SearchBar from "./SearchBar"; // Import the new SearchBar component
 
 export default function AccountView() {
     const navigate = useNavigate();
-    const [state, setState] = useState(useLocation().state);
     
     const { currentUser, fetchUserInfo } = useUserStore();
 
-    const [userController, setUserController] = useState(
-        currentUser? new UserController(currentUser) : null
-    );
+    const userController = new UserController(currentUser);
 
     const [isSettingAvatar, setIsSettingAvatar] = useState(false);
     const [selectedAvatar, setSelectedAvatar] = useState({
@@ -48,7 +44,8 @@ export default function AccountView() {
     const [isShowingPictures, setIsShowingPictures] = useState(false);
 
     const handleLogOut = async () => {
-        await AuthenticationController.logOut().then(() => {
+        await AuthenticationController.logOut().then(async () => {
+            await fetchUserInfo(null);
             toast.success("Logout successfull");
         }).catch((error) => {
             toast.error("Failed to log out. Please try again.");
@@ -107,7 +104,7 @@ export default function AccountView() {
         return createPortal((
         <div className="avatar-setting fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onClick={handleClickOutside}>
             <div className="body bg-white p-6 rounded-lg shadow-lg">
-                <img src={selectedAvatar.url ? selectedAvatar.url : currentUser.avatar} alt="" className="w-32 h-32 rounded-full mx-auto mb-4" />
+                <img src={selectedAvatar.url ? selectedAvatar.url : (currentUser.avatarFileUrl || "./default_avatar.jpg")} alt="" className="w-32 h-32 rounded-full mx-auto mb-4" />
                 <div className="flex flex-col items-center space-y-2">
                     <button 
                         className="bg-blue-500 text-white px-4 py-2 rounded-lg"
@@ -261,7 +258,7 @@ export default function AccountView() {
         <div className="account-container">
             <div className="card">
                 <div className="image">
-                    <img src={currentUser?.avatar ? currentUser.avatar : "./default_avatar.jpg"} alt="avatar" />
+                    <img src={currentUser?.avatarFileUrl || "./default_avatar.jpg"} alt="avatar" onClick={() => setIsSettingAvatar(true)}/>
                 </div>
                 <div className="card-info">
                     <span>{currentUser?.userName}</span>

@@ -14,4 +14,15 @@ const stringToDate = (date) => {
     return new Date(arr.join("T"));
 }
 
-export { dateToString, stringToDate }
+const stringToTimestamp = (date) => {
+    if (!date || date === "") return;
+    
+    return new Date(stringToDate(date)).getTime();
+}
+
+const timestampToString = (timestamp) => {
+    if (!timestamp) return "";
+    return new Date(timestamp).toLocaleString("vi-VN").replace(/\//g, "-");
+}
+
+export { dateToString, stringToDate, stringToTimestamp, timestampToString }

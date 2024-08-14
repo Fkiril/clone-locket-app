@@ -9,7 +9,7 @@ export const useChatListStore = create((set) => ({
     fetchLastMessages: async (userId) => {
         try {
             console.log("fetchLastMessages: ", userId);
-            if (!userId) set({ isLoading: false, chatManager: null, conversations: null, lastMessages: null });
+            if (!userId) return;
 
             const chatManagerData = await getDocDataById("chatManagers", userId);
             
@@ -25,7 +25,6 @@ export const useChatListStore = create((set) => ({
                             conversationImg: conversationData.conversationImg
                         }
                     }
-                    return null;
                 }));
 
                 const lastMessageDatas = await Promise.all(conversationDatas.map(async (conversationData) => {
@@ -44,7 +43,7 @@ export const useChatListStore = create((set) => ({
 
                 set({ chatManager: chatManagerData, conversations: conversationDatas, lastMessages: lastMessageDatas, isLoading: false });
             }
-            else set({ chatManager: null, conversations: null, lastMessages: null, isLoading: false });
+            else return;
         } catch (error) {
             console.log("Error fetching boxChats: ", error);
             set({ chatManager: null, conversations: null, lastMessages: null, isLoading: false });
