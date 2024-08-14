@@ -2,12 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, fs_db } from "../models/services/firebase";
 import { getDocRef } from "../models/utils/firestore-method";
-import { collection, onSnapshot, where } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { useUserStore } from "../hooks/user-store";
 import { useChatListStore } from "../hooks/chat-list-store";
 import { useInternetConnection } from "../hooks/internet-connection";
-import { query } from "firebase/database";
 
 const StateTracking = () => {
     const navigate = useNavigate();
@@ -68,9 +67,8 @@ const StateTracking = () => {
 
     useEffect(() => {
         if (auth?.currentUser?.uid && currentUser) {
-            const q = query(collection(fs_db, "conversations"), where("participants", "array-contains", auth?.currentUser?.uid));
             const unSubscribe = onSnapshot(
-                q,
+                getDocRef("chatManagers", auth?.currentUser?.uid),
                 { includeMetadataChanges: false },
                 async () => {
                     console.log("state-tracking.js: fetchLastMessage() for onSnapshot");

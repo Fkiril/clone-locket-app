@@ -75,8 +75,8 @@ export default class UserController {
 
     async changeAvatar(newAvatar) {
         try {
-            if (!this.user.avatar || this.user.avatar === "") {
-                console.log("No avatar to change");
+            if (!newAvatar) {
+                console.log("Null params to change avatar");
                 return;
             }
             const { fileUrl } = await uploadToFolder(newAvatar, "avatars");
@@ -89,7 +89,6 @@ export default class UserController {
                 avatar: fileUrl
             });
             
-            this.user.avatar = fileUrl;
             return fileUrl;
         } catch(error) {
             console.log("Error changing avatar: ", error);
