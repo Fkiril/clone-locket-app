@@ -201,9 +201,11 @@ export default function AccountView() {
         const handleChange = async (event) => {
             event.preventDefault();
             const formData = new FormData(event.target);
+            const currentPassword = formData.get("current-password");
             const newPassword = formData.get("new-password");
             const confirmPassword = formData.get("confirm-password");
-            if (!newPassword || !confirmPassword) {
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                toast.warning("Please fill in all fields.");
                 return;
             }
 
@@ -220,14 +222,17 @@ export default function AccountView() {
                 return;
             }
 
-            await updatePassword(auth.currentUser, newPassword).then(() => {
-                toast.success("Change password successfull!");
+            try {
+                // Reauthenticate the user with the current password
+                await AuthenticationController.reauthenticate(auth.currentUser, currentPassword);
+                await updatePassword(auth.currentUser, newPassword);
+    
+                toast.success("Password changed successfully!");
                 setIsChangingPassword(false);
                 event.target.reset();
-
-            }).catch((error) => {
-                toast.error("Failed to change password. Please try again.");
-            });
+            } catch (error) {
+                toast.error("Failed to change password. Please check your current password and try again.");
+            }
         };
 
         const handleClickOutside = (event) => {
@@ -242,6 +247,12 @@ export default function AccountView() {
                 <div className="body bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
                     <h2 className="text-2xl font-bold mb-4">Change Password</h2>
                     <form onSubmit={handleChange} className="flex flex-col gap-4">
+                        <input
+                            type="password"
+                            name="current-password"
+                            placeholder="Enter current password"
+                            className="input p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
                         <input
                             type="password"
                             name="new-password"
