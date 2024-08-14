@@ -59,15 +59,18 @@ export default function AccountView() {
             const file = event.target.files[0];
             const url = URL.createObjectURL(event.target.files[0]);
             setSelectedAvatar({
-                file,
-                url
+                file: file,
+                url: url
             });
         }
         };
     
         const submitOption = async () => {
-            await userController.changeAvatar(selectedAvatar.file).then(() => {
+            await userController.changeAvatar(selectedAvatar.file).then((avaterUrl) => {
                 toast.success("Change avatar successfull!");
+                currentUser.avatar = avaterUrl;
+                currentUser.avatarFile = selectedAvatar.file;
+                currentUser.avatarFileUrl = selectedAvatar.url;
                 setSelectedAvatar({
                     file: null,
                     url: ""
