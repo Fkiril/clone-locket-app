@@ -268,9 +268,12 @@ export default function UploadPictureView() {
                   >
                     {scope === ScopeEnum.PUBLIC
                       ? "Public"
-                      : scope === ScopeEnum.FRIENDS
-                      ? "Friends"
-                      : "Specify"}
+                      : scope === ScopeEnum.PRIVATE
+                      ? "Private"
+                      
+                      ?"Specify"
+                     : scope === ScopeEnum.SPECIFY
+                     }
                   </button>
                   {showScopeOption && (
                     <div className="scope-options mt-2 p-2 bg-gray-100 rounded-md shadow-lg">
@@ -283,12 +286,12 @@ export default function UploadPictureView() {
                         Public
                       </button>
                       <button
-                        onClick={() => setScope(ScopeEnum.FRIENDS)}
+                        onClick={() => setScope(ScopeEnum.PRIVATE)}
                         className={`w-full text-left px-4 py-2 ${
-                          scope === ScopeEnum.FRIENDS ? "bg-blue-100" : ""
+                          scope === ScopeEnum.PRIVATE ? "bg-blue-100" : ""
                         }`}
                       >
-                        Friends
+                        Private
                       </button>
                       <button
                         onClick={() => setScope(ScopeEnum.SPECIFY)}
