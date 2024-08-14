@@ -33,12 +33,13 @@ export const useMessageStore = create((set, get) => ({
                         }
                     });
     
-                    mDatas.sort((a, b) => {
-                        return a?.createdTime - b?.createdTime;
-                    });
                     if (get().messages[conversationId] && get().messages[conversationId].length > 0) {
                         mDatas.push(...get().messages[conversationId]);
                     }
+                    mDatas.sort((a, b) => {
+                        return a?.createdTime - b?.createdTime;
+                    });
+
                     if (fetchLimit > querySnapshot.size) {
                         set({ messages: { ...get().messages, [conversationId]: mDatas }, fetchedAll: true, isLoading: false });
                     }
@@ -77,13 +78,14 @@ export const useMessageStore = create((set, get) => ({
                         }
                     });
     
-                    mDatas.sort((a, b) => {
-                        return a?.createdTime - b?.createdTime;
-                    });
                     if (get().messages[conversationId] && get().messages[conversationId].length > 0) {
                         mDatas.push(...get().messages[conversationId]);
                     }
-                    else set({ messages: { ...get().messages, [conversationId]: mDatas }, fetchedAll: (querySnapshot.docs.length < fetchLimit), isLoading: false });
+                    mDatas.sort((a, b) => {
+                        return a?.createdTime - b?.createdTime;
+                    });
+
+                    set({ messages: { ...get().messages, [conversationId]: mDatas }, fetchedAll: (querySnapshot.docs.length < fetchLimit), isLoading: false });
                 }
                 
                 set({ fetchedAll: true, isLoading: false });

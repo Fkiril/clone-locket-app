@@ -38,8 +38,7 @@ export default function ConversationView() {
             }
         }, 1000);
     });
-    console.log("fetchedAll: ", fetchedAll)
-    console.log("hasScrolledToTop: ", hasScrolledToTop)
+
     useEffect(() => {
         if (hasScrolledToTop && !fetchedAll) {
             console.log("conversation-view.js: fetchAdditionalMessages");
@@ -50,7 +49,6 @@ export default function ConversationView() {
     const endRef = useRef(null);
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
-        console.log("conversation-view.js: scrollToBottom");
     }, [messages[conversationId]]);
 
     useEffect(() => {
