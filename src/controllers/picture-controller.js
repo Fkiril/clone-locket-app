@@ -1,5 +1,6 @@
 import { createBatchedWrites, getDocDatasByValue, getDocRef, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
 import { uploadToFolder } from "../models/utils/storage-method";
+import { stringToTimestamp } from "../models/utils/date-method";
 
 export default class PictureController {
     static async uploadPicture(picInstance, file) {
@@ -7,7 +8,7 @@ export default class PictureController {
             const { fileUrl, uploadTime } = await uploadToFolder(file, "pictures");
 
             picInstance.url = fileUrl;
-            picInstance.uploadTime = uploadTime;
+            picInstance.uploadTime = stringToTimestamp(uploadTime);
             const docRefId = await writeIntoCol("pictures", picInstance.toJSON());
             
             picInstance.id = docRefId;

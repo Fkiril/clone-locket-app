@@ -112,7 +112,7 @@ export default function ChatView() {
                             <div className="friend" key={friend.id} onClick={() => handleNavigate(friend.id)}>
                                 <div className="friend-info">
                                     <div className="friend-avatar">
-                                        <img src={friend.avatar || "./default_avatar.jpg"} alt="avatar" />
+                                        <img src={friend.avatarFileUrl || friend.avatar || "./default_avatar.jpg"} alt="avatar" />
                                     </div>
                                     <div className="friend-details">
                                         <p className="friend-name">{friend.name}</p>

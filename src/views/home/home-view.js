@@ -8,6 +8,7 @@ import ReactIcon from '../../assets/react-icon.svg';
 import LeftArrowIcon from '../../assets/left-arrow-icon.svg';
 import RightArrowIcon from '../../assets/right-arrow-icon.svg';
 import SendIcon from '../../assets/send-icon.svg';
+import { timestampToString } from "../../models/utils/date-method";
 
 export default function HomeView() {
     const navigate = useNavigate();
@@ -29,6 +30,9 @@ export default function HomeView() {
     };
 
     const getOwnerInfo = (ownerId) => {
+        if (ownerId === currentUser?.id) {
+            return currentUser;
+        }
         return friendDatas.find((friendData) => friendData.id === ownerId);
     }
 
@@ -68,7 +72,7 @@ export default function HomeView() {
                                         />
                                         <span className="owner-name">{getOwnerInfo(pictureDatas[currentPictureIndex]?.ownerId)?.name}</span>
                                     </div>
-                                    <span className="send-time">{pictureDatas[currentPictureIndex]?.uploadTime}</span>
+                                    <span className="send-time">{timestampToString(pictureDatas[currentPictureIndex]?.uploadTime)}</span>
                                 </div>
                                 <img
                                     src={pictureDatas[currentPictureIndex]?.fileUrl || "./default_avatar.jpg"}
@@ -76,7 +80,7 @@ export default function HomeView() {
                                     className="friend-picture"
                                 />
                                 <div className="picture-caption-container">
-                                    <p className="picture-caption">{pictureDatas[currentPictureIndex]?.uploadTime}</p>
+                                    <p className="picture-caption">{timestampToString(pictureDatas[currentPictureIndex]?.uploadTime)}</p>
                                 </div>
                                 <div className="picture-actions">
                                     <button className="react-button">

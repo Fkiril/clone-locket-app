@@ -93,6 +93,9 @@ export default function AccountView() {
         const handleDeleteAvatar = async () => {
             await userController.deleteAvatar().then(() => {
                 toast.success("Delete avatar successfull!");
+                currentUser.avatar = null;
+                currentUser.avatarFile = null;
+                currentUser.avatarFileUrl = null;
                 setIsSettingAvatar(false);
             });
         };

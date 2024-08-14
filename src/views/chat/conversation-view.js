@@ -41,14 +41,14 @@ export default function ConversationView() {
     useEffect(() => {
         if (hasScrolledToTop && !fetchedAll) {
             console.log("conversation-view.js: fetchAdditionalMessages");
-            fetchAdditionalMessages(conversationId);
+            fetchAdditionalMessages(conversationId, messages[conversationId]?.[0]?.createdTime);
         }
     }, [hasScrolledToTop, fetchedAll])
 
     const endRef = useRef(null);
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages[conversationId]]);
+    }, []);
 
     useEffect(() => {
         if (auth?.currentUser?.uid && chatManager && (!messages[conversationId] || chatManager.conversationStates[conversationId] > 0)) {
@@ -58,6 +58,7 @@ export default function ConversationView() {
                 async () => {
                     console.log("conversation-view.js: fetchMessages for onSnapshot");
                     await fetchMessages(conversationId);
+                    handleFormFocus();
                 }
             )
 
@@ -117,6 +118,7 @@ export default function ConversationView() {
         else {
             for (const mId of messagesId) {
                 messages[conversationId].find((message) => message.id === mId).isSeen = true;
+                chatManager.conversationStates[conversationId] = 0;
             }
             await ChatController.setIsSeenToMessages(currentUser.id, conversationId, messagesId);
         }
