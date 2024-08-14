@@ -322,8 +322,9 @@ export default function UploadPictureView() {
                     </div>
                   </div>
                 )}
+                <div className="button-group">
 
-                <button
+ <button
                   type="button"
                   onClick={handleSubmitPicture}
                   className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full mb-2"
@@ -333,10 +334,11 @@ export default function UploadPictureView() {
                 <button
                   type="button"
                   onClick={handleCancelOption}
-                  className="bg-red-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 w-full"
+                  className="bg-red-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 w-full mb-2"
                 >
                   Cancel
                 </button>
+                </div>
               </div>
             )}
           </>

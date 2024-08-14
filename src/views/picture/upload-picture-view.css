@@ -122,21 +122,32 @@ html, body {
 }
 .upload-picture-container {
   background-color: #fff;
-  padding: 1rem; /* Adjust padding to control space inside */
+  padding: 1rem; 
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 480px; /* Maintain width consistency */
-  height: auto; /* Let content dictate the height */
-  max-height: 300px; /* Adjust max height as needed */
-  overflow-y: auto; /* Add scroll if content overflows */
+  max-width: 480px; 
+  height: auto; 
+  max-height: 300px; 
+  overflow-y: auto; 
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
 }
 .icon-button {
-  width: 48px; /* Adjust width as needed */
-  height: 48px; /* Adjust height as needed */
-  object-fit: contain; /* Ensure the icon fits within the defined size */
+  width: 48px; 
+  height: 48px; 
+  object-fit: contain; 
+}
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-top: 1em;
+  gap: 10px; 
+}
+.button-group button {
+  flex: 1 1 100px; 
+  margin: 0 5px; 
 }
