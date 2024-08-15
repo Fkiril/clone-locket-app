@@ -20,7 +20,7 @@ export default function ConversationView() {
 
     const { conversationId } = useParams();
     const { currentUser, friendDatas } = useUserStore();
-    const { messages, fetchMessages, fetchAdditionalMessages, fetchedAll } = useMessageStore();
+    const { messages, fetchMessages, fetchAdditionalMessages, fetchedAll, isLoading } = useMessageStore();
     const { chatManager, fetchLastMessageOfConversation } = useChatListStore();
     
     const [hasScrolledToTop, setHasScrolledToTop] = useState(false);
@@ -156,7 +156,7 @@ export default function ConversationView() {
                     <p className="friend-username">{friendInfo.name}</p>
                 </div>
             )}
-            <div className="body">
+            {!isLoading && <div className="body">
                 <div className="conversation">
                     <div className="messages">
                         {Array.isArray(messages[conversationId]) && messages[conversationId].map((message) => (
@@ -168,6 +168,7 @@ export default function ConversationView() {
                                     <img src={handleGetAvatar(message?.senderId)} alt="avatar" />
                                 </div>
                                 <div className="message-content">
+                                    {message?.attachment && <img src={message?.attachmentFileUrl} alt="attachment" />}
                                     <p className="text">{message?.text}</p>
                                     <span className="time">{timestampToString(message?.createdTime)}</span>
                                 </div>
@@ -176,7 +177,7 @@ export default function ConversationView() {
                         <div ref={endRef} />
                     </div>
                 </div>
-            </div>
+            </div>}
             <div className="input-section">
                 <form onSubmit={handleSendMessage} className="new-message" onFocus={handleFormFocus}>
                     <input
