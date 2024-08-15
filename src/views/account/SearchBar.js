@@ -17,9 +17,11 @@ const SearchBar = () => {
       if (result) {
         setSearchResult(result);
       } else {
+        setIsSearching(false);//khúc này nếu k set thì ví dụ mình search user1 xong lát search tùm lum nó vẫn hiện portal user1
         toast.warning("No user found. Please try again.");
       }
     }).catch((error) => {
+      setIsSearching(false);
       toast.error("Failed to search. Please try again.");
     });
   };
@@ -122,6 +124,12 @@ const SearchBar = () => {
           placeholder="Search a friend..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              setIsSearching(true);
+              handleSearch();
+            }
+          }}
         />
         <span className="icon" onClick={() => { setIsSearching(true); handleSearch(); }}>
           <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
