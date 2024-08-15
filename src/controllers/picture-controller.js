@@ -35,7 +35,6 @@ export default class PictureController {
                 });
             }
 
-            console.log("SignalPicture's writes: ", writes);
             await createBatchedWrites(writes);
         } catch (error) {
             console.log("Error signal picture: ", error);

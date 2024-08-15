@@ -1,12 +1,16 @@
+import "./upload-picture-view.css";
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import PictureController from "../../controllers/picture-controller";
+
+import { auth } from "../../models/services/firebase";
+
 import { useUserStore } from "../../hooks/user-store";
+import PictureController from "../../controllers/picture-controller";
 import Picture, { ScopeEnum } from "../../models/entities/picture";
+
 import cameraIcon from './camera.jpg';
 import folderIcon from './folder.jpg';
-import "./upload-picture-view.css";
 
 const ICON_STATE = 'icon_state';
 const UPLOAD_STATE = 'upload_state';
@@ -14,7 +18,7 @@ const UPLOAD_STATE = 'upload_state';
 export default function UploadPictureView() {
   const navigate = useNavigate();
 
-  const { currentUser, friendDatas } = useUserStore();
+  const { currentUser, friendDatas, fetchUserInfo } = useUserStore();
 
   const [picture, setPicture] = useState({
     file: null,
@@ -57,10 +61,11 @@ export default function UploadPictureView() {
     }
 
     await PictureController.uploadPicture(picInstance, picture.file)
-      .then(() => {
+      .then( async () => {
         toast.success("Picture uploaded successfully!");
         handleCancelOption();
         setUploaded(true);
+        await fetchUserInfo(auth?.currentUser?.uid);
       })
       .catch((error) => {
         toast.error("Failed to upload picture. Please try again!");
@@ -158,14 +163,16 @@ export default function UploadPictureView() {
       file: blob,
       url: canvas.toDataURL("image/png"),
     });
+
     handleCloseCamera();
+    setViewState(UPLOAD_STATE);
   };
 
   const handleBackToHome = () => {
     if (isCameraOpen) {
       handleCloseCamera();
     }
-    navigate("/home", { state: { routing: uploaded ? false : true } });
+    navigate("/home");
   };
 
   return (
@@ -229,7 +236,7 @@ export default function UploadPictureView() {
                 <canvas ref={canvasRef} aria-disabled className="hidden"></canvas>
                 <button
                   type="button"
-                  onClick={handleTakePicture}
+                  onClick={() => handleTakePicture()}
                   className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-4"
                 >
                   Take Picture

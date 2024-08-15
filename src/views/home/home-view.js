@@ -1,21 +1,27 @@
 import "./home-view.css";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+import { auth } from "../../models/services/firebase";
+
 import { useUserStore } from "../../hooks/user-store";
+import { useChatListStore } from "../../hooks/chat-list-store";
+import ChatController from "../../controllers/chat-controller";
+import { timestampToString } from "../../models/utils/date-method";
+
 import ChatIcon from '../../assets/chat-icon.svg';
 import UploadIcon from '../../assets/upload-icon.svg';
 import ReactIcon from '../../assets/react-icon.svg';
 import LeftArrowIcon from '../../assets/left-arrow-icon.svg';
 import RightArrowIcon from '../../assets/right-arrow-icon.svg';
 import SendIcon from '../../assets/send-icon.svg';
-import { timestampToString } from "../../models/utils/date-method";
-import ChatController from "../../controllers/chat-controller";
-import { toast } from "react-toastify";
 
 export default function HomeView() {
     const navigate = useNavigate();
   
     const { currentUser, pictureDatas, friendDatas, isFetching } = useUserStore();
+    const { fetchLastMessageOfConversation } = useChatListStore();
     const avatarUrl = currentUser?.avatar ? currentUser.avatar : "./default_avatar.jpg";
     const [currentPictureIndex, setCurrentPictureIndex] = useState(0);
 
@@ -41,35 +47,35 @@ export default function HomeView() {
     const handleSendMessage = async (event, friendId, picId) => {
         event.preventDefault();
         const formData = new FormData(event.target);
-        const text = formData.get("text");
+        const text = formData.get("message");
         
-        if (text.trim() === "" || !friendId) return;
+        if (text.trim() === "" || !friendId || !picId || friendId === "" || picId === "") return;
 
+        console.log("send message: ", picId, friendId, text);
         const message = {
             text,
             senderId: currentUser.id,
             createdTime: new Date().getTime(),
             attachment: picId
         };
-        const conversationId = await ChatController.getConversationIdWithFriend(currentUser.id, friendId);
+
+        let conversationId = await ChatController.getConversationIdWithFriend(currentUser.id, friendId);
         if (!conversationId) {
-            await ChatController.createConversation([currentUser.id, friendId]).then(async (newConversationId) => {
-                await ChatController.sendMessage(newConversationId, message).then(() => {
-                    toast.success("Sent message successfully");
-                });
-            }).catch((error) => {
-                console.log("Error send message: ", error);
+            conversationId = await ChatController.createConversation([currentUser.id, friendId]).catch((error) => {
+                console.log("Error create conversation: ", error);
                 toast.error("Failed to send message. Please try again.");
+                event.target.reset();
+                return;
             });
         }
-        else {
-            await ChatController.sendMessage(conversationId, message).then(() => {
-                toast.success("Sent message successfully");
-            }).catch((error) => {
-                console.log("Error send message: ", error);
-                toast.error("Failed to send message. Please try again.");
-            });
-        }
+
+        await ChatController.sendMessage(conversationId, message).then( async () => {
+            toast.success("Sent message successfully");
+            await fetchLastMessageOfConversation(auth?.currentUser?.uid, conversationId);
+        }).catch((error) => {
+            console.log("Error send message: ", error);
+            toast.error("Failed to send message. Please try again.");
+        });
 
         event.target.reset();
     }
@@ -133,19 +139,22 @@ export default function HomeView() {
                                     className="friend-picture"
                                 />
                                 <div className="picture-caption-container">
+                                    <p className="picture-caption">{(pictureDatas[currentPictureIndex]?.text)}</p>
                                     <p className="picture-caption">{timestampToString(pictureDatas[currentPictureIndex]?.uploadTime)}</p>
                                 </div>
-                                <div className="picture-actions">
-                                    <button className="react-button" onClick={(event) => handleReact(event, pictureDatas[currentPictureIndex].id)}>
-                                        <img src={ReactIcon} alt="React Icon" className="action-icon"/>
-                                    </button>
-                                    <form className="message-section" onSubmit={(event) => handleSendMessage(event, pictureDatas[currentPictureIndex].ownerId, pictureDatas[currentPictureIndex].id)}>
-                                        <input type="text" placeholder="Type a message" className="message-input"/>
-                                        <button className="send-button">
-                                            <img src={SendIcon} alt="Send Icon" className="action-icon"/>
+                                {pictureDatas[currentPictureIndex]?.ownerId !== currentUser?.id && (
+                                    <div className="picture-actions">
+                                        <button className="react-button">
+                                            <img src={ReactIcon} alt="React Icon" className="action-icon"/>
                                         </button>
-                                    </form>
-                                </div>
+                                        <form className="message-section" onSubmit={(event) => handleSendMessage(event, pictureDatas[currentPictureIndex].ownerId, pictureDatas[currentPictureIndex].id)}>
+                                            <input type="text" name="message" placeholder="Type a message" className="message-input"/>
+                                            <button className="send-button">
+                                                <img src={SendIcon} alt="Send Icon" className="action-icon"/>
+                                            </button>
+                                        </form>
+                                    </div>
+                                )}
                                 <button className="right-arrow" onClick={handleNextPicture}>
                                     <img src={RightArrowIcon} alt="Right Arrow" className="arrow-icon"/>
                                 </button>

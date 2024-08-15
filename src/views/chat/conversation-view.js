@@ -131,7 +131,7 @@ export default function ConversationView() {
         }
     };
 
-    const friendInfo = friendDatas.find(async (friend) => await ChatController.getFriendIdByConversationId(currentUser.id, conversationId) === friend.id);
+    const friendInfo = friendDatas?.find((friend) => friend.id === Object.keys(chatManager.friendConversations).find(key => chatManager.friendConversations[key] === conversationId));
 
     const handleRouting = (path) => {
         navigate(path);

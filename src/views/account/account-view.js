@@ -2,16 +2,16 @@ import "./account-view.css";
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import { auth } from "../../models/services/firebase";
 import { updatePassword } from "firebase/auth";
 
-import { toast } from "react-toastify";
 import { useUserStore } from "../../hooks/user-store";
 import { useInternetConnection } from "../../hooks/internet-connection";
-
 import AuthenticationController from "../../controllers/authentication-controller";
 import UserController from "../../controllers/user-controller";
+import { checkPassword } from "../../models/utils/check-password";
 
 import BlockedListPortal from "./BlockedListPortal";
 import FriendsListPortal from "./FriendsListPortal";
@@ -19,7 +19,6 @@ import PicturesListPortal from "./PicturesListPortal";
 import RequestsListPortal from "./RequestsListPortal";
 import SearchBar from "./SearchBar"; // Import the new SearchBar component
 import DeletingAccountPortal from "./DeletingAccountPortal";
-import { checkPassword } from "../../models/utils/check-password";
 
 export default function AccountView() {
     const navigate = useNavigate();
