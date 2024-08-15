@@ -198,6 +198,7 @@
 }
 
 /* Portal Styling */
+.warning-account,
 .avatar-setting,
 .searching-friend,
 .friends-list,
@@ -218,6 +219,7 @@
   z-index: 1000;
 }
 
+.warning-account .body,
 .avatar-setting .body,
 .searching-friend .body,
 .friends-list .body,
@@ -236,9 +238,15 @@
   text-align: center;
 }
 
-/* Portal Delete Account Specific Styles */
+
 .deleting-account .body {
   max-width: 400px;
+  height: 100%;
+  max-height: 250px;
+}
+
+.warning-account .body{
+  max-width: 500px;
   height: 100%;
   max-height: 250px;
 }
