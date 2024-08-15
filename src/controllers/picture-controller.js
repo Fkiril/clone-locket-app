@@ -1,5 +1,5 @@
-import { createBatchedWrites, getDocDatasByValue, getDocRef, updateArrayField, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
-import { uploadToFolder } from "../models/utils/storage-method";
+import { createBatchedWrites, getDocDatasByValue, getDocDataById, getDocRef, updateArrayField, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
+import { deleteFile, uploadToFolder } from "../models/utils/storage-method";
 import { stringToTimestamp } from "../models/utils/date-method";
 
 export default class PictureController {
@@ -60,6 +60,38 @@ export default class PictureController {
             });
         } catch (error) {
             console.log("Error reacting to picture: ", error);
+            throw error;
+        }
+    }
+
+    static async deletePicture(picId) {
+        try {
+            const picData = await getDocDataById("pictures", picId);
+            if (!picData || !picData.url || picData.url === "") return;
+
+            const updateWrites = [];
+            if (picData.canSee && picData.canSee.length > 0) for (const userId of picData.canSee) {
+                updateWrites.push({
+                    work: "update-array",
+                    docRef: getDocRef("users", userId),
+                    field: "picturesCanSee",
+                    isRemovement: true,
+                    data: picId
+                });
+            }
+            const deleteWrites = [
+                {
+                    work: "delete",
+                    docRef: getDocRef("pictures", picId)
+                }
+            ]
+            await Promise.all([
+                createBatchedWrites(updateWrites),
+                createBatchedWrites(deleteWrites),
+                deleteFile(picData.url)
+            ])
+        } catch (error) {
+            console.log("Error deleting picture: ", error);
             throw error;
         }
     }
