@@ -144,11 +144,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.picture-caption {
-  font-size: 1.2vw;
-  color: #333;
-  text-align: center;
-}
+
 
 /* Điều chỉnh bố cục cho phần hành động (react và nhập tin nhắn) */
 .picture-actions {
@@ -239,12 +235,71 @@
   font-size: 1.8vw; /* Tăng kích thước chữ */
 }
 
-/* Bổ sung để hiển thị text thay vì thời gian dưới ảnh */
-.picture-caption {
-  font-size: 1.4vw;
-  color: #333;
-  text-align: center;
-  margin-top: 10px;
+.friend-picture-frame {
+  position: relative;
+  width: fit-content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 5px solid #333;
+  border-radius: 12px;
+  padding: 5px;
+  background: #fff;
 }
 
+.friend-picture {
+  width: 100%;
+  max-height: 40vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+
+.picture-caption-container {
+  display: inline-block; /* Để caption co giãn theo nội dung */
+  max-width: 70%; /* Giới hạn chiều rộng tối đa của caption */
+  margin-top: 10px;
+  padding: 10px;
+  background: #333;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.picture-caption {
+  font-size: 1.4vw;
+  color: #fff;
+  text-align: center;
+  word-wrap: break-word;
+}
+
+
+
+.owner-info {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.7); /* Thêm nền tối */
+  padding: 5px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); /* Thêm đổ bóng */
+}
+
+.owner-avatar {
+  width: 2.5vw;
+  height: 2.5vw;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.owner-name {
+  font-weight: 700;
+  font-size: 1.8vw;
+  color: #fff; /* Đổi màu chữ thành trắng */
+}
+
+.send-time {
+  font-style: italic; /* Chữ nghiêng */
+  color: rgba(0, 0, 0, 0.6); /* Chữ mờ hơn */
+  font-size: 1.2vw;
+}
 

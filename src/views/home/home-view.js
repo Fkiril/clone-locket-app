@@ -122,7 +122,7 @@ export default function HomeView() {
                                 <button className="left-arrow" onClick={handlePrevPicture}>
                                     <img src={LeftArrowIcon} alt="Left Arrow" className="arrow-icon"/>
                                 </button>
-                                <div className="picture-header">    
+                                <div className="picture-header">   
                                     <div className="owner-info">
                                         <img
                                             src={getOwnerInfo(pictureDatas[currentPictureIndex].ownerId)?.avatarFileUrl || "./default_avatar.jpg"}
@@ -133,14 +133,15 @@ export default function HomeView() {
                                     </div>
                                     <span className="send-time">{timestampToString(pictureDatas[currentPictureIndex]?.uploadTime)}</span>
                                 </div>
-                                <img
-                                    src={pictureDatas[currentPictureIndex]?.fileUrl || "./default_avatar.jpg"}
-                                    alt="Friend's Picture"
-                                    className="friend-picture"
-                                />
+                                <div className="friend-picture-frame">
+                                    <img
+                                        src={pictureDatas[currentPictureIndex]?.fileUrl || "./default_avatar.jpg"}
+                                        alt="Friend's Picture"
+                                        className="friend-picture"
+                                    />
+                                </div>
                                 <div className="picture-caption-container">
                                     <p className="picture-caption">{(pictureDatas[currentPictureIndex]?.text)}</p>
-                                    <p className="picture-caption">{timestampToString(pictureDatas[currentPictureIndex]?.uploadTime)}</p>
                                 </div>
                                 {pictureDatas[currentPictureIndex]?.ownerId !== currentUser?.id && (
                                     <div className="picture-actions">
