@@ -49,7 +49,7 @@ export const useUserStore = create((set, get) => ({
       
       const fIds = userData.friends;
       if (fIds && fIds.length > 0) {
-        if (!get().friendDatas || get().friendDatas.length === 0) {
+        if (!get().friendDatas || (get().friendDatas).length === 0) {
           await Promise.all(
             fIds.map(async (fId) => {
               const fData = await getDocDataById("users", fId);
@@ -76,9 +76,9 @@ export const useUserStore = create((set, get) => ({
             })
           );
         } else {
-          fDatas = get().friendDatas.filter((fData) => !fIds.includes(fData.id));
+          fDatas = (get().friendDatas).filter((fData) => fIds.includes(fData.id));
           
-          const newFriendIds = fIds.filter((fId) => !get().friendDatas.find((fData) => fData.id === fId));
+          const newFriendIds = fIds.filter((fId) => !(get().friendDatas).find((fData) => fData.id === fId));
           if (newFriendIds && newFriendIds.length > 0) {
             await Promise.all(
               newFriendIds.map(async (fId) => {
@@ -111,7 +111,7 @@ export const useUserStore = create((set, get) => ({
 
       const rIds = userData.friendRequests;
       if (rIds && rIds.length > 0) {
-        if (!get().requestDatas || get().requestDatas.length === 0) {
+        if (!get().requestDatas || (get().requestDatas).length === 0) {
           await Promise.all(
             rIds.map(async (rId) => {
               const rData = await getDocDataById("users", rId);
@@ -126,9 +126,9 @@ export const useUserStore = create((set, get) => ({
             })
           );
         } else {
-          rDatas = get().requestDatas.filter((rData) => !rIds.includes(rData.id));
+          rDatas = (get().requestDatas).filter((rData) => rIds.includes(rData.id));
           
-          const newRequestIds = rIds.filter((rId) => !get().requestDatas.find((rData) => rData.id === rId));
+          const newRequestIds = rIds.filter((rId) => !(get().requestDatas).find((rData) => rData.id === rId));
           if (newRequestIds && newRequestIds.length > 0) {
             await Promise.all(
               newRequestIds.map(async (rId) => {
@@ -150,7 +150,7 @@ export const useUserStore = create((set, get) => ({
 
       const bIds = userData.blockeds;
       if (bIds && bIds.length > 0) {
-        if (!get().blockedDatas || get().blockedDatas.length === 0) {
+        if (!get().blockedDatas || (get().blockedDatas).length === 0) {
           await Promise.all(
             bIds.map(async (bId) => {
               const bData = await getDocDataById("users", bId);
@@ -165,9 +165,9 @@ export const useUserStore = create((set, get) => ({
             })
           );
         } else {
-          bDatas = get().blockedDatas.filter((bData) => !bIds.includes(bData.id));
+          bDatas = (get().blockedDatas).filter((bData) => bIds.includes(bData.id));
           
-          const newBlockedIds = bIds.filter((bId) => !get().blockedDatas.find((bData) => bData.id === bId));
+          const newBlockedIds = bIds.filter((bId) => !(get().blockedDatas).find((bData) => bData.id === bId));
           if (newBlockedIds && newBlockedIds.length > 0) {
             await Promise.all(
               newBlockedIds.map(async (bId) => {
@@ -188,7 +188,7 @@ export const useUserStore = create((set, get) => ({
 
       const picIds = userData.picturesCanSee;
       if (picIds && picIds.length > 0) {
-        if (!get().picDatas || get().picDatas.length === 0) {
+        if (!get().pictureDatas || (get().pictureDatas).length === 0) {
           await Promise.all(
             picIds.map(async (picId) => {
               const picData = await getDocDataById("pictures", picId);
@@ -217,9 +217,9 @@ export const useUserStore = create((set, get) => ({
             })
           );
         } else {
-          picDatas = get().picDatas.filter((picData) => !picIds.includes(picData.id));
-
-          const newPicIds = picIds.filter((picId) => !get().picDatas.find((picData) => picData.id === picId));
+          picDatas = (get().pictureDatas).filter((picData) => picIds.includes(picData.id));
+          
+          const newPicIds = picIds.filter((picId) => !(get().pictureDatas).find((picData) => picData.id === picId));
           if (newPicIds && newPicIds.length > 0) {
             await Promise.all(
               newPicIds.map(async (picId) => {
