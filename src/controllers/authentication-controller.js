@@ -1,5 +1,5 @@
-import { auth, facebookProvider, googleProvider } from "../models/services/firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, deleteUser } from "firebase/auth";
+import { auth, googleProvider } from "../models/services/firebase";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, deleteUser } from "firebase/auth";
 import { exitDocWithValue, createBatchedWrites, getDocRef, exitDoc, getDocDataById } from "../models/utils/firestore-method";
 import { deleteFile } from "../models/utils/storage-method";
 import { toast } from "react-toastify";
@@ -141,46 +141,6 @@ export default class AuthenticationController {
             }
         } catch (error) {
             console.log("Error signing in with Google: ", error);
-            throw error;
-        }
-    }
-
-    static async signInWithFacebook() {
-        try {
-            facebookProvider.addScope('email');
-            facebookProvider.setCustomParameters({
-                prompt: 'select_account',
-                display: 'popup'
-            });
-            const result = await signInWithPopup(auth, facebookProvider);
-            const credential = FacebookAuthProvider.credentialFromResult(result);
-            const token = credential.accessToken;
-            const user = result.user;
-
-            if (!(await exitDoc("users", user.uid))) {
-                console.log("Create account: ", user.displayName, user.uid, user.email, user.photoURL);
-                await AuthenticationController.createAccount({
-                    id: user.uid,
-                    name: user.displayName,
-                    email: user.email,
-                    avatar: user.photoURL
-                });
-
-                return {
-                    user: user,
-                    token: token,
-                    credential: credential,
-                    isNewUser: true
-                }
-            }
-
-            return {
-                user: user,
-                token: token,
-                credential: credential
-            }
-        } catch (error) {
-            console.log("Error signing in with Facebook: ", error);
             throw error;
         }
     }

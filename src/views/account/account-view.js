@@ -292,7 +292,7 @@ export default function AccountView() {
         navigate(path);
     };
     
-
+    console.log("auth: ", auth);
     return (
         <div className="account-container">
             {!connectionState && disconnectionPortal()}
