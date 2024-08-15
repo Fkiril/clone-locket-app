@@ -250,6 +250,7 @@ export const useUserStore = create((set, get) => ({
             );
           }
         }
+        picDatas.sort((a, b) => b.uploadTime - a.uploadTime);
       }
 
       set({ 

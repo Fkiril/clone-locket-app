@@ -60,7 +60,7 @@ const SearchBar = () => {
         <div className="body bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
           {searchResult ? (
             <div className="flex flex-col items-center">
-              <img src={searchResult.avatar} alt="Avatar" className="w-24 h-24 rounded-full mb-4" />
+              <img src={searchResult.avatar || "./default_avatar.jpg"} alt="Avatar" className="w-24 h-24 rounded-full mb-4" />
               <p className="text-xl font-semibold mb-2">{searchResult.userName}</p>
               {searchResult.id === currentUser.id ? (
                 <p className="text-gray-500">This is your account</p>

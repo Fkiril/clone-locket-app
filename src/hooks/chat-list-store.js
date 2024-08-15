@@ -9,7 +9,10 @@ export const useChatListStore = create((set, get) => ({
     fetchLastMessages: async (userId) => {
         try {
             console.log("fetchLastMessages: ", userId);
-            if (!userId) return;
+            if (!userId) {
+                set({ isLoading: false, chatManager: null, conversations: null, lastMessages: null });
+                return;
+            }
             get().isLoading = true;
 
             const chatManagerData = await getDocDataById("chatManagers", userId);
@@ -48,7 +51,7 @@ export const useChatListStore = create((set, get) => ({
 
             set({ chatManager: chatManagerData, conversations: conversationDatas, lastMessages: lastMessageDatas, isLoading: false });
         } catch (error) {
-            console.log("Error fetching boxChats: ", error);
+            console.log("Error fetching last messages: ", error);
             set({ chatManager: null, conversations: null, lastMessages: null, isLoading: false });
         }
     },
@@ -91,7 +94,7 @@ export const useChatListStore = create((set, get) => ({
                 }
             }
         } catch (error) {
-            console.log("Error fetching boxChats: ", error);
+            console.log("Error fetching last message of conversation: ", error);
             return;
         }
     }

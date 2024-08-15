@@ -8,6 +8,8 @@ import { auth } from "../../models/services/firebase";
 import { updatePassword } from "firebase/auth";
 
 import { useUserStore } from "../../hooks/user-store";
+import { useChatListStore } from "../../hooks/chat-list-store";
+import { useMessageStore } from "../../hooks/message-store";
 import { useInternetConnection } from "../../hooks/internet-connection";
 import AuthenticationController from "../../controllers/authentication-controller";
 import UserController from "../../controllers/user-controller";
@@ -24,6 +26,8 @@ export default function AccountView() {
     const navigate = useNavigate();
     
     const { currentUser, fetchUserInfo, requestDatas } = useUserStore();
+    const { fetchLastMessages } = useChatListStore();
+    const { fetchMessages } = useMessageStore();
 
     const { connectionState } = useInternetConnection();
 
@@ -62,7 +66,11 @@ export default function AccountView() {
 
     const handleLogOut = async () => {
         await AuthenticationController.logOut().then(async () => {
-            await fetchUserInfo(null);
+            await Promise.all([
+                fetchUserInfo(null),
+                fetchLastMessages(null),
+                fetchMessages(null)
+            ]);
             toast.success("Logout successfull");
         }).catch((error) => {
             toast.error("Failed to log out. Please try again.");
@@ -129,7 +137,7 @@ export default function AccountView() {
                 <div className="body bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
                     <h2 className="text-2xl font-bold text-black mb-4 text-center">Change Avatar</h2>
                     <div className="avatar-preview mb-4">
-                        <img src={selectedAvatar.url ? selectedAvatar.url : (currentUser.avatarFileUrl || "./default_avatar.jpg")} alt="Avatar" className="w-32 h-32 rounded-full mx-auto" />
+                        <img src={selectedAvatar.url ? selectedAvatar.url : (currentUser.avatarFileUrl || currentUser.avatar || "./default_avatar.jpg")} alt="Avatar" className="w-32 h-32 rounded-full mx-auto" />
                     </div>
                     <div className="flex flex-col items-center space-y-4">
                         <button 
@@ -292,13 +300,12 @@ export default function AccountView() {
         navigate(path);
     };
     
-    console.log("auth: ", auth);
     return (
         <div className="account-container">
             {!connectionState && disconnectionPortal()}
             <div className="card">
                 <div className="image">
-                    <img src={currentUser?.avatarFileUrl || "./default_avatar.jpg"} alt="avatar" onClick={() => setIsSettingAvatar(true)}/>
+                    <img src={currentUser?.avatarFileUrl || currentUser?.avatar || "./default_avatar.jpg"} alt="avatar" onClick={() => setIsSettingAvatar(true)}/>
                 </div>
                 <div className="card-info">
                     <span>{currentUser?.userName}</span>

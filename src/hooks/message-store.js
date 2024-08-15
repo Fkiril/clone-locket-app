@@ -11,6 +11,7 @@ export const useMessageStore = create((set, get) => ({
         try {
             console.log("Fetching messages: ", conversationId);
             if (!conversationId || conversationId === "") {
+                set({ messages: {}, fetchedAll: false, isLoading: false });
                 return;
             }
             get().isLoading = true;
