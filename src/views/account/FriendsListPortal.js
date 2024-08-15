@@ -4,11 +4,12 @@ import { useUserStore } from "../../hooks/user-store";
 import UserController from "../../controllers/user-controller";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { auth } from "../../models/services/firebase";
 
 const FriendsListPortal = ({ setIsShowingFriends }) => {
   const navigate = useNavigate();
 
-  const { currentUser, friendDatas } = useUserStore();
+  const { currentUser, friendDatas, fetchUserInfo } = useUserStore();
   const userController = currentUser? new UserController(currentUser) : null;
 
   if (!currentUser) {
@@ -17,16 +18,18 @@ const FriendsListPortal = ({ setIsShowingFriends }) => {
   }
 
   const handleUnfriend = async (friendId) => {
-    await userController.unfriendById(friendId).then(() => {
+    await userController.unfriendById(friendId).then(async () => {
       toast.success("Unfriended successfully");
+      await fetchUserInfo(auth?.currentUser?.uid);
     }).catch((error) => {
       toast.error("Failed to unfriend. Please try again.");
     });
   };
 
   const handleBlock = async (friendId) => {
-    await userController.blockUser(friendId).then(() => {
+    await userController.blockUser(friendId).then(async () => {
       toast.success("Blocked successfully");
+      await fetchUserInfo(auth?.currentUser?.uid);
     }).catch((error) => {
       toast.error("Failed to block. Please try again.");
     });
@@ -46,7 +49,7 @@ const FriendsListPortal = ({ setIsShowingFriends }) => {
         <div className="flex flex-wrap gap-4 justify-center"> 
           {friendDatas?.map((friend) => (
             <div key={friend?.id} className="friend-card bg-gray-100 p-4 rounded-lg flex flex-col items-center w-48 shadow-md">
-              <img src={friend?.avatarFileUrl || "./default_avatar.jpg"} alt="Avatar" className="w-24 h-24 rounded-full mb-2" />
+              <img src={friend?.avatarFileUrl || friend?.avatar || "./default_avatar.jpg"} alt="Avatar" className="w-24 h-24 rounded-full mb-2" />
               <span className="text-lg font-semibold text-black mb-2">{friend?.name}</span>
               <div className="flex gap-2">
                 <button

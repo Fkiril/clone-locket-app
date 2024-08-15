@@ -7,6 +7,7 @@ import { auth } from "../../models/services/firebase";
 
 import { useUserStore } from "../../hooks/user-store";
 import { useChatListStore } from "../../hooks/chat-list-store";
+import { useMessageStore } from "../../hooks/message-store";
 import ChatController from "../../controllers/chat-controller";
 import { timestampToString } from "../../models/utils/date-method";
 
@@ -22,6 +23,7 @@ export default function HomeView() {
   
     const { currentUser, pictureDatas, friendDatas, isFetching } = useUserStore();
     const { fetchLastMessageOfConversation } = useChatListStore();
+    const { fetchMessages, messages } = useMessageStore();
     const avatarUrl = currentUser?.avatar ? currentUser.avatar : "./default_avatar.jpg";
     const [currentPictureIndex, setCurrentPictureIndex] = useState(0);
 
@@ -72,6 +74,9 @@ export default function HomeView() {
         await ChatController.sendMessage(conversationId, message).then( async () => {
             toast.success("Sent message successfully");
             await fetchLastMessageOfConversation(auth?.currentUser?.uid, conversationId);
+            if (messages[conversationId]) {
+                await fetchMessages(conversationId);
+            }
         }).catch((error) => {
             console.log("Error send message: ", error);
             toast.error("Failed to send message. Please try again.");

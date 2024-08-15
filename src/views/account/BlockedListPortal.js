@@ -4,11 +4,12 @@ import UserController from "../../controllers/user-controller";
 import { useUserStore } from "../../hooks/user-store";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { auth } from "../../models/services/firebase";
 
 const BlockedListPortal = ({ setIsShowingBlocked }) => {
     const navigate = useNavigate();
 
-    const { currentUser, blockedDatas } = useUserStore(); 
+    const { currentUser, blockedDatas, fetchUserInfo } = useUserStore(); 
     const userController = currentUser? new UserController(currentUser) : null;
 
     if (!currentUser) {
@@ -24,8 +25,9 @@ const BlockedListPortal = ({ setIsShowingBlocked }) => {
     };
 
     const handleUnblockUser = async (userId) => {
-        await userController.unblockUser(userId).then(() => {
+        await userController.unblockUser(userId).then(async () => {
             toast.success("User unblocked successfully");
+            await fetchUserInfo(auth?.currentUser?.uid);
             setIsShowingBlocked(false);
         }).catch((error) => {
             toast.error("Failed to unblock user. Please try again.");
@@ -39,7 +41,7 @@ const BlockedListPortal = ({ setIsShowingBlocked }) => {
                 <div className="flex flex-wrap gap-4">
                     {blockedDatas?.map(user => (
                         <div key={user?.id} className="blocked-card bg-gray-100 p-4 rounded-lg flex flex-col items-center">
-                            <img src={user?.avatar} alt="Avatar" className="w-16 h-16 rounded-full mb-2" />
+                            <img src={user?.avatar || "./default_avatar.jpg"} alt="Avatar" className="w-16 h-16 rounded-full mb-2" />
                             <span className="text-lg font-semibold text-black">{user?.name}</span>
                             <button
                                 className="unblock bg-green-500 text-white px-2 py-1 rounded-lg mt-2"
