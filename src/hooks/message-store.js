@@ -29,14 +29,25 @@ export const useMessageStore = create((set, get) => ({
 
             const mDatas = [];
             if (!querySnapshot.empty) {
-                querySnapshot.docs.forEach((doc) => {
+                await Promise.all(querySnapshot.docs.map(async (doc) => {
                     if (doc.exists()) {
                         if (get().messages[conversationId] && get().messages[conversationId].find((m) => m?.id === doc.data().id)) {
                             return;
                         }
-                        mDatas.push(doc.data());
+                        if (doc.data().attachment) {
+                            const picData = await getDocDataById("pictures", doc.data().attachment);
+                            if (picData && picData.url && picData.url !== "") {
+                                const file = await fetch(picData.url).then(response => response.blob()).then(blob => {
+                                    console.log("Blob file:", blob);
+                                    return blob;
+                                });
+                                const fileUrl = URL.createObjectURL(file);
+                                mDatas.push({ ...doc.data(), attachmentFile: file, attachmentFileUrl: fileUrl });
+                            }
+                        }
+                        else mDatas.push(doc.data());
                     }
-                });
+                }));
 
                 if (get().messages[conversationId] && get().messages[conversationId].length > 0) {
                     mDatas.push(...get().messages[conversationId]);
@@ -76,11 +87,25 @@ export const useMessageStore = create((set, get) => ({
 
             const mDatas = [];
             if (!querySnapshot.empty) {
-                querySnapshot.docs.forEach((doc) => {
+                await Promise.all(querySnapshot.docs.map(async (doc) => {
                     if (doc.exists()) {
-                        mDatas.push(doc.data());
+                        if (get().messages[conversationId] && get().messages[conversationId].find((m) => m?.id === doc.data().id)) {
+                            return;
+                        }
+                        if (doc.data().attachment) {
+                            const picData = await getDocDataById("pictures", doc.data().attachment);
+                            if (picData && picData.url && picData.url !== "") {
+                                const file = await fetch(picData.url).then(response => response.blob()).then(blob => {
+                                    console.log("Blob file:", blob);
+                                    return blob;
+                                });
+                                const fileUrl = URL.createObjectURL(file);
+                                mDatas.push({ ...doc.data(), attachmentFile: file, attachmentFileUrl: fileUrl });
+                            }
+                        }
+                        else mDatas.push(doc.data());
                     }
-                });
+                }));
 
                 if (get().messages[conversationId] && get().messages[conversationId].length > 0) {
                     mDatas.push(...get().messages[conversationId]);

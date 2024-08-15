@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { FacebookAuthProvider, getAuth, GoogleAuthProvider } from "firebase/auth";
+import { EmailAuthProvider, getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_API_KEY,
@@ -19,11 +19,11 @@ const firebaseApp = initializeApp(firebaseConfig);
 
 const auth = getAuth();
 const googleProvider = new GoogleAuthProvider();
-const facebookProvider = new FacebookAuthProvider();
+const emailProvider = new EmailAuthProvider();
 
 const rt_db = getDatabase();
 const fs_db = getFirestore(firebaseApp);
 const storage = getStorage();
 
 // export default firebaseApp;
-export { googleProvider, facebookProvider, firebaseApp, auth, rt_db, fs_db, storage };
+export { googleProvider, emailProvider, firebaseApp, auth, rt_db, fs_db, storage };

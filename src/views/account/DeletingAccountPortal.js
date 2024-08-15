@@ -1,35 +1,37 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
 import AuthenticationController from "../../controllers/authentication-controller";
 import { auth } from "../../models/services/firebase";
+import { useUserStore } from "../../hooks/user-store";
 
 const DeletingAccountPortal = ({ setIsDeletingAccount, currentUser }) => {
     const [showWarning, setShowWarning] = useState(false);
-    const navigate = useNavigate();
+
+    const { fetchUserInfo } = useUserStore();
 
     const handleDelete = async (event) => {
         event.preventDefault();
         const formData = new FormData(event.target);
         const password = formData.get("password");
 
-        try {
-            await AuthenticationController.reauthenticate(auth.currentUser, password);
+        if (!password || password.length === 0) return;
+
+        await AuthenticationController.logIn(auth?.currentUser?.email, password).then(() => {
             setShowWarning(true); // Hiển thị portal cảnh báo sau khi xác thực mật khẩu thành công
-        } catch (error) {
+        }).catch((error) => {
             toast.error("Incorrect password. Please try again.");
-        }
+            event.target.reset();
+        });
     };
 
     const handleFinalDelete = async () => {
-        try {
-            await AuthenticationController.deleteAccount({ userId: currentUser?.id, avatar: currentUser?.avatar });
+        await AuthenticationController.deleteAccount({ userId: currentUser?.id, avatar: currentUser?.avatar }).then(async () => {
             toast.success("Account deleted successfully!");
-            navigate("/");
-        } catch (error) {
+            await fetchUserInfo(null);
+        }).catch((error) => {
             toast.error("Failed to delete account. Please try again.");
-        }
+        });
     };
 
     const handleClickOutside = (event) => {
