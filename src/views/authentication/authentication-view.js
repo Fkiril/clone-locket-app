@@ -189,18 +189,18 @@ export default function AuthenticationView() {
               </button>
             </form>
             <div className="flex justify-between mt-4 w-full">
-              <button disabled={isLoading} onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
+              <button disabled={isLoading || isFetching} onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
                 Login with Google
               </button>
             </div>
           </div>
         ) : showLogin ? (
           <div className="w-96 mb-5">
-            <form disabled={isLoading} onSubmit={handleLogIn} className="flex flex-col">
+            <form disabled={isLoading || isFetching} onSubmit={handleLogIn} className="flex flex-col">
               <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded" />
               <input type="password" placeholder="Password" name="password" required className="mb-3 p-2 border rounded" />
               <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                {isLoading ? "Loading" : "Login"}
+                {(isLoading || isFetching) ? "Loading" : "Login"}
               </button>
             </form>
             <div className="flex justify-between mt-4 w-full">
@@ -215,7 +215,7 @@ export default function AuthenticationView() {
           </div>
         ) : (
           <div className="w-96 mb-5">
-            <form disabled={isLoading} onSubmit={handleCreateAccount} className="flex flex-col">
+            <form disabled={isLoading || isFetching} onSubmit={handleCreateAccount} className="flex flex-col">
               <input type="text" placeholder="Username" name="userName" required className="mb-3 p-2 border rounded" />
               <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded" />
               <input type="password" placeholder="Password" name="password" required className="mb-3 p-2 border rounded" />

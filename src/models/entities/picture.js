@@ -13,6 +13,7 @@ export default class Picture {
         this.text = props.text? props.text : "";
         this.scope = props.scope? props.scope : "";
         this.canSee = props.canSee? props.canSee : [];
+        this.reactions = props.reactions? props.reactions : [];
     };
 
     toJSON() {
@@ -23,7 +24,13 @@ export default class Picture {
             url: this.url,
             text: this.text,
             scope: this.scope,
-            canSee: this.canSee.map(value => value)
+            canSee: this.canSee.map(value => value),
+            reactions: this.reactions.map(reaction => {
+                return {
+                    senderId: reaction.senderId,
+                    emoji: reaction.emoji
+                }
+            })
         };
     };
 }

@@ -9,6 +9,8 @@ import LeftArrowIcon from '../../assets/left-arrow-icon.svg';
 import RightArrowIcon from '../../assets/right-arrow-icon.svg';
 import SendIcon from '../../assets/send-icon.svg';
 import { timestampToString } from "../../models/utils/date-method";
+import ChatController from "../../controllers/chat-controller";
+import { toast } from "react-toastify";
 
 export default function HomeView() {
     const navigate = useNavigate();
@@ -34,6 +36,57 @@ export default function HomeView() {
             return currentUser;
         }
         return friendDatas.find((friendData) => friendData.id === ownerId);
+    }
+
+    const handleSendMessage = async (event, friendId, picId) => {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const text = formData.get("text");
+        
+        if (text.trim() === "" || !friendId) return;
+
+        const message = {
+            text,
+            senderId: currentUser.id,
+            createdTime: new Date().getTime(),
+            attachment: picId
+        };
+        const conversationId = await ChatController.getConversationIdWithFriend(currentUser.id, friendId);
+        if (!conversationId) {
+            await ChatController.createConversation([currentUser.id, friendId]).then(async (newConversationId) => {
+                await ChatController.sendMessage(newConversationId, message).then(() => {
+                    toast.success("Sent message successfully");
+                });
+            }).catch((error) => {
+                console.log("Error send message: ", error);
+                toast.error("Failed to send message. Please try again.");
+            });
+        }
+        else {
+            await ChatController.sendMessage(conversationId, message).then(() => {
+                toast.success("Sent message successfully");
+            }).catch((error) => {
+                console.log("Error send message: ", error);
+                toast.error("Failed to send message. Please try again.");
+            });
+        }
+
+        event.target.reset();
+    }
+
+    const handleReact = async (event, picId, emoji) => {
+        event.preventDefault();
+
+        if (!currentUser || !picId) return;
+
+        await ChatController.reactPic(picId, currentUser.id, emoji).then(() => {
+            
+        }).catch((error) => {
+            console.log("Error reacting to picture: ", error);
+            toast.error("Failed to react. Please try again.");
+        });
+
+        event.target.reset();
     }
 
     return (
@@ -83,15 +136,15 @@ export default function HomeView() {
                                     <p className="picture-caption">{timestampToString(pictureDatas[currentPictureIndex]?.uploadTime)}</p>
                                 </div>
                                 <div className="picture-actions">
-                                    <button className="react-button">
+                                    <button className="react-button" onClick={() => handleReact(event, pictureDatas[currentPictureIndex].id)}>
                                         <img src={ReactIcon} alt="React Icon" className="action-icon"/>
                                     </button>
-                                    <div className="message-section">
+                                    <form className="message-section" onSubmit={() => handleSendMessage(event, pictureDatas[currentPictureIndex].ownerId, pictureDatas[currentPictureIndex].id)}>
                                         <input type="text" placeholder="Type a message" className="message-input"/>
                                         <button className="send-button">
                                             <img src={SendIcon} alt="Send Icon" className="action-icon"/>
                                         </button>
-                                    </div>
+                                    </form>
                                 </div>
                                 <button className="right-arrow" onClick={handleNextPicture}>
                                     <img src={RightArrowIcon} alt="Right Arrow" className="arrow-icon"/>

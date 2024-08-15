@@ -22,10 +22,10 @@ export default function ConversationView() {
     const { currentUser, friendDatas } = useUserStore();
     const { messages, fetchMessages, fetchAdditionalMessages, fetchedAll } = useMessageStore();
     const { chatManager, fetchLastMessageOfConversation } = useChatListStore();
+    
     const [hasScrolledToTop, setHasScrolledToTop] = useState(false);
     const bodyElement = document.querySelector('.body');
     let timeoutId;
-
     bodyElement?.addEventListener('scroll', () => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
@@ -47,9 +47,10 @@ export default function ConversationView() {
 
     const endRef = useRef(null);
     useEffect(() => {
-        endRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, []);
+        if (!hasScrolledToTop) endRef.current?.scrollIntoView({ behavior: "auto" });
+    }, [messages[conversationId]]);
 
+    const [nearestFetch, setNearestFetch] = useState(0);
     useEffect(() => {
         if (auth?.currentUser?.uid && chatManager && (!messages[conversationId] || chatManager.conversationStates[conversationId] > 0)) {
             const unSubscribe = onSnapshot(
@@ -58,7 +59,7 @@ export default function ConversationView() {
                 async () => {
                     console.log("conversation-view.js: fetchMessages for onSnapshot");
                     await fetchMessages(conversationId);
-                    handleFormFocus();
+                    setNearestFetch(Date.now());
                 }
             )
 
@@ -95,15 +96,21 @@ export default function ConversationView() {
             createdTime: new Date().getTime(),
         };
 
-        await ChatController.sendMessage(conversationId, message).then( async () => {
-            await ChatController.signalNewMessage(conversationId, currentUser.id).then(async() => {
-                await fetchLastMessageOfConversation(auth?.currentUser?.uid, conversationId);
-            }).catch((error) => {
-                toast.error("Failed to send message, please try again!");
-            });
-        }).catch((error) => {
-            toast.error("Failed to send message, please try again!");
+        await Promise.all([
+            ChatController.sendMessage(conversationId, message),
+            ChatController.signalNewMessage(conversationId, currentUser.id),
+        ]).catch((error) => {
+            console.log("Error send message: ", error);
+            toast.error("Failed to send message. Please try again!");
+            return;
         });
+
+        await fetchLastMessageOfConversation(auth?.currentUser?.uid, conversationId);
+        const now = Date.now();
+        if (now - nearestFetch > 1000) {
+            await fetchMessages(conversationId);
+            setNearestFetch(now);
+        }
 
         event.target.reset();
     };

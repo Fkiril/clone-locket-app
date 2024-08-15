@@ -270,10 +270,8 @@ export default function UploadPictureView() {
                       ? "Public"
                       : scope === ScopeEnum.PRIVATE
                       ? "Private"
-                      
-                      ?"Specify"
-                     : scope === ScopeEnum.SPECIFY
-                     }
+                      : "Specify"
+                    }
                   </button>
                   {showScopeOption && (
                     <div className="scope-options mt-2 p-2 bg-gray-100 rounded-md shadow-lg">

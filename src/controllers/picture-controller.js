@@ -1,4 +1,4 @@
-import { createBatchedWrites, getDocDatasByValue, getDocRef, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
+import { createBatchedWrites, getDocDatasByValue, getDocRef, updateArrayField, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
 import { uploadToFolder } from "../models/utils/storage-method";
 import { stringToTimestamp } from "../models/utils/date-method";
 
@@ -49,6 +49,18 @@ export default class PictureController {
             return userPictures;
         } catch (error) {
             console.log("Error get user pictures: ", error);
+            throw error;
+        }
+    }
+
+    static async reactToPicture(picId, senderId, emoji) {
+        try {
+            await updateArrayField("pictures", picId, "reactions", true, {
+                senderId: senderId,
+                emoji: emoji
+            });
+        } catch (error) {
+            console.log("Error reacting to picture: ", error);
             throw error;
         }
     }
