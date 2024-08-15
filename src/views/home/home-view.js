@@ -136,10 +136,10 @@ export default function HomeView() {
                                     <p className="picture-caption">{timestampToString(pictureDatas[currentPictureIndex]?.uploadTime)}</p>
                                 </div>
                                 <div className="picture-actions">
-                                    <button className="react-button" onClick={() => handleReact(event, pictureDatas[currentPictureIndex].id)}>
+                                    <button className="react-button" onClick={(event) => handleReact(event, pictureDatas[currentPictureIndex].id)}>
                                         <img src={ReactIcon} alt="React Icon" className="action-icon"/>
                                     </button>
-                                    <form className="message-section" onSubmit={() => handleSendMessage(event, pictureDatas[currentPictureIndex].ownerId, pictureDatas[currentPictureIndex].id)}>
+                                    <form className="message-section" onSubmit={(event) => handleSendMessage(event, pictureDatas[currentPictureIndex].ownerId, pictureDatas[currentPictureIndex].id)}>
                                         <input type="text" placeholder="Type a message" className="message-input"/>
                                         <button className="send-button">
                                             <img src={SendIcon} alt="Send Icon" className="action-icon"/>

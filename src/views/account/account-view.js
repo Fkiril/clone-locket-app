@@ -18,6 +18,7 @@ import FriendsListPortal from "./FriendsListPortal";
 import PicturesListPortal from "./PicturesListPortal";
 import RequestsListPortal from "./RequestsListPortal";
 import SearchBar from "./SearchBar"; // Import the new SearchBar component
+import DeletingAccountPortal from "./DeletingAccountPortal";
 import { checkPassword } from "../../models/utils/check-password";
 
 export default function AccountView() {
@@ -125,48 +126,51 @@ export default function AccountView() {
         };
 
         return createPortal((
-        <div className="avatar-setting fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onClick={handleClickOutside}>
-            <div className="body bg-white p-6 rounded-lg shadow-lg">
-                <img src={selectedAvatar.url ? selectedAvatar.url : (currentUser.avatarFileUrl || "./default_avatar.jpg")} alt="" className="w-32 h-32 rounded-full mx-auto mb-4" />
-                <div className="flex flex-col items-center space-y-2">
-                    <button 
-                        className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-                        type="button" 
-                        onClick={() => document.getElementById("file").click()}>
-                        Change Avatar
-                        <input
-                            type="file"
-                            id="file"
-                            style={{ display: "none" }}
-                            onChange={handleSelectAvatar}
-                        />
-                    </button>
-                    {selectedAvatar.url && (
-                    <div className="flex space-x-2">
-                        <button 
-                            className="bg-green-500 text-white px-4 py-2 rounded-lg"
-                            type="button"
-                            onClick={submitOption}>
-                            Save Change
-                        </button>
-                        <button
-                            className="bg-red-500 text-white px-4 py-2 rounded-lg"
-                            type="button"
-                            onClick={cancelOption}>
-                            Cancel
-                        </button>
+            <div className="avatar-setting fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onClick={handleClickOutside}>
+                <div className="body bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+                    <h2 className="text-2xl font-bold text-black mb-4 text-center">Change Avatar</h2>
+                    <div className="avatar-preview mb-4">
+                        <img src={selectedAvatar.url ? selectedAvatar.url : (currentUser.avatarFileUrl || "./default_avatar.jpg")} alt="Avatar" className="w-32 h-32 rounded-full mx-auto" />
                     </div>
-                    )}
-                    {(currentUser.avatar !== "") && !selectedAvatar.url && (
-                    <button className="bg-yellow-500 text-white px-4 py-2 rounded-lg"
+                    <div className="flex flex-col items-center space-y-4">
+                        <button 
+                            className="bg-blue-500 text-white w-full py-2 rounded-lg"
                             type="button" 
-                            onClick={handleDeleteAvatar}>
-                        Delete Avatar
-                    </button>
-                    )}
+                            onClick={() => document.getElementById("file").click()}>
+                            Change Avatar
+                            <input
+                                type="file"
+                                id="file"
+                                style={{ display: "none" }}
+                                onChange={handleSelectAvatar}
+                            />
+                        </button>
+                        {selectedAvatar.url && (
+                            <div className="flex space-x-4 w-full">
+                                <button 
+                                    className="bg-green-500 text-white w-full py-2 rounded-lg"
+                                    type="button"
+                                    onClick={submitOption}>
+                                    Save Change
+                                </button>
+                                <button
+                                    className="bg-red-500 text-white w-full py-2 rounded-lg"
+                                    type="button"
+                                    onClick={cancelOption}>
+                                    Cancel
+                                </button>
+                            </div>
+                        )}
+                        {(currentUser.avatar !== "") && !selectedAvatar.url && (
+                            <button className="bg-yellow-500 text-white w-full py-2 rounded-lg"
+                                    type="button" 
+                                    onClick={handleDeleteAvatar}>
+                                Delete Avatar
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
         ), document.body);
     };
 
@@ -288,57 +292,6 @@ export default function AccountView() {
     const handleRouting = (path) => {
         navigate(path);
     };
-
-    const deletingAccountPortal = () => {
-        const handleDelete = async (event) => {
-            event.preventDefault();
-            const formData = new FormData(event.target);
-            const password = formData.get("password");
-    
-            try {
-                await AuthenticationController.reauthenticate(auth.currentUser, password);
-                await AuthenticationController.deleteAccount({ userId: currentUser?.id, avatar: currentUser?.avatar });
-                toast.success("Account deleted successfully!");
-                navigate("/");
-            } catch (error) {
-                toast.error("Incorrect password. Please try again.");
-            }
-        };
-    
-        const handleClickOutside = (event) => {
-            const clickElement = event.target;
-            if (!(clickElement.closest(".deleting-account .body"))) {
-                setIsDeletingAccount(false);
-            }
-        };
-    
-        return createPortal((
-            <div 
-                className="deleting-account fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" 
-                onClick={handleClickOutside}
-            >
-                <div className="body bg-white p-8 rounded-lg shadow-lg max-w-sm w-full">
-                    <h2 className="text-2xl font-bold text-black mb-6 text-center">Delete Account</h2>
-                    <form onSubmit={handleDelete}>
-                        <div className="input-container mb-4">
-                            <input
-                                type="password"
-                                name="password"
-                                placeholder="Enter your password"
-                                className="input w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400"
-                            />
-                        </div>
-                        <button 
-                            type="submit" 
-                            className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition"
-                        >
-                            Delete Account
-                        </button>
-                    </form>
-                </div>
-            </div>
-        ), document.body);        
-    };
     
 
     return (
@@ -361,8 +314,8 @@ export default function AccountView() {
                 {isSettingAvatar && avatarSettingPortal()}
                 {isChangingUserName && changingUserNamePortal()}
                 {isChangingPassword && changingPasswordPortal()}
-                {isDeletingAccount && deletingAccountPortal()}
-    
+                
+                {isDeletingAccount && <DeletingAccountPortal setIsDeletingAccount={setIsDeletingAccount} currentUser={currentUser} />}
                 {isShowingFriends && <FriendsListPortal setIsShowingFriends={setIsShowingFriends} />}
                 {isShowingRequests && <RequestsListPortal setIsShowingRequests={setIsShowingRequests} />}
                 {isShowingBlocked && <BlockedListPortal setIsShowingBlocked={setIsShowingBlocked} />}

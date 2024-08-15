@@ -198,6 +198,8 @@
 }
 
 /* Portal Styling */
+.avatar-setting,
+.searching-friend,
 .friends-list,
 .requests-list,
 .blocked-list,
@@ -216,6 +218,8 @@
   z-index: 1000;
 }
 
+.avatar-setting .body,
+.searching-friend .body,
 .friends-list .body,
 .requests-list .body,
 .blocked-list .body,
@@ -297,4 +301,53 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.avatar-setting .body {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+  height: 100%;
+  max-height: 300px;
+  text-align: center;
+}
+
+.avatar-setting .text-2xl {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 20px;
+}
+
+.avatar-setting .avatar-preview img {
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  margin-bottom: 20px;
+}
+
+.avatar-setting button {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.avatar-setting .bg-blue-500:hover {
+  background-color: #3a47e9;
+}
+
+.avatar-setting .bg-green-500:hover {
+  background-color: #28a745;
+}
+
+.avatar-setting .bg-red-500:hover {
+  background-color: #dc3545;
+}
+
+.avatar-setting .bg-yellow-500:hover {
+  background-color: #ffc107;
 }
