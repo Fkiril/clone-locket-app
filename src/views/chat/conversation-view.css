@@ -124,7 +124,8 @@
   }
   
   .message.right {
-    justify-content: flex-end;
+    
+    flex-direction: row-reverse;
   }
   
   .message.left {
