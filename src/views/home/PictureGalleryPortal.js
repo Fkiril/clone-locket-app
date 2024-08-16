@@ -4,28 +4,15 @@ import { createPortal } from 'react-dom';
 import { timestampToString } from "../../models/utils/date-method";
 import PictureController from "../../controllers/picture-controller";
 import { toast } from "react-toastify";
+import { useUserStore } from "../../hooks/user-store";
 
-export default function PictureGalleryPortal({ friendId, currentUser, onClose }) {
-    const [selectedFriendPictures, setSelectedFriendPictures] = useState([]);
+export default function PictureGalleryPortal({ friendId, onClose }) {
+    const { currentUser, friendDatas, pictureDatas } = useUserStore();
+
+    const [selectedFriendPictures, setSelectedFriendPictures] = useState(
+        pictureDatas.filter(pic => pic.ownerId === friendId)
+    );
     const [pictureToDelete, setPictureToDelete] = useState(null);
-
-    // Fetch pictures when component mounts
-    React.useEffect(() => {
-        const fetchPictures = async () => {
-            try {
-                const pictures = await PictureController.getUserPictures(friendId);
-                const filteredPictures = friendId === currentUser.id 
-                    ? pictures 
-                    : pictures.filter(pic => pic.scope === "public");
-                setSelectedFriendPictures(filteredPictures);
-            } catch (error) {
-                console.log("Error fetching pictures: ", error);
-                toast.error("Failed to load pictures. Please try again.");
-            }
-        };
-
-        fetchPictures();
-    }, [friendId, currentUser.id]);
 
     const handleClickOutside = (event) => {
         if (event.target.classList.contains('picture-gallery-portal')) {
@@ -73,7 +60,7 @@ export default function PictureGalleryPortal({ friendId, currentUser, onClose })
             <div className="gallery-container bg-white p-6 rounded-lg shadow-lg max-w-4xl w-full overflow-y-auto max-h-[80vh]">
                 <div className="gallery-header fixed top-0 left-0 w-full bg-white shadow-lg p-4 z-10">
                     <h2 className="gallery-title text-xl font-bold">
-                        's Gallery 
+                        {friendDatas.find(friend => friend.id === friendId)?.name || 'Your'}'s Gallery 
                     </h2>
                     <button onClick={onClose} className="close-button bg-red-500 text-white px-4 py-2 rounded">Close</button>
                 </div>
@@ -81,7 +68,7 @@ export default function PictureGalleryPortal({ friendId, currentUser, onClose })
                     {selectedFriendPictures.map(picture => (
                         <div key={picture.id} className="picture-item border-black border-4 p-2">
                             <div className="relative">
-                                <img src={picture.url} alt="Gallery Picture" className="w-full h-auto rounded-md"/>
+                                <img src={picture.fileUrl || picture.url} alt="Gallery Picture" className="w-full h-auto rounded-md"/>
                                 <span className="absolute top-2 right-2 text-sm text-gray-500">{timestampToString(picture.uploadTime)}</span>
                             </div>
                             <div className="caption bg-gray-200 text-center p-2 mt-2">

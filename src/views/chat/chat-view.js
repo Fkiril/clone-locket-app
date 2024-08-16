@@ -117,7 +117,7 @@ export default function ChatView() {
                                     <div className="friend-details">
                                         <p className="friend-name">{friend.name}</p>
                                         <p className="last-message">
-                                            <span className="message-text">{friend.lastMessage?.text}</span>
+                                            <span className="message-text">{friend.lastMessage?.senderId === currentUser.id ? "You: " : null}{friend.lastMessage?.text}</span>
                                             <span className="message-time">{friend.lastMessage? formatTime(friend.lastMessage?.createdTime) : null}</span>
                                         </p>
                                         {friend.unreadCount > 0 && (

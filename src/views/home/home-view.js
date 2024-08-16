@@ -188,9 +188,7 @@ export default function HomeView() {
             }
             {isViewingPictures && (
                 <PictureGalleryPortal
-                    friendId={pictureDatas[currentPictureIndex]?.ownerId}
-                    currentUser={currentUser}
-                    friendDatas={friendDatas}  // Truyền friendDatas vào đây
+                    friendId={pictureDatas[currentPictureIndex]?.ownerId}  // Truyền friendDatas vào đây
                     onClose={handleCloseGallery}
                 />
             )}

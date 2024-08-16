@@ -42,6 +42,7 @@ export const useChatListStore = create((set, get) => ({
                             id: lastMessageData.id,
                             text: lastMessageData.text,
                             createdTime: lastMessageData.createdTime,
+                            senderId: lastMessageData.senderId,
                             isSeen: lastMessageData.isSeen
                         }
                     }
@@ -87,6 +88,7 @@ export const useChatListStore = create((set, get) => ({
                         id: lastMessageData.id,
                         text: lastMessageData.text,
                         createdTime: lastMessageData.createdTime,
+                        senderId: lastMessageData.senderId,
                         isSeen: lastMessageData.isSeen
                     }]})
                 }

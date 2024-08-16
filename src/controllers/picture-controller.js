@@ -80,6 +80,14 @@ export default class PictureController {
                     data: picId
                 });
             }
+            updateWrites.push({
+                work: "update",
+                docRef: getDocRef("users", picData.ownerId),
+                field: "uploadedPictures",
+                isRemovement: true,
+                data: picId
+            })
+            
             const deleteWrites = [
                 {
                     work: "delete",
