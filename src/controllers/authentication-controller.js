@@ -253,10 +253,10 @@ export default class AuthenticationController {
                 }
             }
 
-            await createBatchedWrites(deleteWrites).then(async () => {
-                console.log("Deleted user info.");
-                await createBatchedWrites(updateWrites).then(async() => {
-                    console.log("Updated user info.");
+            await createBatchedWrites(updateWrites).then(async () => {
+                console.log("Updated user info.");
+                await createBatchedWrites(deleteWrites).then(async() => {
+                    console.log("Deleted user info.");
                     await deleteUser(auth?.currentUser);
                 });
             });

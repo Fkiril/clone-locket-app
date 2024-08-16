@@ -167,8 +167,7 @@ export default function AuthenticationView() {
     const handleVertifyAccount = async (e) => {
       e.preventDefault();
 
-      const formData = new FormData(e.target);
-      const verificationLink = formData.get("verification-link");
+      const verificationLink = document.getElementsByName("verification-link")[0].value;
 
       if (!verificationLink) return;
       if (!verificationLink.startsWith("https://clone-locket-app-hk233.firebaseapp.com")) {

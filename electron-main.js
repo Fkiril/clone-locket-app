@@ -4,15 +4,18 @@ const path = require("path");
 function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
-    width: 1400,
-    height: 1000,
+    width: 1000,
+    height: 750,
+    autoHideMenuBar: true,
+    resizable: false,
+    // frame: false,
     webPreferences: {
       nodeIntegration: true,
       devTools: true
     },
   });
 
-  win.webContents.openDevTools();
+  // win.webContents.openDevTools();
 
   // const filePath = `file://${path.join(__dirname, "build", "index.html")}`;
   const filePath = 'http://localhost:3000';
