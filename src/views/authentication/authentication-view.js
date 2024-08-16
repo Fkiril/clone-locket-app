@@ -195,17 +195,20 @@ export default function AuthenticationView() {
     return createPortal(
       <div className="verification-portal">
         <div className="verification-body">
-          <button onClick={handleSendVerificationEmail} className="verification-button">Send verification email</button>
+          <h2>Account Verification</h2>
           <p>Please click "Send verification email" to get verification email. Or get the link from your email and paste it here!</p>
-          <form onSubmit={handleVertifyAccount}>
+          <div className="verification-form">
             <input type="text" name="verification-link" placeholder="Your verification link" />
-            <button type="submit" className="verification-button">Verify</button>
-          </form>
+            <button type="button" onClick={handleSendVerificationEmail} className="verification-button">Send verification email</button>
+          </div>
+          <button type="submit" onClick={handleVertifyAccount} className="verification-button">Verify</button>
           <button className="cancel-button" onClick={handleCancel}>Cancel</button>
         </div>
       </div>,
       document.body
-    )
+    );
+    
+      
   }
 
   return (
