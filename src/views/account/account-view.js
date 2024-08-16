@@ -232,17 +232,20 @@ export default function AccountView() {
                 return;
             }
 
-            try {
-                // Reauthenticate the user with the current password
-                await AuthenticationController.reauthenticate(auth.currentUser, currentPassword);
-                await updatePassword(auth.currentUser, newPassword);
-    
+            await AuthenticationController.logIn(auth?.currentUser?.email, currentPassword).catch((error) => {
+                toast.error("Wrong password. Please try again.");
+                event.target.reset();
+                return;
+            })
+            
+            await updatePassword(auth?.currentUser, newPassword).then(() => {
                 toast.success("Password changed successfully!");
                 setIsChangingPassword(false);
                 event.target.reset();
-            } catch (error) {
-                toast.error("Failed to change password. Please check your current password and try again.");
-            }
+            }).catch((error) => {
+                toast.error("Failed to change password. Please try again.");
+                event.target.reset();
+            });
         };
 
         const handleClickOutside = (event) => {
