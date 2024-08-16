@@ -1,5 +1,5 @@
 import "./conversation-view.css";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -10,18 +10,24 @@ import { onSnapshot } from "firebase/firestore";
 import { useUserStore } from "../../hooks/user-store";
 import { useMessageStore } from "../../hooks/message-store";
 import { useChatListStore } from "../../hooks/chat-list-store";
+import { useInternetConnection } from "../../hooks/internet-connection";
 
 import ChatController from "../../controllers/chat-controller";
 import { timestampToString } from "../../models/utils/date-method";
 
+import DisconnectionPortal from "../disconnection/disconnection-portal";
+
 export default function ConversationView() {
     const navigate = useNavigate();
-    const [showDetail, setShowDetail] = useState(false);
-
+    
     const { conversationId } = useParams();
+    
+    const { connectionState } = useInternetConnection();
     const { currentUser, friendDatas } = useUserStore();
     const { messages, fetchMessages, fetchAdditionalMessages, fetchedAll, isLoading } = useMessageStore();
     const { chatManager, fetchLastMessageOfConversation } = useChatListStore();
+    
+    const [showDetail, setShowDetail] = useState(false);
     
     const [hasScrolledToTop, setHasScrolledToTop] = useState(false);
     const bodyElement = document.querySelector('.body');
@@ -131,8 +137,14 @@ export default function ConversationView() {
         }
     };
 
-    const friendInfo = friendDatas?.find((friend) => friend.id === Object.keys(chatManager.friendConversations).find(key => chatManager.friendConversations[key] === conversationId));
-    const isBlocked = friendInfo?.blockeds?.includes(currentUser?.id);
+    const friendInfo = useMemo(() => {
+        return friendDatas?.find((friend) => friend.id === Object.keys(chatManager.friendConversations).find(key => chatManager.friendConversations[key] === conversationId));
+    }, [conversationId]);
+
+    const isBlocked = useMemo(() => {
+        return friendInfo?.blockeds?.includes(currentUser?.id);
+    }, [friendInfo]);
+
     const handleRouting = (path) => {
         navigate(path);
     }
@@ -140,66 +152,69 @@ export default function ConversationView() {
     const toggleDetail = () => setShowDetail(!showDetail);
 
     return (
-        <div className="conversation-container" key={conversationId}>
-            <div className="header">
-                <button className="back-button" onClick={() => handleRouting("/chat")}>
-                    <img src="/back-icon.svg" alt="Back" className="icon" />
-                </button>
-                <h2>Box Chat</h2>
-                <button className="info-button" onClick={toggleDetail}>
-                    <img src="/info-icon.svg" alt="Info" className="icon" />
-                </button>
-            </div>
-            {friendInfo && showDetail && (
-                <div className="detail">
-                    <img src={handleGetAvatar(friendInfo.id)} alt="avatar" />
-                    <p className="friend-username">{friendInfo.name}</p>
-                </div>
-            )}
-            {!isLoading && <div className="body">
-                <div className="conversation">
-                    <div className="messages">
-                        {!fetchedAll[conversationId] &&
-                            <button className="fetch-button" onClick={async () => fetchAdditionalMessages(conversationId, messages[conversationId]?.[0]?.createdTime)}>+</button>
-                        } 
-                        {Array.isArray(messages[conversationId]) && messages[conversationId].map((message) => (
-                            <div
-                                className={`message ${message?.senderId === currentUser?.id ? "right" : "left"}`}
-                                key={message?.id}
-                            >
-                                <div className="avatar-container">
-                                    <img src={handleGetAvatar(message?.senderId)} alt="avatar" />
-                                </div>
-                                <div className="message-content">
-                                    {message?.attachment && <img src={message?.attachmentFileUrl} alt="attachment" />}
-                                    <p className="text">{message?.text}</p>
-                                    <span className="time">{timestampToString(message?.createdTime)}</span>
-                                </div>
-                            </div>
-                        ))}
-                        <div ref={(ref) => {
-                            endRef.current = ref;
-                        }} />
-                    </div>
-                </div>
-            </div>}
-            <div className="input-section">
-                <form onSubmit={handleSendMessage} className="new-message" onFocus={handleFormFocus} autoComplete="off">
-                    <input
-                        type="text"
-                        name="text"
-                        id="text"
-                        placeholder={isBlocked ? "You are blocked by this user" : "Type a message..."}
-                        autoComplete="off"
-                        disabled={isBlocked}
-                        defaultValue={""}
-                        className="message-send"
-                    />
-                    <button type="submit" className="button-send" disabled={isBlocked}>
-                        <img src="/send-icon.svg" alt="Send" className="icon" />
+        <>
+            {!connectionState && <DisconnectionPortal />}
+            <div className="conversation-container" key={conversationId}>
+                <div className="header">
+                    <button className="back-button" onClick={() => handleRouting("/chat")}>
+                        <img src="/back-icon.svg" alt="Back" className="icon" />
                     </button>
-                </form>
+                    <h2>Box Chat</h2>
+                    <button className="info-button" onClick={toggleDetail}>
+                        <img src="/info-icon.svg" alt="Info" className="icon" />
+                    </button>
+                </div>
+                {friendInfo && showDetail && (
+                    <div className="detail">
+                        <img src={handleGetAvatar(friendInfo.id)} alt="avatar" />
+                        <p className="friend-username">{friendInfo.name}</p>
+                    </div>
+                )}
+                {!isLoading && <div className="body">
+                    <div className="conversation">
+                        <div className="messages">
+                            {!fetchedAll[conversationId] &&
+                                <button className="fetch-button" onClick={async () => fetchAdditionalMessages(conversationId, messages[conversationId]?.[0]?.createdTime)}>+</button>
+                            } 
+                            {Array.isArray(messages[conversationId]) && messages[conversationId].map((message) => (
+                                <div
+                                    className={`message ${message?.senderId === currentUser?.id ? "right" : "left"}`}
+                                    key={message?.id}
+                                >
+                                    <div className="avatar-container">
+                                        <img src={handleGetAvatar(message?.senderId)} alt="avatar" />
+                                    </div>
+                                    <div className="message-content">
+                                        {message?.attachment && <img src={message?.attachmentFileUrl} alt="attachment" />}
+                                        <p className="text">{message?.text}</p>
+                                        <span className="time">{timestampToString(message?.createdTime)}</span>
+                                    </div>
+                                </div>
+                            ))}
+                            <div ref={(ref) => {
+                                endRef.current = ref;
+                            }} />
+                        </div>
+                    </div>
+                </div>}
+                <div className="input-section">
+                    <form onSubmit={handleSendMessage} className="new-message" onFocus={handleFormFocus} autoComplete="off">
+                        <input
+                            type="text"
+                            name="text"
+                            id="text"
+                            placeholder={isBlocked ? "You are blocked by this user" : "Type a message..."}
+                            autoComplete="off"
+                            disabled={isBlocked}
+                            defaultValue={""}
+                            className="message-send"
+                        />
+                        <button type="submit" className="button-send" disabled={isBlocked}>
+                            <img src="/send-icon.svg" alt="Send" className="icon" />
+                        </button>
+                    </form>
+                </div>
             </div>
-        </div>
+        </>
     );
 }

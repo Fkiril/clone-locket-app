@@ -6,8 +6,11 @@ import { toast } from "react-toastify";
 import { auth } from "../../models/services/firebase";
 
 import { useUserStore } from "../../hooks/user-store";
+import { useInternetConnection } from "../../hooks/internet-connection";
+
 import PictureController from "../../controllers/picture-controller";
 import Picture, { ScopeEnum } from "../../models/entities/picture";
+import DisconnectionPortal from "../disconnection/disconnection-portal";
 
 import cameraIcon from './camera.jpg';
 import folderIcon from './folder.jpg';
@@ -18,6 +21,7 @@ const UPLOAD_STATE = 'upload_state';
 export default function UploadPictureView() {
   const navigate = useNavigate();
 
+  const { connectionState } = useInternetConnection();
   const { currentUser, friendDatas, fetchUserInfo } = useUserStore();
 
   const [picture, setPicture] = useState({
@@ -174,182 +178,185 @@ export default function UploadPictureView() {
   };
 
   return (
-    <div className="home min-h-screen flex flex-col items-center bg-white-100">
-      <div className="header-container">
-        <h1 className="app-title">Clone-locket</h1>
-        <button onClick={handleBackToHome} className="home-icon-button">
-          <div className="home-icon"></div>
-        </button>
-      </div>
-      <p className="app-subtitle text-center">Share moments - Happy life</p>
+    <>
+      {!connectionState && <DisconnectionPortal />}
+      <div className="home min-h-screen flex flex-col items-center bg-white-100">
+        <div className="header-container">
+          <h1 className="app-title">Clone-locket</h1>
+          <button onClick={handleBackToHome} className="home-icon-button">
+            <div className="home-icon"></div>
+          </button>
+        </div>
+        <p className="app-subtitle text-center">Share moments - Happy life</p>
 
-      <div className="upload-picture-container">
-        {viewState === ICON_STATE && (
-          <div className="option-picture">
-            <div className="button-container flex justify-center items-center space-x-14">
-              <div className="flex flex-col items-center">
-                <img
-                  src={folderIcon}
-                  alt="Choose Picture"
-                  className="icon-button"
-                  onClick={() => {
-                    document.getElementById("file").click();
-                    if (isCameraOpen) handleCloseCamera();
-                  }}
-                />
-                <p className="text-lg text-center">Choose Picture</p>
-                <input
-                  type="file"
-                  id="file"
-                  style={{ display: "none" }}
-                  onChange={handlePicture}
-                />
-              </div>
-              <div className="flex flex-col items-center">
-                <img
-                  src={cameraIcon}
-                  alt="Open Camera"
-                  className="icon-button"
-                  onClick={isCameraOpen ? handleCloseCamera : handleOpenCamera}
-                />
-                <p className="text-lg text-center">
-                  {isCameraOpen ? "Close Camera" : "Open Camera"}
-                </p>
+        <div className="upload-picture-container">
+          {viewState === ICON_STATE && (
+            <div className="option-picture">
+              <div className="button-container flex justify-center items-center space-x-14">
+                <div className="flex flex-col items-center">
+                  <img
+                    src={folderIcon}
+                    alt="Choose Picture"
+                    className="icon-button"
+                    onClick={() => {
+                      document.getElementById("file").click();
+                      if (isCameraOpen) handleCloseCamera();
+                    }}
+                  />
+                  <p className="text-lg text-center">Choose Picture</p>
+                  <input
+                    type="file"
+                    id="file"
+                    style={{ display: "none" }}
+                    onChange={handlePicture}
+                  />
+                </div>
+                <div className="flex flex-col items-center">
+                  <img
+                    src={cameraIcon}
+                    alt="Open Camera"
+                    className="icon-button"
+                    onClick={isCameraOpen ? handleCloseCamera : handleOpenCamera}
+                  />
+                  <p className="text-lg text-center">
+                    {isCameraOpen ? "Close Camera" : "Open Camera"}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {viewState === UPLOAD_STATE && (
-          <>
-            {isCameraOpen && (
-              <div className="camera mb-4">
-                <video
-                  autoPlay
-                  playsInline
-                  muted
-                  ref={videoRef}
-                  style={{ transform: "scaleX(-1)" }}
-                ></video>
-                <canvas ref={canvasRef} aria-disabled className="hidden"></canvas>
-                <button
-                  type="button"
-                  onClick={() => handleTakePicture()}
-                  className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-4"
-                >
-                  Take Picture
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCloseCamera}
-                  className="bg-red-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 mt-4 ml-4"
-                >
-                  Close Camera
-                </button>
-              </div>
-            )}
-
-            {picture.url && (
-              <div className="w-full">
-                <div className="picture mb-4">
-                  <img src={picture.url} alt="" className="w-full rounded-lg" />
-                </div>
-                <input
-                  id="text-input"
-                  type="text"
-                  maxLength="35"
-                  placeholder="Enter text"
-                  value={text}
-                  onChange={handleText}
-                  onBlur={handleCheckTextInput}
-                  className="w-full mb-4 p-2 border border-gray-300 rounded-md"
-                />
-
-                {/* Scope selection */}
-                <div className="scope-selector mb-4">
+          {viewState === UPLOAD_STATE && (
+            <>
+              {isCameraOpen && (
+                <div className="camera mb-4">
+                  <video
+                    autoPlay
+                    playsInline
+                    muted
+                    ref={videoRef}
+                    style={{ transform: "scaleX(-1)" }}
+                  ></video>
+                  <canvas ref={canvasRef} aria-disabled className="hidden"></canvas>
                   <button
-                    onClick={handleShowScopeOption}
-                    className="bg-gray-200 px-4 py-2 rounded-md"
+                    type="button"
+                    onClick={() => handleTakePicture()}
+                    className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-4"
                   >
-                    {scope === ScopeEnum.PUBLIC
-                      ? "Public"
-                      : scope === ScopeEnum.PRIVATE
-                      ? "Private"
-                      : "Specify"
-                    }
+                    Take Picture
                   </button>
-                  {showScopeOption && (
-                    <div className="scope-options mt-2 p-2 bg-gray-100 rounded-md shadow-lg">
-                      <button
-                        onClick={() => setScope(ScopeEnum.PUBLIC)}
-                        className={`w-full text-left px-4 py-2 ${
-                          scope === ScopeEnum.PUBLIC ? "bg-blue-100" : ""
-                        }`}
-                      >
-                        Public
-                      </button>
-                      <button
-                        onClick={() => setScope(ScopeEnum.PRIVATE)}
-                        className={`w-full text-left px-4 py-2 ${
-                          scope === ScopeEnum.PRIVATE ? "bg-blue-100" : ""
-                        }`}
-                      >
-                        Private
-                      </button>
-                      <button
-                        onClick={() => setScope(ScopeEnum.SPECIFY)}
-                        className={`w-full text-left px-4 py-2 ${
-                          scope === ScopeEnum.SPECIFY ? "bg-blue-100" : ""
-                        }`}
-                      >
-                        Specify
-                      </button>
+                  <button
+                    type="button"
+                    onClick={handleCloseCamera}
+                    className="bg-red-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 mt-4 ml-4"
+                  >
+                    Close Camera
+                  </button>
+                </div>
+              )}
+
+              {picture.url && (
+                <div className="w-full">
+                  <div className="picture mb-4">
+                    <img src={picture.url} alt="" className="w-full rounded-lg" />
+                  </div>
+                  <input
+                    id="text-input"
+                    type="text"
+                    maxLength="35"
+                    placeholder="Enter text"
+                    value={text}
+                    onChange={handleText}
+                    onBlur={handleCheckTextInput}
+                    className="w-full mb-4 p-2 border border-gray-300 rounded-md"
+                  />
+
+                  {/* Scope selection */}
+                  <div className="scope-selector mb-4">
+                    <button
+                      onClick={handleShowScopeOption}
+                      className="bg-gray-200 px-4 py-2 rounded-md"
+                    >
+                      {scope === ScopeEnum.PUBLIC
+                        ? "Public"
+                        : scope === ScopeEnum.PRIVATE
+                        ? "Private"
+                        : "Specify"
+                      }
+                    </button>
+                    {showScopeOption && (
+                      <div className="scope-options mt-2 p-2 bg-gray-100 rounded-md shadow-lg">
+                        <button
+                          onClick={() => setScope(ScopeEnum.PUBLIC)}
+                          className={`w-full text-left px-4 py-2 ${
+                            scope === ScopeEnum.PUBLIC ? "bg-blue-100" : ""
+                          }`}
+                        >
+                          Public
+                        </button>
+                        <button
+                          onClick={() => setScope(ScopeEnum.PRIVATE)}
+                          className={`w-full text-left px-4 py-2 ${
+                            scope === ScopeEnum.PRIVATE ? "bg-blue-100" : ""
+                          }`}
+                        >
+                          Private
+                        </button>
+                        <button
+                          onClick={() => setScope(ScopeEnum.SPECIFY)}
+                          className={`w-full text-left px-4 py-2 ${
+                            scope === ScopeEnum.SPECIFY ? "bg-blue-100" : ""
+                          }`}
+                        >
+                          Specify
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {scope === ScopeEnum.SPECIFY && (
+                    <div className="friend-selector mb-4">
+                      <div className="bg-gray-200 p-4 rounded-md">
+                        <p>Select friends to share with:</p>
+                        {friendDatas.map((friend) => (
+                          <div key={friend.id} className="flex items-center mt-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedFriends.includes(friend.id)}
+                              onChange={() =>
+                                handleFriendCheckboxChange(friend.id)
+                              }
+                              className="mr-2"
+                            />
+                            <p>{friend.name}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
-                </div>
+                  <div className="button-group">
 
-                {scope === ScopeEnum.SPECIFY && (
-                  <div className="friend-selector mb-4">
-                    <div className="bg-gray-200 p-4 rounded-md">
-                      <p>Select friends to share with:</p>
-                      {friendDatas.map((friend) => (
-                        <div key={friend.id} className="flex items-center mt-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedFriends.includes(friend.id)}
-                            onChange={() =>
-                              handleFriendCheckboxChange(friend.id)
-                            }
-                            className="mr-2"
-                          />
-                          <p>{friend.name}</p>
-                        </div>
-                      ))}
-                    </div>
+                  <button
+                    type="button"
+                    onClick={handleSubmitPicture}
+                    className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full mb-2"
+                  >
+                    Submit Picture
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelOption}
+                    className="bg-red-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 w-full mb-2"
+                  >
+                    Cancel
+                  </button>
                   </div>
-                )}
-                <div className="button-group">
-
- <button
-                  type="button"
-                  onClick={handleSubmitPicture}
-                  className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full mb-2"
-                >
-                  Submit Picture
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancelOption}
-                  className="bg-red-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 w-full mb-2"
-                >
-                  Cancel
-                </button>
                 </div>
-              </div>
-            )}
-          </>
-        )}
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
