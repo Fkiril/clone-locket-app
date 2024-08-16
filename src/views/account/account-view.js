@@ -17,12 +17,6 @@ import UserController from "../../controllers/user-controller";
 import { checkPassword } from "../../models/utils/check-password";
 
 import DisconnectionPortal from "../disconnection/disconnection-portal";
-// import BlockedListPortal from "./BlockedListPortal";
-// import FriendsListPortal from "./FriendsListPortal";
-// import PicturesListPortal from "./PicturesListPortal";
-// import RequestsListPortal from "./RequestsListPortal";
-// import SearchBar from "./SearchBar";
-// import DeletingAccountPortal from "./DeletingAccountPortal";
 const BlockedListPortal = lazy(() => import("./BlockedListPortal"));
 const FriendsListPortal = lazy(() => import("./FriendsListPortal"));
 const PicturesListPortal = lazy(() => import("./PicturesListPortal"));

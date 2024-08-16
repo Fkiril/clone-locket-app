@@ -1,5 +1,5 @@
 import "./chat-view.css";
-import React, { useMemo, useState } from "react";
+import React, { startTransition, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -96,7 +96,9 @@ export default function ChatView() {
     }, [searchedFriend, friendAndConversations]);
     
     const handleRouting = (path) => {
-        navigate(path);
+        startTransition(() => {
+            navigate(path);
+        })
     }
 
     return (

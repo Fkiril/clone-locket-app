@@ -11,7 +11,9 @@ import { useMessageStore } from "../../hooks/message-store";
 
 import { useInternetConnection } from "../../hooks/internet-connection";
 import ChatController from "../../controllers/chat-controller";
+import PictureController from "../../controllers/picture-controller";
 import { timestampToString } from "../../models/utils/date-method";
+import { EmojiEnum } from "../../models/entities/picture";
 
 import ChatIcon from '../../assets/chat-icon.svg';
 import UploadIcon from '../../assets/upload-icon.svg';
@@ -33,6 +35,9 @@ export default function HomeView() {
 
     const [currentPictureIndex, setCurrentPictureIndex] = useState(0);
     const [isViewingPictures, setIsViewingPictures] = useState(false);
+
+    const [showEmojiList, setShowEmojiList] = useState(false);
+    const [showReactionList, setShowReactionList] = useState(false);
 
     const handleRouting = (path) => {
         startTransition(() => {
@@ -62,7 +67,6 @@ export default function HomeView() {
         
         if (text.trim() === "" || !friendId || !picId || friendId === "" || picId === "") return;
 
-        console.log("send message: ", picId, friendId, text);
         const message = {
             text,
             senderId: currentUser.id,
@@ -81,6 +85,7 @@ export default function HomeView() {
         }
 
         await ChatController.sendMessage(conversationId, message).then( async () => {
+            event.target.reset();
             toast.success("Sent message successfully");
             await fetchLastMessageOfConversation(auth?.currentUser?.uid, conversationId);
             if (messages[conversationId]) {
@@ -91,7 +96,6 @@ export default function HomeView() {
             toast.error("Failed to send message. Please try again.");
         });
 
-        event.target.reset();
     }
 
     const handleReact = async (event, picId, emoji) => {
@@ -99,14 +103,12 @@ export default function HomeView() {
 
         if (!currentUser || !picId) return;
 
-        await ChatController.reactPic(picId, currentUser.id, emoji).then(() => {
-            
+        await PictureController.reactToPicture(picId, currentUser.id, emoji).then(() => {
+            toast.success(`Reacted with ${emoji}`);
         }).catch((error) => {
             console.log("Error reacting to picture: ", error);
             toast.error("Failed to react. Please try again.");
         });
-
-        event.target.reset();
     }
 
     const handleOpenGallery = (friendId) => {
@@ -170,17 +172,49 @@ export default function HomeView() {
                                 <div className="picture-caption-container">
                                     <p className="picture-caption">{(pictureDatas[currentPictureIndex]?.text)}</p>
                                 </div>
-                                {pictureDatas[currentPictureIndex]?.ownerId !== currentUser?.id && (
+                                {(pictureDatas[currentPictureIndex]?.ownerId !== currentUser?.id)? (
                                     <div className="picture-actions">
-                                        <button className="react-button">
+                                        <button className="react-button" onClick={() => setShowEmojiList(!showEmojiList)}>
                                             <img src={ReactIcon} alt="React Icon" className="action-icon"/>
                                         </button>
-                                        <form className="message-section" onSubmit={(event) => handleSendMessage(event, pictureDatas[currentPictureIndex].ownerId, pictureDatas[currentPictureIndex].id)}>
-                                            <input type="text" name="message" placeholder="Type a message" className="message-input"/>
-                                            <button className="send-button">
-                                                <img src={SendIcon} alt="Send Icon" className="action-icon"/>
-                                            </button>
-                                        </form>
+                                        {showEmojiList? (
+                                            <div className="emoji-list">
+                                                {Object.values(EmojiEnum).map((emoji) => (
+                                                    <button
+                                                        key={emoji}
+                                                        className="emoji-button"
+                                                        onClick={(event) => handleReact(event, pictureDatas[currentPictureIndex].id, emoji)}
+                                                    >
+                                                        {emoji}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <form className="message-section" onSubmit={(event) => handleSendMessage(event, pictureDatas[currentPictureIndex].ownerId, pictureDatas[currentPictureIndex].id)}>
+                                                <input type="text" name="message" placeholder="Type a message" className="message-input"/>
+                                                <button className="send-button">
+                                                    <img src={SendIcon} alt="Send Icon" className="action-icon"/>
+                                                </button>
+                                            </form>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="reactions-container">
+                                        {showReactionList && (
+                                            <div className="reactions-list">
+                                                {pictureDatas[currentPictureIndex]?.reactions?.map((reaction) => (
+                                                    <p>{reaction?.emoji} from {getOwnerInfo(reaction?.senderId)?.name}</p>
+                                                ))}
+                                            </div>
+                                        )}
+                                        <button
+                                            className="react-button"
+                                            onClick={() => setShowReactionList(!showReactionList)}
+                                            disabled={pictureDatas[currentPictureIndex]?.reactions?.length === 0}
+                                            style={pictureDatas[currentPictureIndex]?.reactions?.length === 0 ? null : {background: "pink", borderRadius: "50px"}}
+                                        >
+                                            <img src={ReactIcon} alt="React Icon" className="action-icon" style={{transform: `rotate(${showReactionList ? 180 : 0}deg)`}}/>
+                                        </button>
                                     </div>
                                 )}
                                 <button className="right-arrow" onClick={handleNextPicture}>

@@ -145,8 +145,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-
-
 /* Điều chỉnh bố cục cho phần hành động (react và nhập tin nhắn) */
 .picture-actions {
   display: flex;
@@ -155,6 +153,26 @@
   width: 100%;
   margin-top: 10px;
   margin-bottom: 0;
+}
+
+.emoji-list {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60%;
+  border: 1px solid #A0A0A0;
+  border-radius: 36px;
+  padding: 5px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.emoji-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin: 0 5%;
+  font-size: 2.2vw;
 }
 
 .react-button {
@@ -187,6 +205,15 @@
   outline: none;
   border-radius: 36px;
   font-size: 1.2vw;
+}
+
+.reactions-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 40%;
+  margin-right: 10px;
 }
 
 .no-friend-pictures {

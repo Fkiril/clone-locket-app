@@ -4,6 +4,14 @@ const ScopeEnum = {
     SPECIFY: "specify"
 };
 
+const EmojiEnum = {
+    LIKE: "👍",
+    HEART: "❤️",
+    WOW: "😮",
+    SAD: "😢",
+    ANGRY: "😡"
+};
+
 export default class Picture {
     constructor(props) {
         this.id = props.id? props.id : "";
@@ -35,4 +43,4 @@ export default class Picture {
     };
 }
 
-export { ScopeEnum };
+export { ScopeEnum, EmojiEnum };

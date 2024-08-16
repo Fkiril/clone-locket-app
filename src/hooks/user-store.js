@@ -216,7 +216,8 @@ export const useUserStore = create((set, get) => ({
                   file: file,
                   fileUrl: file? URL.createObjectURL(file) : null,
                   text: picData.text,
-                  uploadTime: picData.uploadTime
+                  uploadTime: picData.uploadTime,
+                  reactions: picData.ownerId === userData.id? picData.reactions : null
                 });
               }
             })
