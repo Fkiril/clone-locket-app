@@ -145,7 +145,7 @@ export default function HomeView() {
                                 <div className="picture-header" onClick={() => handleOpenGallery(pictureDatas[currentPictureIndex]?.ownerId)}>   
                                     <div className="owner-info">
                                         <img
-                                            src={getOwnerInfo(pictureDatas[currentPictureIndex].ownerId)?.avatarFileUrl || "./default_avatar.jpg"}
+                                            src={getOwnerInfo(pictureDatas[currentPictureIndex].ownerId)?.avatarFileUrl || getOwnerInfo(pictureDatas[currentPictureIndex].ownerId)?.avatar || "./default_avatar.jpg"}
                                             alt="Owner Avatar"
                                             className="owner-avatar"
                                         />

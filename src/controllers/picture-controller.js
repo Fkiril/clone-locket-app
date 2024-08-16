@@ -81,7 +81,7 @@ export default class PictureController {
                 });
             }
             updateWrites.push({
-                work: "update",
+                work: "update-array",
                 docRef: getDocRef("users", picData.ownerId),
                 field: "uploadedPictures",
                 isRemovement: true,
