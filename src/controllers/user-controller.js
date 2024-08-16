@@ -150,6 +150,20 @@ export default class UserController {
                     data: this.user.id
                 }
             ];
+            const friendData = await getDocDataById("users", friendId);
+            if (friendData && friendData.picturesCanSee?.length > 0 && this.user?.uploadedPictures?.length > 0) {
+                for (const pictureId of friendData.picturesCanSee) {
+                    if (this.user.uploadedPictures.includes(pictureId)) {
+                        writes.push({
+                            work: "update-array",
+                            docRef: getDocRef("users", friendId),
+                            field: "picturesCanSee",
+                            isRemovement: true,
+                            data: pictureId
+                        })
+                    }
+                }
+            }
             await createBatchedWrites(writes);
         } catch(error) {
             console.log("Error unfriending user: ", error);
@@ -290,7 +304,22 @@ export default class UserController {
                 console.log("Null params to block user");
                 return;
             }
-            await updateArrayField("users", this.user.id, "blockedUsers", true, blockedUserId);
+            const writes = [
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", this.user.id),
+                    field: "blockeds",
+                    data: blockedUserId
+                },
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", this.user.id),
+                    field: "friends",
+                    isRemovement: true,
+                    data: blockedUserId
+                }
+            ]
+            await createBatchedWrites(writes);
         } catch (error) {
             console.error("Error blocking user:", error);
             throw error;
@@ -303,7 +332,22 @@ export default class UserController {
                 console.log("Null params to unblock user");
                 return;
             }
-            await updateArrayField("users", this.user.id, "blockedUsers", false, unblockedUserId);
+            const writes = [
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", this.user.id),
+                    field: "blockeds",
+                    isRemovement: true,
+                    data: unblockedUserId
+                },
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", this.user.id),
+                    field: "friends",
+                    data: unblockedUserId
+                }
+            ]
+            await createBatchedWrites(writes);
         } catch (error) {
             console.error("Error unblocking user:", error);
             throw error;

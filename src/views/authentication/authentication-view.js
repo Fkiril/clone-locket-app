@@ -22,7 +22,6 @@ export default function AuthenticationView() {
   const [showVerification, setShowVerification] = useState(false);
 
   useEffect(() => {
-    console.log("useEffect");
     if (auth?.currentUser && currentUser) {
       setIsLoading(false);
       if (!auth?.currentUser?.emailVerified) {
@@ -32,8 +31,8 @@ export default function AuthenticationView() {
         navigate("/home");
       }
     }
-  }, [auth?.currentUser, navigate]);
-  console.log("auth: ", auth);
+  }, [auth?.currentUser, navigate, isLoading, currentUser]);
+
   const handleLogIn = async (e) => {
     e.preventDefault();
     setIsLoading(true);

@@ -30,7 +30,6 @@ export default function UploadPictureView() {
   const [showScopeOption, setShowScopeOption] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState([]);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [uploaded, setUploaded] = useState(false);
   const [viewState, setViewState] = useState(ICON_STATE);
 
   const videoRef = useRef(null);
@@ -64,7 +63,6 @@ export default function UploadPictureView() {
       .then( async () => {
         toast.success("Picture uploaded successfully!");
         handleCancelOption();
-        setUploaded(true);
         await fetchUserInfo(auth?.currentUser?.uid);
       })
       .catch((error) => {

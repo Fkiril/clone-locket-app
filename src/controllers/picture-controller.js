@@ -13,33 +13,34 @@ export default class PictureController {
             
             picInstance.id = docRefId;
             
-            await writeIntoDoc("pictures", docRefId, true, {
-                id: docRefId
-            });
+            const writes = [
+                {
+                    work: "update",
+                    docRef: getDocRef("pictures", docRefId),
+                    field: "id",
+                    data: docRefId
+                },
+                {
+                    work: "update-array",
+                    docRef: getDocRef("users", picInstance.ownerId),
+                    field: "uploadedPictures",
+                    data: docRefId
+                }
+            ];
 
-            await this.signalNewPicture(picInstance.id, picInstance.canSee);
-        } catch (error) {
-            console.log("Error uploading picture: ", error);
-            throw error;
-        } 
-    }
-    static async signalNewPicture(picId, canSeeList) {
-        try {
-            const writes = [];
-            for (const userId of canSeeList) {
+            for (const userId of picInstance.canSee) {
                 writes.push({
                     work: "update-array",
                     docRef: getDocRef("users", userId),
                     field: "picturesCanSee",
-                    data: picId
+                    data: picInstance.id
                 });
             }
-
             await createBatchedWrites(writes);
         } catch (error) {
-            console.log("Error signal picture: ", error);
+            console.log("Error uploading picture: ", error);
             throw error;
-        }
+        } 
     }
 
     static async getUserPictures(userId) {

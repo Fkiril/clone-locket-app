@@ -39,15 +39,15 @@ export default function ConversationView() {
     });
 
     useEffect(() => {
-        if (hasScrolledToTop && !fetchedAll) {
+        if (hasScrolledToTop && !fetchedAll[conversationId]) {
             console.log("conversation-view.js: fetchAdditionalMessages");
             fetchAdditionalMessages(conversationId, messages[conversationId]?.[0]?.createdTime);
         }
-    }, [hasScrolledToTop, fetchedAll])
+    }, [hasScrolledToTop, fetchedAll[conversationId]]);
 
     const endRef = useRef(null);
     useEffect(() => {
-        if (!hasScrolledToTop) endRef.current?.scrollIntoView({ behavior: "auto" });
+        if (!hasScrolledToTop) endRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages[conversationId]]);
 
     const [nearestFetch, setNearestFetch] = useState(0);
@@ -132,7 +132,7 @@ export default function ConversationView() {
     };
 
     const friendInfo = friendDatas?.find((friend) => friend.id === Object.keys(chatManager.friendConversations).find(key => chatManager.friendConversations[key] === conversationId));
-
+    const isBlocked = friendInfo?.blockeds?.includes(currentUser?.id);
     const handleRouting = (path) => {
         navigate(path);
     }
@@ -159,6 +159,9 @@ export default function ConversationView() {
             {!isLoading && <div className="body">
                 <div className="conversation">
                     <div className="messages">
+                        {!fetchedAll[conversationId] &&
+                            <button className="fetch-button" onClick={async () => fetchAdditionalMessages(conversationId, messages[conversationId]?.[0]?.createdTime)}>+</button>
+                        } 
                         {Array.isArray(messages[conversationId]) && messages[conversationId].map((message) => (
                             <div
                                 className={`message ${message?.senderId === currentUser?.id ? "right" : "left"}`}
@@ -174,21 +177,25 @@ export default function ConversationView() {
                                 </div>
                             </div>
                         ))}
-                        <div ref={endRef} />
+                        <div ref={(ref) => {
+                            endRef.current = ref;
+                        }} />
                     </div>
                 </div>
             </div>}
             <div className="input-section">
-                <form onSubmit={handleSendMessage} className="new-message" onFocus={handleFormFocus}>
+                <form onSubmit={handleSendMessage} className="new-message" onFocus={handleFormFocus} autoComplete="off">
                     <input
                         type="text"
                         name="text"
                         id="text"
-                        placeholder="Enter message"
+                        placeholder={isBlocked ? "You are blocked by this user" : "Type a message..."}
+                        autoComplete="off"
+                        disabled={isBlocked}
                         defaultValue={""}
                         className="message-send"
                     />
-                    <button type="submit" className="button-send">
+                    <button type="submit" className="button-send" disabled={isBlocked}>
                         <img src="/send-icon.svg" alt="Send" className="icon" />
                     </button>
                 </form>

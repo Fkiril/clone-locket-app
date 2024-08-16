@@ -5,6 +5,7 @@ export default class User {
         this.email = props.email? props.email : "";
         this.avatar = props.avatar? props.avatar : "";
         this.picturesCanSee = props.picturesCanSee? props.picturesCanSee : [];
+        this.uploadedPictures = props.uploadedPictures? props.uploadedPictures : [];
         this.friends = props.friends? props.friends : [];
         this.friendRequests = props.friendRequests? props.friendRequests : [];
         this.blockeds = props.blockeds? props.blockeds : [];
@@ -22,6 +23,7 @@ export default class User {
             email: this.email,
             avatar: this.avatar,
             picturesCanSee: this.picturesCanSee.map(value => value),
+            uploadedPictures: this.uploadedPictures.map(value => value),
             friends: this.friends.map(value => value),
             friendRequests: this.friendRequests.map(value => value),
             blockeds: this.blockeds.map(value => value),

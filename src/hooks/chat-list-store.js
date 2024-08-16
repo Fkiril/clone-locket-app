@@ -29,8 +29,7 @@ export const useChatListStore = create((set, get) => ({
                     return {
                         id: conversationData.id,
                         participants: conversationData.participants,
-                        lastMessage: conversationData.lastMessage,
-                        conversationImg: conversationData.conversationImg
+                        lastMessage: conversationData.lastMessage
                     }
                 }
             }));
@@ -83,8 +82,7 @@ export const useChatListStore = create((set, get) => ({
                     set({ chatManager: chatManagerData, conversations: [...get().conversations, {
                         id: conversationData.id,
                         participants: conversationData.participants,
-                        lastMessage: lastMessageData.id,
-                        conversationImg: conversationData.conversationImg
+                        lastMessage: lastMessageData.id
                     }], lastMessages: [...get().lastMessages, {
                         id: lastMessageData.id,
                         text: lastMessageData.text,

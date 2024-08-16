@@ -5,8 +5,9 @@ import { fs_db } from "../models/services/firebase";
 
 export const useMessageStore = create((set, get) => ({
     messages: {},
-    fetchedAll: false,
+    fetchedAll: {},
     isLoading: false,
+
     fetchMessages: async (conversationId) => {
         try {
             console.log("Fetching messages: ", conversationId);
@@ -57,9 +58,9 @@ export const useMessageStore = create((set, get) => ({
                     return a?.createdTime - b?.createdTime;
                 });
 
-                set({ messages: { ...get().messages, [conversationId]: mDatas }, fetchedAll: fetchLimit > querySnapshot.size, isLoading: false });
+                set({messages: { ...get().messages, [conversationId]: mDatas }, fetchedAll: { ...get().fetchedAll, [conversationId]: fetchLimit > querySnapshot.size }, isLoading: false });
             }
-            else set({ fetchedAll: true, isLoading: false });
+            else set({ fetchedAll: { ...get().fetchedAll, [conversationId]: true }, isLoading: false });
         } catch (error) {
             console.log("Error fetching messages: ", error);
             return;
@@ -115,9 +116,9 @@ export const useMessageStore = create((set, get) => ({
                     return a?.createdTime - b?.createdTime;
                 });
 
-                set({ messages: { ...get().messages, [conversationId]: mDatas }, fetchedAll: (querySnapshot.docs.length < fetchLimit), isLoading: false });
+                set({ messages: { ...get().messages, [conversationId]: mDatas }, fetchedAll: { ...get().fetchedAll, [conversationId]: fetchLimit > querySnapshot.size }, isLoading: false });
             }
-            else set({ fetchedAll: true, isLoading: false });
+            else set({ fetchedAll: { ...get().fetchedAll, [conversationId]: true }, isLoading: false });
         } catch (error) {
             console.log("Error fetching additional messages: ", error);
             return;

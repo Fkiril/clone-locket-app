@@ -8,14 +8,16 @@ export const useUserStore = create((set, get) => ({
   blockedDatas: [],
   pictureDatas: [],
   isFetching: false,
+  nearestFetchUserInfo: 0,
   fetchUserInfo: async (id) => {
     try {
       console.log(`fetching user's info with id: ${id}`);
       if (!id) {
-        set({ currentUser: null, friendDatas: [], requestDatas: [], blockedDatas: [], pictureDatas: [], isFetching: false });
+        set({ currentUser: null, friendDatas: [], requestDatas: [], blockedDatas: [], pictureDatas: [], isFetching: false, nearestFetchUserInfo: 0 });
         return;
       }
       get().isFetching = true;
+      get().nearestFetchUserInfo = new Date().getTime();
       
       const userData = await getDocDataById("users", id).then(async (userData) => {
         if (userData) {
@@ -68,6 +70,7 @@ export const useUserStore = create((set, get) => ({
                   id: fData.id,
                   name: fData.userName,
                   email: fData.email,
+                  blockeds: fData.blockeds,
                   avatar: fData.avatar,
                   avatarFile: file,
                   avatarFileUrl: file? URL.createObjectURL(file) : null
@@ -192,7 +195,9 @@ export const useUserStore = create((set, get) => ({
           await Promise.all(
             picIds.map(async (picId) => {
               const picData = await getDocDataById("pictures", picId);
-              if (picData) {
+              if (picData && !userData?.blockeds?.includes(picData.ownerId) &&
+                  !(fDatas?.find((friendData) => friendData.id === picData.ownerId)?.blockeds?.includes(userData.id))) {
+
                 const file = (picData.url && picData.url !== "" && picData.url.includes("firebasestorage"))? await fetch(picData.url)
                   .then(response => response.blob())
                   .then(blob => {
@@ -259,11 +264,12 @@ export const useUserStore = create((set, get) => ({
         requestDatas: rDatas, 
         blockedDatas: bDatas, 
         pictureDatas: picDatas,
-        isFetching: false
+        isFetching: false,
+        nearestFetchUserInfo: new Date().getTime()
       });
     } catch (err) {
       console.log(err);
-      return set({ currentUser: null, friendDatas: [], requestData: [], blockedDatas: [], pictureDatas: [], isFetching: false });
+      return set({ currentUser: null, friendDatas: [], requestData: [], blockedDatas: [], pictureDatas: [], isFetching: false, nearestFetchUserInfo: 0 });
     }
   },
 }));

@@ -6,13 +6,20 @@ import { toast } from "react-toastify";
 import { auth } from "../../models/services/firebase";
 
 const RequestsListPortal = ({ setIsShowingRequests }) => {
-    const { currentUser, requestDatas, fetchUserInfo } = useUserStore();
+    const { currentUser, requestDatas, fetchUserInfo, nearestFetchUserInfo } = useUserStore();
     const userController = currentUser? new UserController(currentUser) : null;
+
+    const handleReFetch = async () => {
+        const now = new Date().getTime();
+        if (now - nearestFetchUserInfo > 5000) {
+            await fetchUserInfo(auth?.currentUser?.uid);
+        }
+    };
 
     const handleAccept = async (requestId) => {
         await userController.acceptFriendRequest(requestId).then(async () => {
             toast.success("Friend request accepted successfully!");
-            await fetchUserInfo(auth?.currentUser?.uid);
+            await handleReFetch();
         }).catch((error) => {
             toast.error("Failed to accept friend request. Please try again.");
         });
@@ -21,7 +28,7 @@ const RequestsListPortal = ({ setIsShowingRequests }) => {
     const handleDecline = async (requestId) => {
         await userController.declineFriendRequest(requestId).then(async () => {
             toast.success("Friend request declined successfully!");
-            await fetchUserInfo(auth?.currentUser?.uid);
+            await handleReFetch();
         }).catch((error) => {
             toast.error("Failed to decline friend request. Please try again.");
         });
@@ -30,7 +37,7 @@ const RequestsListPortal = ({ setIsShowingRequests }) => {
     const handleBlock = async (requestId) => {
         await userController.blockUser(requestId).then(async () => {
             toast.success("User blocked successfully!");
-            await fetchUserInfo(auth?.currentUser?.uid);
+            await handleReFetch();
         }).catch((error) => {
             toast.error("Failed to block user. Please try again.");
         });

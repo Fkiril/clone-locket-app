@@ -9,7 +9,7 @@ import { auth } from "../../models/services/firebase";
 const FriendsListPortal = ({ setIsShowingFriends }) => {
   const navigate = useNavigate();
 
-  const { currentUser, friendDatas, fetchUserInfo } = useUserStore();
+  const { currentUser, friendDatas, fetchUserInfo, nearestFetchUserInfo } = useUserStore();
   const userController = currentUser? new UserController(currentUser) : null;
 
   if (!currentUser) {
@@ -17,10 +17,17 @@ const FriendsListPortal = ({ setIsShowingFriends }) => {
     return navigate("/");
   }
 
+  const handleReFetch = async () => {
+    const now = new Date().getTime();
+    if (now - nearestFetchUserInfo > 5000) {
+      await fetchUserInfo(auth?.currentUser?.uid);
+    }
+  };
+
   const handleUnfriend = async (friendId) => {
     await userController.unfriendById(friendId).then(async () => {
       toast.success("Unfriended successfully");
-      await fetchUserInfo(auth?.currentUser?.uid);
+      await handleReFetch();
     }).catch((error) => {
       toast.error("Failed to unfriend. Please try again.");
     });
@@ -29,7 +36,7 @@ const FriendsListPortal = ({ setIsShowingFriends }) => {
   const handleBlock = async (friendId) => {
     await userController.blockUser(friendId).then(async () => {
       toast.success("Blocked successfully");
-      await fetchUserInfo(auth?.currentUser?.uid);
+      await handleReFetch();
     }).catch((error) => {
       toast.error("Failed to block. Please try again.");
     });

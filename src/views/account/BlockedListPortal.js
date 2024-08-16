@@ -9,13 +9,20 @@ import { auth } from "../../models/services/firebase";
 const BlockedListPortal = ({ setIsShowingBlocked }) => {
     const navigate = useNavigate();
 
-    const { currentUser, blockedDatas, fetchUserInfo } = useUserStore(); 
+    const { currentUser, blockedDatas, fetchUserInfo, nearestFetchUserInfo } = useUserStore(); 
     const userController = currentUser? new UserController(currentUser) : null;
 
     if (!currentUser) {
         toast.warning("You are not logged in. Please log in first.");
         return navigate("/");
     }
+
+    const handleReFetch = async () => {
+        const now = new Date().getTime();
+        if (now - nearestFetchUserInfo > 5000) {
+            await fetchUserInfo(auth?.currentUser?.uid);
+        }
+    };
     
     const handleClickOutside = (event) => {
         const clickElement = event.target;
@@ -27,7 +34,7 @@ const BlockedListPortal = ({ setIsShowingBlocked }) => {
     const handleUnblockUser = async (userId) => {
         await userController.unblockUser(userId).then(async () => {
             toast.success("User unblocked successfully");
-            await fetchUserInfo(auth?.currentUser?.uid);
+            await handleReFetch();
             setIsShowingBlocked(false);
         }).catch((error) => {
             toast.error("Failed to unblock user. Please try again.");
