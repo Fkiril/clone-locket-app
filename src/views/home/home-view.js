@@ -1,5 +1,5 @@
 import "./home-view.css";
-import React, { useState } from "react";
+import React, { lazy, startTransition, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -8,10 +8,10 @@ import { auth } from "../../models/services/firebase";
 import { useUserStore } from "../../hooks/user-store";
 import { useChatListStore } from "../../hooks/chat-list-store";
 import { useMessageStore } from "../../hooks/message-store";
+
+import { useInternetConnection } from "../../hooks/internet-connection";
 import ChatController from "../../controllers/chat-controller";
 import { timestampToString } from "../../models/utils/date-method";
-
-import PictureGalleryPortal from "./PictureGalleryPortal";
 
 import ChatIcon from '../../assets/chat-icon.svg';
 import UploadIcon from '../../assets/upload-icon.svg';
@@ -20,19 +20,24 @@ import LeftArrowIcon from '../../assets/left-arrow-icon.svg';
 import RightArrowIcon from '../../assets/right-arrow-icon.svg';
 import SendIcon from '../../assets/send-icon.svg';
 
+import DisconnectionPortal from "../disconnection/disconnection-portal";
+const PictureGalleryPortal = lazy(() => import("./PictureGalleryPortal"));
+
 export default function HomeView() {
     const navigate = useNavigate();
   
+    const { connectionState } = useInternetConnection();
     const { currentUser, pictureDatas, friendDatas, isFetching } = useUserStore();
     const { fetchLastMessageOfConversation } = useChatListStore();
     const { fetchMessages, messages } = useMessageStore();
-    const avatarUrl = currentUser?.avatar ? currentUser.avatar : "./default_avatar.jpg";
+
     const [currentPictureIndex, setCurrentPictureIndex] = useState(0);
     const [isViewingPictures, setIsViewingPictures] = useState(false);
-    const [selectedFriendId, setSelectedFriendId] = useState(null);
 
     const handleRouting = (path) => {
-        navigate(path);
+        startTransition(() => {
+            navigate(path);
+        })
     }
 
     const handlePrevPicture = () => {
@@ -49,7 +54,6 @@ export default function HomeView() {
         }
         return friendDatas.find((friendData) => friendData.id === ownerId);
     }
-    const ownerInfo = getOwnerInfo(pictureDatas[currentPictureIndex]?.ownerId, currentUser);
 
     const handleSendMessage = async (event, friendId, picId) => {
         event.preventDefault();
@@ -106,17 +110,20 @@ export default function HomeView() {
     }
 
     const handleOpenGallery = (friendId) => {
-        setSelectedFriendId(friendId);
-        setIsViewingPictures(true);
+        startTransition(() => {
+            setIsViewingPictures(true);            
+        })
     };
 
     const handleCloseGallery = () => {
-        setIsViewingPictures(false);
-        setSelectedFriendId(null);
+        startTransition(() => {
+            setIsViewingPictures(false);
+        })
     };
 
     return (
         <>
+            {!connectionState && <DisconnectionPortal />}
             {(isFetching) ? 
                 <div>Loading...</div> :
 
@@ -133,7 +140,7 @@ export default function HomeView() {
                             <img src={UploadIcon} alt="Upload Icon" className="nav-icon"/>
                         </button>
                         <button className="avatar-container" onClick={() => handleRouting("/account")}>
-                            <img src={currentUser?.avatarFileUrl || avatarUrl} alt="User Avatar" className="user-avatar" loading="eager"/>
+                            <img src={currentUser?.avatarFileUrl || currentUser?.avatar || "./default_avatar.jpg"} alt="User Avatar" className="user-avatar" loading="eager"/>
                         </button>
                     </div>
                     <div className="friends-pictures-container"> 

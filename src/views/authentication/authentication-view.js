@@ -1,13 +1,20 @@
 import "./authentication-view.css";
-import React, { useEffect, useState } from "react";
+import React, { lazy, startTransition, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
+
 import { auth } from "../../models/services/firebase";
+
 import { useUserStore } from "../../hooks/user-store";
 import { useInternetConnection } from "../../hooks/internet-connection";
-import { checkPassword } from "../../models/utils/check-password";
+
 import AuthenticationController from "../../controllers/authentication-controller";
-import { createPortal } from "react-dom";
+import { checkPassword } from "../../models/utils/check-password";
+
+import DisconnectionPortal from "../disconnection/disconnection-portal";
+// const DisconnectionPortal = lazy(() => import("../disconnection/disconnection-portal"));
+
 
 export default function AuthenticationView() {
   const navigate = useNavigate();
@@ -146,16 +153,6 @@ export default function AuthenticationView() {
     });
   };
 
-  const disconnectionPortal = () => {
-    return createPortal(
-      <div className="disconnection-portal">
-        <p className="disconnection-text">Your connection has been interrupted. Please check your connection!</p>
-        <div className="disconnection-circle"></div>
-      </div>,
-      document.body
-    )
-  }
-
   const verificationPortal = () => {
     const handleSendVerificationEmail = async () => {
       await AuthenticationController.sendEmailVerification(auth?.currentUser).then(async () => {
@@ -207,90 +204,90 @@ export default function AuthenticationView() {
       </div>,
       document.body
     );
-    
-      
   }
 
   return (
-    <div className="authentication min-h-screen flex items-center justify-center bg-gray-100">
-      {showVerification && verificationPortal()}
-      {!connectionState && disconnectionPortal()}
-      <div className="header-container text-center mb-8">
-        <h1 className="app-title">Clone-locket</h1>
-        <p className="app-subtitle">Clone-locket - Connect and share with your friends and family</p>
-      </div>
-      <div className="flex flex-col items-center">
-        <div className="flex justify-center mb-5">
-          <button
-            onClick={() => {
-              setShowLogin(true);
-              setShowForgotPassword(false);
-            }}
-            className={`px-4 py-2 mx-2 ${showLogin && !showForgotPassword ? "font-bold" : ""}`}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => {
-              setShowLogin(false);
-              setShowForgotPassword(false);
-            }}
-            className={`px-4 py-2 mx-2 ${!showLogin && !showForgotPassword ? "font-bold" : ""}`}
-          >
-            Sign up
-          </button>
+    <>
+      {!connectionState && <DisconnectionPortal />}
+      <div className="authentication min-h-screen flex items-center justify-center bg-gray-100">
+        {showVerification && verificationPortal()}
+        <div className="header-container text-center mb-8">
+          <h1 className="app-title">Clone-locket</h1>
+          <p className="app-subtitle">Clone-locket - Connect and share with your friends and family</p>
         </div>
+        <div className="flex flex-col items-center">
+          <div className="flex justify-center mb-5">
+            <button
+              onClick={() => {
+                setShowLogin(true);
+                setShowForgotPassword(false);
+              }}
+              className={`px-4 py-2 mx-2 ${showLogin && !showForgotPassword ? "font-bold" : ""}`}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => {
+                setShowLogin(false);
+                setShowForgotPassword(false);
+              }}
+              className={`px-4 py-2 mx-2 ${!showLogin && !showForgotPassword ? "font-bold" : ""}`}
+            >
+              Sign up
+            </button>
+          </div>
 
-        {showForgotPassword ? (
-          <div className="w-96 mb-5">
-            <form className="flex flex-col">
-              <p>Enter your email and we will send you a password reset link!</p>
-              <input type="text" placeholder="Email" name="reset-password-email" required className="mb-3 p-2 border rounded" />
-              <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700"
-                onClick={handleSendResetPasswordEmail}
-              >
-                {isLoading ? "Loading" : "Send"}
-              </button>
-            </form>
-            <div className="flex justify-between mt-4 w-full">
-              <button disabled={isLoading || isFetching} onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
-                Login with Google
-              </button>
+          {showForgotPassword ? (
+            <div className="w-96 mb-5">
+              <form className="flex flex-col">
+                <p>Enter your email and we will send you a password reset link!</p>
+                <input type="text" placeholder="Email" name="reset-password-email" required className="mb-3 p-2 border rounded" />
+                <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+                  onClick={handleSendResetPasswordEmail}
+                >
+                  {isLoading ? "Loading" : "Send"}
+                </button>
+              </form>
+              <div className="flex justify-between mt-4 w-full">
+                <button disabled={isLoading || isFetching} onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
+                  Login with Google
+                </button>
+              </div>
             </div>
-          </div>
-        ) : showLogin ? (
-          <div className="w-96 mb-5">
-            <form disabled={isLoading || isFetching} onSubmit={handleLogIn} className="flex flex-col">
-              <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded" />
-              <input type="password" placeholder="Password" name="password" required className="mb-3 p-2 border rounded" />
-              <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                {(isLoading || isFetching) ? "Loading" : "Login"}
-              </button>
-            </form>
-            <div className="flex justify-between mt-4 w-full">
-            
-              <button disabled={isLoading} onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
-                Login with Google
-              </button>
-              <button disabled={isLoading} onClick={handleForgotPassword} className="text-blue-500 hover:underline">
-                Forgot Password?
-              </button>
+          ) : showLogin ? (
+            <div className="w-96 mb-5">
+              <form disabled={isLoading || isFetching} onSubmit={handleLogIn} className="flex flex-col">
+                <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded" />
+                <input type="password" placeholder="Password" name="password" required className="mb-3 p-2 border rounded" />
+                <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                  {(isLoading || isFetching) ? "Loading" : "Login"}
+                </button>
+              </form>
+              <div className="flex justify-between mt-4 w-full">
+              
+                <button disabled={isLoading} onClick={handleGoogleLogin} className="text-blue-500 hover:underline">
+                  Login with Google
+                </button>
+                <button disabled={isLoading} onClick={handleForgotPassword} className="text-blue-500 hover:underline">
+                  Forgot Password?
+                </button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="w-96 mb-5">
-            <form disabled={isLoading || isFetching} onSubmit={handleCreateAccount} className="flex flex-col">
-              <input type="text" placeholder="Username" name="userName" required className="mb-3 p-2 border rounded" />
-              <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded" />
-              <input type="password" placeholder="Password" name="password" required className="mb-3 p-2 border rounded" />
-              <input type="password" placeholder="Confirm Password" name="confirmPassword" required className="mb-3 p-2 border rounded" />
-              <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                {(isLoading || isFetching) ? "Loading" : "Sign up"}
-              </button>
-            </form>
-          </div>
-        )}
+          ) : (
+            <div className="w-96 mb-5">
+              <form disabled={isLoading || isFetching} onSubmit={handleCreateAccount} className="flex flex-col">
+                <input type="text" placeholder="Username" name="userName" required className="mb-3 p-2 border rounded" />
+                <input type="text" placeholder="Email" name="email" required className="mb-3 p-2 border rounded" />
+                <input type="password" placeholder="Password" name="password" required className="mb-3 p-2 border rounded" />
+                <input type="password" placeholder="Confirm Password" name="confirmPassword" required className="mb-3 p-2 border rounded" />
+                <button disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                  {(isLoading || isFetching) ? "Loading" : "Sign up"}
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

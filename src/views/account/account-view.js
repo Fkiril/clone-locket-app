@@ -1,5 +1,5 @@
 import "./account-view.css";
-import React, { useState } from "react";
+import React, { lazy, startTransition, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -11,16 +11,24 @@ import { useUserStore } from "../../hooks/user-store";
 import { useChatListStore } from "../../hooks/chat-list-store";
 import { useMessageStore } from "../../hooks/message-store";
 import { useInternetConnection } from "../../hooks/internet-connection";
+
 import AuthenticationController from "../../controllers/authentication-controller";
 import UserController from "../../controllers/user-controller";
 import { checkPassword } from "../../models/utils/check-password";
 
-import BlockedListPortal from "./BlockedListPortal";
-import FriendsListPortal from "./FriendsListPortal";
-import PicturesListPortal from "./PicturesListPortal";
-import RequestsListPortal from "./RequestsListPortal";
-import SearchBar from "./SearchBar"; // Import the new SearchBar component
-import DeletingAccountPortal from "./DeletingAccountPortal";
+import DisconnectionPortal from "../disconnection/disconnection-portal";
+// import BlockedListPortal from "./BlockedListPortal";
+// import FriendsListPortal from "./FriendsListPortal";
+// import PicturesListPortal from "./PicturesListPortal";
+// import RequestsListPortal from "./RequestsListPortal";
+// import SearchBar from "./SearchBar";
+// import DeletingAccountPortal from "./DeletingAccountPortal";
+const BlockedListPortal = lazy(() => import("./BlockedListPortal"));
+const FriendsListPortal = lazy(() => import("./FriendsListPortal"));
+const PicturesListPortal = lazy(() => import("./PicturesListPortal"));
+const RequestsListPortal = lazy(() => import("./RequestsListPortal"));
+const SearchBar = lazy(() => import("./SearchBar"));
+const DeletingAccountPortal = lazy(() => import("./DeletingAccountPortal"));
 
 export default function AccountView() {
     const navigate = useNavigate();
@@ -41,28 +49,12 @@ export default function AccountView() {
     });
 
     const [isChangingUserName, setIsChangingUserName] = useState(false);
-
     const [isChangingPassword, setIsChangingPassword] = useState(false);
-
     const [isShowingFriends, setIsShowingFriends] = useState(false);
-
     const [isShowingRequests, setIsShowingRequests] = useState(false);
-
     const [isShowingBlocked, setIsShowingBlocked] = useState(false);
-
     const [isShowingPictures, setIsShowingPictures] = useState(false);
-
     const [isDeletingAccount, setIsDeletingAccount] = useState(false);
-
-    const disconnectionPortal = () => {
-        return createPortal(
-            <div className="disconnection-portal">
-                <p className="disconnection-text">Your connection has been interrupted. Please check your connection!</p>
-                <div className="disconnection-circle"></div>
-            </div>,
-            document.body
-        );
-    };    
 
     const handleLogOut = async () => {
         await AuthenticationController.logOut().then(async () => {
@@ -297,59 +289,63 @@ export default function AccountView() {
     };
 
     const handleRouting = (path) => {
-        navigate(path);
+        startTransition(() => {
+            navigate(path);
+        })
     };
     
     return (
-        <div className="account-container">
-            {!connectionState && disconnectionPortal()}
-            <div className="card">
-                <div className="image">
-                    <img src={currentUser?.avatarFileUrl || currentUser?.avatar || "./default_avatar.jpg"} alt="avatar" onClick={() => setIsSettingAvatar(true)}/>
-                </div>
-                <div className="card-info">
-                    <span>{currentUser?.userName}</span>
-                    <p>{currentUser?.email}</p>
-                </div>
-                <button onClick={() => handleRouting("/home")} className="home-icon-button">
-                    <div className="home-icon"></div>
-                </button>
-            </div>
-    
-            <div className="account-body">
-                {isSettingAvatar && avatarSettingPortal()}
-                {isChangingUserName && changingUserNamePortal()}
-                {isChangingPassword && changingPasswordPortal()}
-                
-                {isDeletingAccount && <DeletingAccountPortal setIsDeletingAccount={setIsDeletingAccount} currentUser={currentUser} />}
-                {isShowingFriends && <FriendsListPortal setIsShowingFriends={setIsShowingFriends} />}
-                {isShowingRequests && <RequestsListPortal setIsShowingRequests={setIsShowingRequests} />}
-                {isShowingBlocked && <BlockedListPortal setIsShowingBlocked={setIsShowingBlocked} />}
-                {isShowingPictures && <PicturesListPortal setIsShowingPictures={setIsShowingPictures} />}
-    
-                <div className="friends-section">
-                    <h3>Friends</h3>
-                    {/* Thanh Search Bar thay thế nút "Find Friends" */}
-                    <SearchBar />
-                    <button onClick={() => setIsShowingFriends(true)}>Friends List</button>
-                    <div className="relative"> {}
-                        <button onClick={() => setIsShowingRequests(true)} className="relative">
-                            Requests
-                            {requestDatas?.length > 0 && <span className="notification-dot"></span>} {}
-                        </button>
+        <>
+            <div className="account-container">
+                {!connectionState && <DisconnectionPortal />}
+                <div className="card">
+                    <div className="image">
+                        <img src={currentUser?.avatarFileUrl || currentUser?.avatar || "./default_avatar.jpg"} alt="avatar" onClick={() => setIsSettingAvatar(true)}/>
                     </div>
-                    <button onClick={() => setIsShowingBlocked(true)}>Blocked</button>
+                    <div className="card-info">
+                        <span>{currentUser?.userName}</span>
+                        <p>{currentUser?.email}</p>
+                    </div>
+                    <button onClick={() => handleRouting("/home")} className="home-icon-button">
+                        <div className="home-icon"></div>
+                    </button>
                 </div>
-    
-                <div className="settings-section">
-                    <h3>Settings</h3>
-                    <button onClick={() => setIsChangingUserName(true)}>Change username</button>
-                    <button onClick={() => setIsChangingPassword(true)}>Change password</button>
-                    <button className="delete-account-button" onClick={() => setIsDeletingAccount(true)}>Delete Account</button>
-                    <button className="log-out" onClick={handleLogOut}>Log out</button>
+        
+                <div className="account-body">
+                    {isSettingAvatar && avatarSettingPortal()}
+                    {isChangingUserName && changingUserNamePortal()}
+                    {isChangingPassword && changingPasswordPortal()}
+                    
+                    {isDeletingAccount && <DeletingAccountPortal setIsDeletingAccount={setIsDeletingAccount} currentUser={currentUser} />}
+                    {isShowingFriends && <FriendsListPortal setIsShowingFriends={setIsShowingFriends} />}
+                    {isShowingRequests && <RequestsListPortal setIsShowingRequests={setIsShowingRequests} />}
+                    {isShowingBlocked && <BlockedListPortal setIsShowingBlocked={setIsShowingBlocked} />}
+                    {isShowingPictures && <PicturesListPortal setIsShowingPictures={setIsShowingPictures} />}
+        
+                    <div className="friends-section">
+                        <h3>Friends</h3>
+                        {/* Thanh Search Bar thay thế nút "Find Friends" */}
+                        <SearchBar />
+                        <button onClick={() => startTransition(() => setIsShowingFriends(true))}>Friends List</button>
+                        <div className="relative"> {}
+                            <button onClick={() => startTransition(() => setIsShowingRequests(true))} className="relative">
+                                Requests
+                                {requestDatas?.length > 0 && <span className="notification-dot"></span>} {}
+                            </button>
+                        </div>
+                        <button onClick={() => startTransition(() => setIsShowingBlocked(true))}>Blocked</button>
+                    </div>
+        
+                    <div className="settings-section">
+                        <h3>Settings</h3>
+                        <button onClick={() => setIsChangingUserName(true)}>Change username</button>
+                        <button onClick={() => setIsChangingPassword(true)}>Change password</button>
+                        <button className="delete-account-button" onClick={() => startTransition(() => setIsDeletingAccount(true))}>Delete Account</button>
+                        <button className="log-out" onClick={handleLogOut}>Log out</button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );    
     
 }
