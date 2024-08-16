@@ -13,6 +13,7 @@ export default function PictureGalleryPortal({ friendId, onClose }) {
         pictureDatas.filter(pic => pic.ownerId === friendId)
     );
     const [pictureToDelete, setPictureToDelete] = useState(null);
+    const [enlargedPicture, setEnlargedPicture] = useState(null); // New state for enlarged picture
 
     const handleClickOutside = (event) => {
         if (event.target.classList.contains('picture-gallery-portal')) {
@@ -40,6 +41,14 @@ export default function PictureGalleryPortal({ friendId, onClose }) {
         setPictureToDelete(null);
     };
 
+    const handleEnlargePicture = (pictureUrl) => {
+        setEnlargedPicture(pictureUrl);
+    };
+
+    const handleCloseEnlargedPicture = () => {
+        setEnlargedPicture(null);
+    };
+
     const confirmDeletePortal = () => {
         return createPortal(
             <div className="confirm-delete-portal fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-60">
@@ -55,6 +64,15 @@ export default function PictureGalleryPortal({ friendId, onClose }) {
         );
     };
 
+    const enlargedPicturePortal = () => {
+        return createPortal(
+            <div className="enlarged-picture-portal fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-70" onClick={handleCloseEnlargedPicture}>
+                <img src={enlargedPicture} alt="Enlarged Gallery Picture" className="enlarged-picture max-w-full max-h-full"/>
+            </div>,
+            document.body
+        );
+    };
+
     return createPortal(
         <div className="picture-gallery-portal fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50" onClick={handleClickOutside}>
             <div className="gallery-container bg-white p-6 rounded-lg shadow-lg max-w-4xl w-full overflow-y-auto max-h-[80vh]">
@@ -64,12 +82,17 @@ export default function PictureGalleryPortal({ friendId, onClose }) {
                     </h2>
                     <button onClick={onClose} className="close-button bg-red-500 text-white px-4 py-2 rounded">Close</button>
                 </div>
-                <div className="picture-list mt-16 space-y-4">
+                <div className="picture-list mt-16 grid grid-cols-2 gap-4">
                     {selectedFriendPictures.map(picture => (
-                        <div key={picture.id} className="picture-item border-black border-4 p-2">
+                        <div key={picture.id} className="picture-item relative">
                             <div className="relative">
-                                <img src={picture.fileUrl || picture.url} alt="Gallery Picture" className="w-full h-auto rounded-md"/>
-                                <span className="absolute top-2 right-2 text-sm text-gray-500">{timestampToString(picture.uploadTime)}</span>
+                                <img src={picture.fileUrl || picture.url} alt="Gallery Picture" 
+                                    className="w-full h-auto object-cover aspect-square rounded-md cursor-pointer"
+                                    onClick={() => handleEnlargePicture(picture.fileUrl || picture.url)} 
+                                />
+                                <span className="absolute top-2 right-2 text-xs text-gray-700 bg-gray-300 p-1 rounded-bl-md">
+                                    {timestampToString(picture.uploadTime)}
+                                </span>
                             </div>
                             <div className="caption bg-gray-200 text-center p-2 mt-2">
                                 <p>{picture.text}</p>
@@ -87,6 +110,7 @@ export default function PictureGalleryPortal({ friendId, onClose }) {
                 </div>
             </div>
             {pictureToDelete && confirmDeletePortal()}
+            {enlargedPicture && enlargedPicturePortal()}
         </div>,
         document.body
     );
