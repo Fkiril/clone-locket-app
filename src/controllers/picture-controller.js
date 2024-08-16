@@ -1,4 +1,4 @@
-import { createBatchedWrites, getDocDatasByValue, getDocDataById, getDocRef, updateArrayField, writeIntoCol, writeIntoDoc } from "../models/utils/firestore-method";
+import { createBatchedWrites, getDocDatasByValue, getDocDataById, getDocRef, updateArrayField, writeIntoCol } from "../models/utils/firestore-method";
 import { deleteFile, uploadToFolder } from "../models/utils/storage-method";
 import { stringToTimestamp } from "../models/utils/date-method";
 
