@@ -39,7 +39,7 @@
 .chat-header .home-icon {
   width: 40px;
   height: 40px;
-  background: url('home-icon.svg') no-repeat center center;
+  background: url('../../assets/home-icon.svg') no-repeat center center;
   background-size: contain;
 }
 
@@ -81,7 +81,7 @@
 .search-form .search-icon {
   width: 24px;
   height: 24px;
-  background: url('search-icon.svg') no-repeat center center;
+  background: url('../../assets/search-icon.svg') no-repeat center center;
   background-size: contain;
 }
 

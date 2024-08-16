@@ -1,5 +1,5 @@
 import "./upload-picture-view.css";
-import React, { useRef, useState } from "react";
+import React, { startTransition, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -12,11 +12,15 @@ import PictureController from "../../controllers/picture-controller";
 import Picture, { ScopeEnum } from "../../models/entities/picture";
 import DisconnectionPortal from "../disconnection/disconnection-portal";
 
-import cameraIcon from './camera.jpg';
-import folderIcon from './folder.jpg';
+import cameraIcon from '../../assets/camera.jpg';
+import folderIcon from '../../assets/folder.jpg';
+import settingPic from '../../assets/setting.png';
+import permissionPic from '../../assets/permission.png';
+import privacySecurityPic from '../../assets/privacy-security.png';
 
 const ICON_STATE = 'icon_state';
 const UPLOAD_STATE = 'upload_state';
+const GUIDE_STATE = 'guide_state';
 
 export default function UploadPictureView() {
   const navigate = useNavigate();
@@ -127,6 +131,8 @@ export default function UploadPictureView() {
         })
         .catch((error) => {
           toast.error("Cannot access camera. Please grant permission!");
+          setViewState(GUIDE_STATE);
+          setIsCameraOpen(false);
           console.error("Error accessing camera:", error);
         });
     }
@@ -174,7 +180,9 @@ export default function UploadPictureView() {
     if (isCameraOpen) {
       handleCloseCamera();
     }
-    navigate("/home");
+    startTransition(() => {
+      navigate("/home");
+    });
   };
 
   return (
@@ -190,6 +198,20 @@ export default function UploadPictureView() {
         <p className="app-subtitle text-center">Share moments - Happy life</p>
 
         <div className="upload-picture-container">
+          {viewState === GUIDE_STATE && (
+            <div className="guide-picture">
+              <h3>It seem that you have not gain permission to access camera yet.</h3>
+              <p>Please go to Settings and grant permission.</p>
+              <p>Settings - Privacy & Security - Camera - Let desktop apps use your camera</p>
+              <div className="img1">
+                <img src={settingPic} alt="Setting" />
+                <div className="img23">
+                  <img src={privacySecurityPic} alt="Privacy" />
+                  <img src={permissionPic} alt="Permission" />
+                </div>
+              </div>
+            </div>
+          )}
           {viewState === ICON_STATE && (
             <div className="option-picture">
               <div className="button-container flex justify-center items-center space-x-14">

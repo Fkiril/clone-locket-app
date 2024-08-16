@@ -57,7 +57,7 @@
 .home-icon {
   width: 32px;
   height: 32px;
-  background: url('./home-icon.svg') no-repeat center center;
+  background: url('../../assets/home-icon.svg') no-repeat center center;
   background-size: contain;
 }
 
@@ -97,7 +97,7 @@
   display: inline-block;
   width: 24px;
   height: 24px;
-  background: url('./friend-icon.svg') no-repeat center center;
+  background: url('../../assets/friend-icon.svg') no-repeat center center;
   background-size: contain;
   margin-right: 10px;
 }
@@ -107,7 +107,7 @@
   display: inline-block;
   width: 24px;
   height: 24px;
-  background: url('./setting-icon.svg') no-repeat center center;
+  background: url('../../assets/setting-icon.svg') no-repeat center center;
   background-size: contain;
   margin-right: 10px;
 }

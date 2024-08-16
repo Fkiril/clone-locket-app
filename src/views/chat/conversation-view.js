@@ -17,6 +17,10 @@ import { timestampToString } from "../../models/utils/date-method";
 
 import DisconnectionPortal from "../disconnection/disconnection-portal";
 
+import InfoIcon from "../../assets/info-icon.svg";
+import SendIcon from "../../assets/send-icon.svg";
+import BackIcon from "../../assets/back-icon.svg";
+
 export default function ConversationView() {
     const navigate = useNavigate();
     
@@ -157,11 +161,11 @@ export default function ConversationView() {
             <div className="conversation-container" key={conversationId}>
                 <div className="header">
                     <button className="back-button" onClick={() => handleRouting("/chat")}>
-                        <img src="/back-icon.svg" alt="Back" className="icon" />
+                        <img src={BackIcon} alt="Back" className="icon" />
                     </button>
                     <h2>Box Chat</h2>
                     <button className="info-button" onClick={toggleDetail}>
-                        <img src="/info-icon.svg" alt="Info" className="icon" />
+                        <img src={InfoIcon} alt="Info" className="icon" />
                     </button>
                 </div>
                 {friendInfo && showDetail && (
@@ -210,7 +214,7 @@ export default function ConversationView() {
                             className="message-send"
                         />
                         <button type="submit" className="button-send" disabled={isBlocked}>
-                            <img src="/send-icon.svg" alt="Send" className="icon" />
+                            <img src={SendIcon} alt="Send" className="icon" />
                         </button>
                     </form>
                 </div>
