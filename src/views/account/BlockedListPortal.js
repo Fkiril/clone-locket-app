@@ -19,7 +19,7 @@ const BlockedListPortal = ({ setIsShowingBlocked }) => {
 
     const handleReFetch = async () => {
         const now = new Date().getTime();
-        if (now - nearestFetchUserInfo > 5000) {
+        if (now - nearestFetchUserInfo > 3000) {
             await fetchUserInfo(auth?.currentUser?.uid);
         }
     };

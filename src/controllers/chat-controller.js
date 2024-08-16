@@ -65,7 +65,7 @@ export default class ChatController {
     static async getConversationIdWithFriend(userId, friendId) {
         try {
             const chatManagerData = await getDocDataById("chatManagers", userId);
-            if (chatManagerData && chatManagerData.friendConversations && chatManagerData.friendConversations[friendId]) {
+            if (chatManagerData && chatManagerData?.friendConversations !== null && chatManagerData?.friendConversations[friendId]) {
                 return chatManagerData.friendConversations[friendId];
             }
 

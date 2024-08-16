@@ -5,12 +5,19 @@ import UserController from "../../controllers/user-controller";
 import { toast } from "react-toastify";
 
 const SearchBar = () => {
-  const { currentUser, friendDatas } = useUserStore();
+  const { currentUser, friendDatas, fetchUserInfo, nearestFetchUserInfo } = useUserStore();
   const userController = currentUser ? new UserController(currentUser) : null;
   
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResult, setSearchResult] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+
+  const handleReFetch = async () => {
+    const now = new Date().getTime();
+    if (now - nearestFetchUserInfo > 3000) {
+      await fetchUserInfo(currentUser?.uid);
+    }
+  };
 
   const handleSearch = async () => {
     await userController.getFriendByEmail(searchQuery).then((result) => {
@@ -38,11 +45,24 @@ const SearchBar = () => {
   };
 
   const handleBlockUser = async () => {
-    await userController.blockUser(searchResult.id).then(() => {
+    await userController.blockUser(searchResult.id).then(async () => {
       toast.success("User blocked successfully.");
       setSearchResult(null);
+      await handleReFetch();
     }).catch((error) => {
       toast.error("Failed to block user. Please try again.");
+    });
+  };
+
+  const handleCancelRequest = async () => {
+    await userController.cancelFriendRequest(searchResult.id).then(async () => {
+      toast.success("Friend request canceled successfully.");
+      setSearchResult(null);
+      setIsSearching(false);
+      setSearchQuery("");
+      await handleReFetch();
+    }).catch((error) => {
+      toast.error("Failed to cancel friend request. Please try again.");
     });
   };
 

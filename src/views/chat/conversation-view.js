@@ -142,7 +142,8 @@ export default function ConversationView() {
     };
 
     const friendInfo = useMemo(() => {
-        return friendDatas?.find((friend) => friend.id === Object.keys(chatManager.friendConversations).find(key => chatManager.friendConversations[key] === conversationId));
+        if (!chatManager || !chatManager?.friendConversations) return null;
+        return friendDatas?.find((friend) => friend.id === Object.keys(chatManager?.friendConversations).find(key => chatManager?.friendConversations[key] === conversationId));
     }, [conversationId]);
 
     const isBlocked = useMemo(() => {

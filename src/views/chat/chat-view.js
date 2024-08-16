@@ -71,8 +71,8 @@ export default function ChatView() {
     const friendAndConversations = useMemo(() => {
         return friendDatas.map(friend => {
             const conversation = conversations?.find(conv => 
-                conv.participants.includes(currentUser.id) && 
-                conv.participants.includes(friend.id)
+                conv?.participants?.includes(currentUser.id) && 
+                conv?.participants?.includes(friend.id)
             );
             const lastMessage = lastMessages?.find(m => m?.id === conversation?.lastMessage);
             const unreadCount = chatManager?.conversationStates?.[conversation?.id] || 0;
@@ -87,11 +87,11 @@ export default function ChatView() {
     }, [friendDatas, conversations, lastMessages, chatManager]);
     
     const filtered = useMemo(() => {
-        return friendAndConversations.filter(friend => {
+        return friendAndConversations?.filter(friend => {
             if (searchedFriend) {
-                return searchedFriend.find(f => f.id === friend.id);
+                return searchedFriend.find(f => f?.id === friend?.id);
             }
-            else return friend.conversation !== undefined;
+            else return friend?.conversation !== undefined;
         })
     }, [searchedFriend, friendAndConversations]);
     
