@@ -1,5 +1,5 @@
 import "./account-view.css";
-import React, { useState } from "react";
+import React, { lazy, startTransition, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -16,13 +16,19 @@ import AuthenticationController from "../../controllers/authentication-controlle
 import UserController from "../../controllers/user-controller";
 import { checkPassword } from "../../models/utils/check-password";
 
-import BlockedListPortal from "./BlockedListPortal";
-import FriendsListPortal from "./FriendsListPortal";
-import PicturesListPortal from "./PicturesListPortal";
-import RequestsListPortal from "./RequestsListPortal";
-import SearchBar from "./SearchBar";
-import DeletingAccountPortal from "./DeletingAccountPortal";
 import DisconnectionPortal from "../disconnection/disconnection-portal";
+// import BlockedListPortal from "./BlockedListPortal";
+// import FriendsListPortal from "./FriendsListPortal";
+// import PicturesListPortal from "./PicturesListPortal";
+// import RequestsListPortal from "./RequestsListPortal";
+// import SearchBar from "./SearchBar";
+// import DeletingAccountPortal from "./DeletingAccountPortal";
+const BlockedListPortal = lazy(() => import("./BlockedListPortal"));
+const FriendsListPortal = lazy(() => import("./FriendsListPortal"));
+const PicturesListPortal = lazy(() => import("./PicturesListPortal"));
+const RequestsListPortal = lazy(() => import("./RequestsListPortal"));
+const SearchBar = lazy(() => import("./SearchBar"));
+const DeletingAccountPortal = lazy(() => import("./DeletingAccountPortal"));
 
 export default function AccountView() {
     const navigate = useNavigate();
@@ -283,13 +289,15 @@ export default function AccountView() {
     };
 
     const handleRouting = (path) => {
-        navigate(path);
+        startTransition(() => {
+            navigate(path);
+        })
     };
     
     return (
         <>
             <div className="account-container">
-                {!connectionState && DisconnectionPortal()}
+                {!connectionState && <DisconnectionPortal />}
                 <div className="card">
                     <div className="image">
                         <img src={currentUser?.avatarFileUrl || currentUser?.avatar || "./default_avatar.jpg"} alt="avatar" onClick={() => setIsSettingAvatar(true)}/>
@@ -318,21 +326,21 @@ export default function AccountView() {
                         <h3>Friends</h3>
                         {/* Thanh Search Bar thay thế nút "Find Friends" */}
                         <SearchBar />
-                        <button onClick={() => setIsShowingFriends(true)}>Friends List</button>
+                        <button onClick={() => startTransition(() => setIsShowingFriends(true))}>Friends List</button>
                         <div className="relative"> {}
-                            <button onClick={() => setIsShowingRequests(true)} className="relative">
+                            <button onClick={() => startTransition(() => setIsShowingRequests(true))} className="relative">
                                 Requests
                                 {requestDatas?.length > 0 && <span className="notification-dot"></span>} {}
                             </button>
                         </div>
-                        <button onClick={() => setIsShowingBlocked(true)}>Blocked</button>
+                        <button onClick={() => startTransition(() => setIsShowingBlocked(true))}>Blocked</button>
                     </div>
         
                     <div className="settings-section">
                         <h3>Settings</h3>
                         <button onClick={() => setIsChangingUserName(true)}>Change username</button>
                         <button onClick={() => setIsChangingPassword(true)}>Change password</button>
-                        <button className="delete-account-button" onClick={() => setIsDeletingAccount(true)}>Delete Account</button>
+                        <button className="delete-account-button" onClick={() => startTransition(() => setIsDeletingAccount(true))}>Delete Account</button>
                         <button className="log-out" onClick={handleLogOut}>Log out</button>
                     </div>
                 </div>

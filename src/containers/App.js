@@ -1,15 +1,15 @@
 import './App.css';
-import React from 'react';
+import React, { lazy } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 
-import AuthenticationView from '../views/authentication/authentication-view';
-import AccountView from '../views/account/account-view';
-import HomeView from '../views/home/home-view';
-import UploadPictureView from '../views/picture/upload-picture-view';
-import ChatView from '../views/chat/chat-view';
-import ConversationView from '../views/chat/conversation-view';
 import Notification from './notification';
 import StateTracking from './state-tracking';
+const AuthenticationView = lazy(() => import('../views/authentication/authentication-view'));
+const HomeView = lazy(() => import('../views/home/home-view'));
+const AccountView = lazy(() => import('../views/account/account-view'));
+const UploadPictureView = lazy(() => import('../views/picture/upload-picture-view'));
+const ChatView = lazy(() => import('../views/chat/chat-view'));
+const ConversationView = lazy(() => import('../views/chat/conversation-view'));
 
 function App() {
   return (

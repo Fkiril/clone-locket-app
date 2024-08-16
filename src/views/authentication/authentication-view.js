@@ -1,5 +1,5 @@
 import "./authentication-view.css";
-import React, { useEffect, useState } from "react";
+import React, { lazy, startTransition, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
@@ -13,6 +13,8 @@ import AuthenticationController from "../../controllers/authentication-controlle
 import { checkPassword } from "../../models/utils/check-password";
 
 import DisconnectionPortal from "../disconnection/disconnection-portal";
+// const DisconnectionPortal = lazy(() => import("../disconnection/disconnection-portal"));
+
 
 export default function AuthenticationView() {
   const navigate = useNavigate();
@@ -202,13 +204,11 @@ export default function AuthenticationView() {
       </div>,
       document.body
     );
-    
-      
   }
 
   return (
     <>
-      {!connectionState && DisconnectionPortal()}
+      {!connectionState && <DisconnectionPortal />}
       <div className="authentication min-h-screen flex items-center justify-center bg-gray-100">
         {showVerification && verificationPortal()}
         <div className="header-container text-center mb-8">

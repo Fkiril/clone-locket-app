@@ -1,5 +1,5 @@
 import "./home-view.css";
-import React, { useState } from "react";
+import React, { lazy, startTransition, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -13,15 +13,15 @@ import { useInternetConnection } from "../../hooks/internet-connection";
 import ChatController from "../../controllers/chat-controller";
 import { timestampToString } from "../../models/utils/date-method";
 
-import PictureGalleryPortal from "./PictureGalleryPortal";
-import DisconnectionPortal from "../disconnection/disconnection-portal";
-
 import ChatIcon from '../../assets/chat-icon.svg';
 import UploadIcon from '../../assets/upload-icon.svg';
 import ReactIcon from '../../assets/react-icon.svg';
 import LeftArrowIcon from '../../assets/left-arrow-icon.svg';
 import RightArrowIcon from '../../assets/right-arrow-icon.svg';
 import SendIcon from '../../assets/send-icon.svg';
+
+import DisconnectionPortal from "../disconnection/disconnection-portal";
+const PictureGalleryPortal = lazy(() => import("./PictureGalleryPortal"));
 
 export default function HomeView() {
     const navigate = useNavigate();
@@ -35,7 +35,9 @@ export default function HomeView() {
     const [isViewingPictures, setIsViewingPictures] = useState(false);
 
     const handleRouting = (path) => {
-        navigate(path);
+        startTransition(() => {
+            navigate(path);
+        })
     }
 
     const handlePrevPicture = () => {
@@ -108,11 +110,15 @@ export default function HomeView() {
     }
 
     const handleOpenGallery = (friendId) => {
-        setIsViewingPictures(true);
+        startTransition(() => {
+            setIsViewingPictures(true);            
+        })
     };
 
     const handleCloseGallery = () => {
-        setIsViewingPictures(false);
+        startTransition(() => {
+            setIsViewingPictures(false);
+        })
     };
 
     return (
