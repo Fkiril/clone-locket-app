@@ -52,7 +52,6 @@ const StateTracking = () => {
         if (auth?.currentUser?.uid && currentUser) {
             const unSubscribe = onSnapshot(
                 getDocRef("users", auth?.currentUser?.uid),
-                { includeMetadataChanges: false},
                 async () => {
                     console.log("state-tracking.js: fetchUserInfo() for onSnapshot");
                     await fetchUserInfo(auth?.currentUser?.uid);
@@ -69,7 +68,6 @@ const StateTracking = () => {
         if (auth?.currentUser?.uid && currentUser) {
             const unSubscribe = onSnapshot(
                 getDocRef("chatManagers", auth?.currentUser?.uid),
-                { includeMetadataChanges: false },
                 async () => {
                     console.log("state-tracking.js: fetchLastMessage() for onSnapshot");
                     await fetchLastMessages(auth?.currentUser?.uid);
