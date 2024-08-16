@@ -1,5 +1,5 @@
 import { auth, googleProvider } from "../models/services/firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, deleteUser } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, deleteUser, applyActionCode } from "firebase/auth";
 import { exitDocWithValue, createBatchedWrites, getDocRef, exitDoc, getDocDataById } from "../models/utils/firestore-method";
 import { deleteFile } from "../models/utils/storage-method";
 import { toast } from "react-toastify";
@@ -150,6 +150,21 @@ export default class AuthenticationController {
             await sendEmailVerification(user);
         } catch (error) {
             console.log("Error sending email verification: ", error);
+            throw error;
+        }
+    }
+
+    static async applyActionCodeFromURL(url) {
+        const oobCode = new URL(url).searchParams.get('oobCode');
+        console.log("oobCode: ", oobCode);
+        if (!oobCode) {
+            console.log("Invalid action code: ", oobCode);
+            return;
+        }
+        try {
+            await applyActionCode(auth, oobCode);
+        } catch (error) {
+            console.log("Error applying action code: ", error);
             throw error;
         }
     }

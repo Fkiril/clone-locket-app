@@ -19,13 +19,21 @@ export default function AuthenticationView() {
   const [showLogin, setShowLogin] = useState(true);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
+  const [showVerification, setShowVerification] = useState(false);
+
   useEffect(() => {
+    console.log("useEffect");
     if (auth?.currentUser && currentUser) {
       setIsLoading(false);
-      navigate("/home");
+      if (!auth?.currentUser?.emailVerified) {
+        setShowVerification(true);
+      }
+      else {
+        navigate("/home");
+      }
     }
-  }, [currentUser, navigate]);
-
+  }, [auth?.currentUser, navigate]);
+  console.log("auth: ", auth);
   const handleLogIn = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -35,7 +43,7 @@ export default function AuthenticationView() {
 
     await AuthenticationController.logIn(email, password)
       .then(() => {
-        toast.success("Login successful!");
+        toast.success("Loging in ....");
       })
       .catch((error) => {
         toast.error("Invalid email or password. Please try again.");
@@ -81,6 +89,7 @@ export default function AuthenticationView() {
         setShowLogin(true);
       })
       .catch((error) => {
+        console.log(error);
         toast.error("Failed to create account. Please try again.");
       });
 
@@ -148,8 +157,61 @@ export default function AuthenticationView() {
     )
   }
 
+  const verificationPortal = () => {
+    const handleSendVerificationEmail = async () => {
+      await AuthenticationController.sendEmailVerification(auth?.currentUser).then(async () => {
+        toast.success("Verification email sent. Please check your email!");
+        await AuthenticationController.logOut();
+      }).catch((error) => {
+        console.log(error);
+        toast.error("Failed to send verification email. Please try again.");
+      });
+    }
+
+    const handleVertifyAccount = async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const verificationLink = formData.get("verification-link");
+
+      if (!verificationLink) return;
+      if (!verificationLink.startsWith("https://clone-locket-app-hk233.firebaseapp.com")) {
+        toast.error("Invalid verification link. Please paste the link from your email.");
+        return;
+      };
+
+      await AuthenticationController.applyActionCodeFromURL(verificationLink).then(() => {
+        toast.success("Verification successful!");
+        setShowVerification(false);
+      }).catch((error) => {
+        toast.error("Invalid verification code. Please try again.");
+      });
+    }
+
+    const handleCancel = async () => {
+      await AuthenticationController.logOut();
+      setShowVerification(false);
+    }
+
+    return createPortal(
+      <div className="verification-portal">
+        <div className="verification-body">
+          <button onClick={handleSendVerificationEmail} className="verification-button">Send verification email</button>
+          <p>Please click "Send verification email" to get verification email. Or get the link from your email and paste it here!</p>
+          <form onSubmit={handleVertifyAccount}>
+            <input type="text" name="verification-link" placeholder="Your verification link" />
+            <button type="submit" className="verification-button">Verify</button>
+          </form>
+          <button className="cancel-button" onClick={handleCancel}>Cancel</button>
+        </div>
+      </div>,
+      document.body
+    )
+  }
+
   return (
     <div className="authentication min-h-screen flex items-center justify-center bg-gray-100">
+      {showVerification && verificationPortal()}
       {!connectionState && disconnectionPortal()}
       <div className="header-container text-center mb-8">
         <h1 className="app-title">Clone-locket</h1>
