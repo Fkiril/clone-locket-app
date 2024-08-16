@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { useUserStore } from "../../hooks/user-store";
 
 export default function PictureGalleryPortal({ friendId, onClose }) {
-    const { currentUser, friendDatas, pictureDatas } = useUserStore();
+    const { currentUser, friendDatas, pictureDatas, nearestFetchUserInfo, fetchUserInfo } = useUserStore();
 
     const [selectedFriendPictures, setSelectedFriendPictures] = useState(
         pictureDatas.filter(pic => pic.ownerId === friendId)
@@ -28,6 +28,9 @@ export default function PictureGalleryPortal({ friendId, onClose }) {
     const handleConfirmDelete = async () => {
         try {
             await PictureController.deletePicture(pictureToDelete);
+            if (new Date().getTime() - nearestFetchUserInfo > 5000) {
+                await fetchUserInfo(currentUser?.id);
+            }
             setSelectedFriendPictures(prevPictures => prevPictures.filter(pic => pic.id !== pictureToDelete));
             setPictureToDelete(null);
             toast.success("Picture deleted successfully.");
