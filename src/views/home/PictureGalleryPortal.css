@@ -1,0 +1,107 @@
+.picture-gallery-portal {
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.gallery-container {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    width: 80%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: calc(100% - 32px);
+    background-color: white;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.gallery-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+}
+
+.close-button {
+    background-color: #f56565;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.close-button:hover {
+    background-color: #e53e3e;
+}
+
+.picture-item {
+    border: 4px solid black; /* Tăng độ dày của viền */
+    border-radius: 16px; /* Bo góc viền */
+    overflow: hidden;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f9f9f9; /* Màu nền của khung ảnh */
+    text-align: center;
+}
+
+.picture-item img {
+    display: block;
+    margin: 0 auto;
+    max-height: 300px;
+    width: auto;
+    border-radius: 12px;
+}
+
+.picture-item p {
+    background-color: #333; /* Màu nền tối hơn cho khối caption */
+    color: white; /* Đổi màu chữ của caption thành màu trắng */
+    padding: 10px;
+    margin-top: 0;
+    border-radius: 12px 12px 12px 12px; /* Bo tròn phía dưới khối caption */
+    text-align: center;
+}
+
+.picture-item .delete-button {
+    background-color: #ff4d4d; /* Màu nền của nút delete */
+    color: white;
+    padding: 10px 20px; /* Điều chỉnh padding để nút nhỏ hơn */
+    margin-top: 10px;
+    border-radius: 8px;
+    width: auto; /* Giữ cho nút có kích thước tự động */
+    text-align: center;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.caption {
+    background-color: #f7fafc;
+    padding: 10px;
+    margin-top: 5px;
+    text-align: center;
+    font-size: 1em;
+}
+
+/* PictureGalleryPortal.css */
+.picture-gallery-portal {
+    z-index: 50; /* Portal gallery có z-index thấp hơn */
+}
+
+.confirm-delete-portal {
+    z-index: 100; /* Portal xác nhận xóa có z-index cao hơn */
+}
+
+

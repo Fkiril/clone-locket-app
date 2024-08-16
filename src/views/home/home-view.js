@@ -11,6 +11,8 @@ import { useMessageStore } from "../../hooks/message-store";
 import ChatController from "../../controllers/chat-controller";
 import { timestampToString } from "../../models/utils/date-method";
 
+import PictureGalleryPortal from "./PictureGalleryPortal";
+
 import ChatIcon from '../../assets/chat-icon.svg';
 import UploadIcon from '../../assets/upload-icon.svg';
 import ReactIcon from '../../assets/react-icon.svg';
@@ -26,6 +28,8 @@ export default function HomeView() {
     const { fetchMessages, messages } = useMessageStore();
     const avatarUrl = currentUser?.avatar ? currentUser.avatar : "./default_avatar.jpg";
     const [currentPictureIndex, setCurrentPictureIndex] = useState(0);
+    const [isViewingPictures, setIsViewingPictures] = useState(false);
+    const [selectedFriendId, setSelectedFriendId] = useState(null);
 
     const handleRouting = (path) => {
         navigate(path);
@@ -45,6 +49,7 @@ export default function HomeView() {
         }
         return friendDatas.find((friendData) => friendData.id === ownerId);
     }
+    const ownerInfo = getOwnerInfo(pictureDatas[currentPictureIndex]?.ownerId, currentUser);
 
     const handleSendMessage = async (event, friendId, picId) => {
         event.preventDefault();
@@ -100,6 +105,16 @@ export default function HomeView() {
         event.target.reset();
     }
 
+    const handleOpenGallery = (friendId) => {
+        setSelectedFriendId(friendId);
+        setIsViewingPictures(true);
+    };
+
+    const handleCloseGallery = () => {
+        setIsViewingPictures(false);
+        setSelectedFriendId(null);
+    };
+
     return (
         <>
             {(isFetching) ? 
@@ -124,10 +139,10 @@ export default function HomeView() {
                     <div className="friends-pictures-container"> 
                         { pictureDatas.length > 0 ? (
                             <>
-                                <button className="left-arrow" onClick={handlePrevPicture}>
+                            <button className="left-arrow" onClick={handlePrevPicture}>
                                     <img src={LeftArrowIcon} alt="Left Arrow" className="arrow-icon"/>
                                 </button>
-                                <div className="picture-header">   
+                                <div className="picture-header" onClick={() => handleOpenGallery(pictureDatas[currentPictureIndex]?.ownerId)}>   
                                     <div className="owner-info">
                                         <img
                                             src={getOwnerInfo(pictureDatas[currentPictureIndex].ownerId)?.avatarFileUrl || "./default_avatar.jpg"}
@@ -171,6 +186,16 @@ export default function HomeView() {
                     </div>
                 </div>
             }
+            {isViewingPictures && (
+                <PictureGalleryPortal
+                    friendId={pictureDatas[currentPictureIndex]?.ownerId}
+                    currentUser={currentUser}
+                    friendDatas={friendDatas}  // Truyền friendDatas vào đây
+                    onClose={handleCloseGallery}
+                />
+            )}
         </>
     );
 }
+
+
