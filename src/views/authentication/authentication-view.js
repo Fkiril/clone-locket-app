@@ -24,7 +24,7 @@ export default function AuthenticationView() {
   useEffect(() => {
     if (auth?.currentUser && currentUser) {
       setIsLoading(false);
-      if (auth?.currentUser?.emailVerified) {
+      if (!auth?.currentUser?.emailVerified) {
         setShowVerification(true);
       }
       else {
